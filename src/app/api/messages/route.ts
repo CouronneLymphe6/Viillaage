@@ -1,0 +1,144 @@
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { notifyVillageUsers } from "@/lib/notificationHelper";
+
+export async function GET(request: Request) {
+    try {
+        const { searchParams } = new URL(request.url);
+        const channelId = searchParams.get('channelId');
+
+        if (!channelId) {
+            return new NextResponse("Channel ID required", { status: 400 });
+        }
+
+        const messages = await prisma.message.findMany({
+            where: { channelId },
+            include: {
+                user: {
+                    select: {
+                        name: true,
+                        email: true,
+                        image: true,
+                    },
+                },
+                replyTo: {
+                    include: {
+                        user: {
+                            select: { name: true }
+                        }
+                    }
+                },
+                reactions: {
+                    include: {
+                        user: {
+                            select: { name: true }
+                        }
+                    }
+                }
+            },
+            orderBy: { createdAt: 'asc' },
+            take: 100,
+        });
+
+        return NextResponse.json(messages);
+    } catch (error) {
+        console.error("GET_MESSAGES_ERROR", error);
+        return new NextResponse("Internal Error", { status: 500 });
+    }
+}
+
+export async function POST(request: Request) {
+    try {
+        const session = await getServerSession(authOptions);
+
+        if (!session?.user?.id) {
+            return new NextResponse("Unauthorized", { status: 401 });
+        }
+
+        const body = await request.json();
+        const { content, channelId, replyToId } = body;
+
+        if (!content || !channelId) {
+            return new NextResponse("Missing required fields", { status: 400 });
+        }
+
+        const message = await prisma.message.create({
+            data: {
+                content,
+                channelId,
+                userId: session.user.id,
+                replyToId,
+            },
+            include: {
+                user: {
+                    select: {
+                        name: true,
+                        email: true,
+                        image: true,
+                    },
+                },
+                replyTo: {
+                    include: {
+                        user: {
+                            select: { name: true }
+                        }
+                    }
+                },
+                reactions: true,
+            },
+        });
+
+        // Get user details (name, villageId) and channel name
+        const user = await prisma.user.findUnique({
+            where: { id: session.user.id },
+            select: { name: true, villageId: true },
+        });
+
+        const channel = await prisma.channel.findUnique({
+            where: { id: channelId },
+            select: { name: true },
+        });
+
+        if (user?.villageId && channel) {
+            // 1. If it's a reply, notify the original author
+            if (replyToId) {
+                const originalMessage = await prisma.message.findUnique({
+                    where: { id: replyToId },
+                    select: { userId: true },
+                });
+
+                if (originalMessage && originalMessage.userId !== session.user.id) {
+                    await prisma.notification.create({
+                        data: {
+                            userId: originalMessage.userId,
+                            type: 'MESSAGE',
+                            title: `💬 Réponse de ${user.name || 'un voisin'}`,
+                            message: `${content.substring(0, 50)}${content.length > 50 ? '...' : ''}`,
+                            link: `/messages?channelId=${channelId}`,
+                        },
+                    });
+                }
+            }
+            // 2. Otherwise, notify village users (general activity)
+            // Note: In a real app, we would only notify subscribed users. 
+            // For now, we notify everyone to fulfill "Nouveau message de X sur groupe X"
+            else {
+                await notifyVillageUsers({
+                    villageId: user.villageId,
+                    excludeUserId: session.user.id,
+                    type: 'MESSAGE',
+                    title: `💬 Nouveau message dans ${channel.name}`,
+                    message: `${user.name || 'Un voisin'}: ${content.substring(0, 50)}${content.length > 50 ? '...' : ''}`,
+                    link: `/messages?channelId=${channelId}`,
+                });
+            }
+        }
+
+        return NextResponse.json(message);
+    } catch (error) {
+        console.error("CREATE_MESSAGE_ERROR", error);
+        return new NextResponse(error instanceof Error ? error.message : "Internal Error", { status: 500 });
+    }
+}

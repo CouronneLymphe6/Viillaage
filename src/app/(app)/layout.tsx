@@ -1,0 +1,64 @@
+'use client';
+
+
+import Sidebar from "@/components/Sidebar";
+import NotificationBell from "@/components/NotificationBell";
+import PushNotificationManager from "@/components/PushNotificationManager";
+
+
+export default function AppLayout({
+    children,
+}: {
+    children: React.ReactNode;
+}) {
+    return (
+        <div style={{ display: 'flex' }}>
+            <Sidebar />
+
+            {/* Notification Bell - Fixed Top Right */}
+            <div style={{
+                position: 'fixed',
+                top: '20px',
+                right: '20px',
+                zIndex: 1002,
+            }} className="notification-bell-container">
+                <NotificationBell />
+            </div>
+
+
+            <main
+                style={{
+                    marginLeft: '250px',
+                    width: 'calc(100% - 250px)',
+                    minHeight: '100vh',
+                    backgroundColor: 'var(--background)',
+                    padding: 'var(--spacing-lg)',
+                    boxSizing: 'border-box',
+                }}
+                className="main-content"
+            >
+                <PushNotificationManager />
+                {children}
+            </main>
+
+
+            {/* CSS for responsive layout */}
+            <style jsx>{`
+                @media (max-width: 768px) {
+                    .main-content {
+                        margin-left: 0 !important;
+                        width: 100% !important;
+                        padding: 20px !important;
+                        padding-top: 70px !important;
+                        box-sizing: border-box !important;
+                    }
+                    
+                    .notification-bell-container {
+                        top: 16px !important;
+                        right: 16px !important;
+                    }
+                }
+            `}</style>
+        </div>
+    );
+}

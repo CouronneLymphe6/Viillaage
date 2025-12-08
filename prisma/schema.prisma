@@ -1,0 +1,484 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// SQLite doesn't support enums, using String instead
+// Valid values: "USER", "PRO", "ADMIN", "MODERATOR"
+
+model User {
+  id                String      @id @default(cuid())
+  name              String?
+  email             String      @unique
+  password          String
+  image             String?
+  role              String      @default("USER")
+  villageId         String?
+  village           Village?    @relation(fields: [villageId], references: [id])
+  acceptedCGU       Boolean     @default(false)
+  acceptedPrivacy   Boolean     @default(false)
+  cguAcceptedAt     DateTime?
+  privacyAcceptedAt DateTime?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  profile           Profile?
+  listings          Listing[]
+  alerts            Alert[]
+  alertVotes        AlertVote[]
+  messages          Message[]
+  events            Event[]
+  eventRSVPs        EventRSVP[]
+  businesses        Business[]
+  associations      Association[]
+  reactions         Reaction[]
+  notifications     Notification[]
+  
+  // Pro relations
+  proFollowing      ProFollower[]
+  proPostLikes      ProPostLike[]
+  proComments       ProComment[]
+  
+  // Association relations
+  associationMembers    AssociationMember[]
+
+  associationFollowing  AssociationFollower[]
+  associationPostLikes  AssociationPostLike[]
+  associationComments   AssociationComment[]
+  
+  pushSubscriptions     PushSubscription[]
+}
+
+
+model Village {
+  id        String   @id @default(cuid())
+  name      String
+  zipCode   String   @unique
+  region    String?
+  isActive  Boolean  @default(true)
+  users     User[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Profile {
+  id          String @id @default(cuid())
+  bio         String?
+  address     String?
+  phone       String?
+  villageName String?
+  zipCode     String?
+  userId      String @unique
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Alert {
+  id          String   @id @default(cuid())
+  type        String
+  description String
+  latitude    Float
+  longitude   Float
+  photoUrl    String?
+  status      String   @default("ACTIVE") // "ACTIVE", "RESOLVED"
+  confirmations Int    @default(0)
+  reports     Int      @default(0) // "Not there" reports
+  lastConfirmedAt DateTime @default(now())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  votes       AlertVote[]
+  createdAt   DateTime @default(now())
+}
+
+model AlertVote {
+  id        String   @id @default(cuid())
+  alertId   String
+  alert     Alert    @relation(fields: [alertId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String   // "CONFIRM", "REPORT"
+  createdAt DateTime @default(now())
+
+  @@unique([alertId, userId])
+}
+
+model Channel {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  createdAt   DateTime  @default(now())
+  messages    Message[]
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  content   String
+  channelId String
+  channel   Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  replyToId String?
+  replyTo   Message?  @relation("ReplyTo", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies   Message[] @relation("ReplyTo")
+  reactions Reaction[]
+}
+
+model Reaction {
+  id        String   @id @default(cuid())
+  emoji     String
+  messageId String
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([messageId, userId, emoji])
+}
+
+model Event {
+  id          String      @id @default(cuid())
+  title       String
+  description String
+  date        DateTime
+  location    String?
+  photoUrl    String?
+  organizerId String
+  organizer   User        @relation(fields: [organizerId], references: [id], onDelete: Cascade)
+  rsvps       EventRSVP[]
+  createdAt   DateTime    @default(now())
+}
+
+model EventRSVP {
+  id      String @id @default(cuid())
+  eventId String
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status  String // "GOING", "MAYBE", "NOT_GOING"
+
+  @@unique([eventId, userId])
+}
+
+model Listing {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  price       Float?
+  category    String   // "SELL", "GIVE", "EXCHANGE", "LEND"
+  photos      String   @default("[]") // JSON array of up to 3 photo URLs
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+}
+
+model Business {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  category    String
+  type        String   @default("MERCHANT") // "MERCHANT", "ARTISAN"
+  status      String   @default("ACTIVE")   // "ACTIVE", "PENDING", "PAID"
+  address     String?
+  phone       String?
+  email       String?
+  website     String?
+  photos      String   @default("[]") // JSON array of photo URLs
+  ownerId     String
+  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  
+  // Pro features relations
+  agenda      ProAgenda[]
+  products    ProProduct[]
+  projects    ProProject[]
+  posts       ProPost[]
+  followers   ProFollower[]
+  stats       ProStats?
+}
+
+model Association {
+  id          String                  @id @default(cuid())
+  name        String
+  description String
+  category    String
+  president   String?
+  email       String?
+  phone       String?
+  website     String?
+  photoUrl    String?
+  ownerId     String
+  owner       User                    @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  
+  // Relations
+  events      AssociationEvent[]
+  posts       AssociationPost[]
+  members     AssociationMember[]
+  projects    AssociationProject[]
+  followers   AssociationFollower[]
+  stats       AssociationStats?
+  
+  createdAt   DateTime                @default(now())
+}
+
+// ========================================
+// ASSOCIATION FEATURES MODELS
+// ========================================
+
+// 1. Événements d'association
+model AssociationEvent {
+  id            String      @id @default(cuid())
+  associationId String
+  association   Association @relation(fields: [associationId], references: [id], onDelete: Cascade)
+  title         String
+  description   String?
+  type          String      // "MEETING", "ACTIVITY", "FUNDRAISING", "OTHER"
+  startDate     DateTime
+  endDate       DateTime
+  location      String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+// 2. Publications d'association
+model AssociationPost {
+  id            String                 @id @default(cuid())
+  associationId String
+  association   Association            @relation(fields: [associationId], references: [id], onDelete: Cascade)
+  content       String
+  mediaUrl      String?
+  mediaType     String?                // "PHOTO", "VIDEO"
+  likes         AssociationPostLike[]
+  comments      AssociationComment[]
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+}
+
+model AssociationPostLike {
+  id        String          @id @default(cuid())
+  postId    String
+  post      AssociationPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime        @default(now())
+
+  @@unique([postId, userId])
+}
+
+model AssociationComment {
+  id        String          @id @default(cuid())
+  postId    String
+  post      AssociationPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   String
+  createdAt DateTime        @default(now())
+}
+
+// 3. Membres d'association
+model AssociationMember {
+  id            String      @id @default(cuid())
+  associationId String
+  association   Association @relation(fields: [associationId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role          String      @default("MEMBER") // "PRESIDENT", "TREASURER", "SECRETARY", "MEMBER"
+  joinedAt      DateTime    @default(now())
+
+  @@unique([associationId, userId])
+}
+
+// 4. Projets d'association
+model AssociationProject {
+  id            String      @id @default(cuid())
+  associationId String
+  association   Association @relation(fields: [associationId], references: [id], onDelete: Cascade)
+  title         String
+  description   String
+  status        String      @default("PLANNED") // "PLANNED", "IN_PROGRESS", "COMPLETED"
+  photo         String?
+  startDate     DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+// 5. Système de suivi
+model AssociationFollower {
+  id            String      @id @default(cuid())
+  associationId String
+  association   Association @relation(fields: [associationId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now())
+
+  @@unique([associationId, userId])
+}
+
+// 6. Statistiques
+model AssociationStats {
+  id               String      @id @default(cuid())
+  associationId    String      @unique
+  association      Association @relation(fields: [associationId], references: [id], onDelete: Cascade)
+  viewCount        Int         @default(0)
+  followerCount    Int         @default(0)
+  memberCount      Int         @default(0)
+  eventCount       Int         @default(0)
+  postLikeCount    Int         @default(0)
+  lastUpdated      DateTime    @updatedAt
+}
+
+model Notification {
+  id          String   @id @default(cuid())
+  type        String   // "ALERT", "BUSINESS", "MARKET", "MESSAGE"
+  title       String
+  message     String
+  link        String?  // URL to navigate to
+  isRead      Boolean  @default(false)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+}
+
+// ========================================
+// PRO FEATURES MODELS
+// ========================================
+
+// 1. Agenda Public du Pro
+model ProAgenda {
+  id          String   @id @default(cuid())
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  type        String   // "AVAILABILITY", "EVENT", "CLOSURE", "HOLIDAY"
+  startDate   DateTime
+  endDate     DateTime
+  isPublic    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// 2. Catalogue Produits/Services
+model ProProduct {
+  id          String   @id @default(cuid())
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name        String
+  description String
+  price       Float?
+  photos      String   @default("[]") // JSON array
+  stock       Int?
+  isAvailable Boolean  @default(true)
+  tags        String   @default("[]") // JSON array: ["Nouveauté", "Local", "Bio"]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// 3. Projets & Actions
+model ProProject {
+  id          String   @id @default(cuid())
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  title       String
+  description String
+  photo       String?
+  status      String   @default("PLANNED") // "PLANNED", "IN_PROGRESS", "COMPLETED"
+  startDate   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// 4. Canal de Communication
+model ProPost {
+  id          String        @id @default(cuid())
+  businessId  String
+  business    Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  content     String
+  mediaType   String?       // "PHOTO", "VIDEO", "NONE"
+  mediaUrl    String?
+  postType    String        @default("POST") // "POST", "ANNOUNCEMENT", "STORY"
+  likes       ProPostLike[]
+  comments    ProComment[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model ProPostLike {
+  id        String   @id @default(cuid())
+  postId    String
+  post      ProPost  @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId])
+}
+
+model ProComment {
+  id        String   @id @default(cuid())
+  postId    String
+  post      ProPost  @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   String
+  createdAt DateTime @default(now())
+}
+
+// 5. Système de Suivi
+model ProFollower {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([businessId, userId])
+}
+
+// 6. Statistiques
+model ProStats {
+  id               String   @id @default(cuid())
+  businessId       String   @unique
+  business         Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  viewCount        Int      @default(0)
+  followerCount    Int      @default(0)
+  postLikeCount    Int      @default(0)
+  catalogViewCount Int      @default(0)
+  lastUpdated      DateTime @updatedAt
+}
+
+// SQLite doesn't support enums, using String instead
+// Valid values: "NEW", "READ", "ARCHIVED"
+
+
+model ContactMessage {
+  id        String               @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String               @default("")
+  status    String               @default("NEW")
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String
+  auth      String
+  p256dh    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, endpoint])
+}
+

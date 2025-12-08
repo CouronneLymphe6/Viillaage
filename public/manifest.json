@@ -1,0 +1,66 @@
+{
+    "name": "Viillaage",
+    "short_name": "Viillaage",
+    "description": "Connectez-vous avec votre village. Sécurité, entraide et vie locale.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#8b5cf6",
+    "orientation": "portrait-primary",
+    "icons": [
+        {
+            "src": "/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icon-maskable-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "/icon-maskable-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ],
+    "categories": [
+        "social",
+        "lifestyle"
+    ],
+    "shortcuts": [
+        {
+            "name": "Alertes",
+            "short_name": "Alertes",
+            "description": "Voir les alertes de sécurité",
+            "url": "/alerts",
+            "icons": [
+                {
+                    "src": "/icon-192.png",
+                    "sizes": "192x192"
+                }
+            ]
+        },
+        {
+            "name": "Messages",
+            "short_name": "Messages",
+            "description": "Accéder à vos messages",
+            "url": "/messages",
+            "icons": [
+                {
+                    "src": "/icon-192.png",
+                    "sizes": "192x192"
+                }
+            ]
+        }
+    ]
+}
