@@ -7,7 +7,7 @@ const withSerwist = withSerwistInit({
 
   cacheOnNavigation: true,
   reloadOnOnline: true,
-  disable: false, // Enable in dev for testing
+  disable: process.env.NODE_ENV === 'development', // Désactivé en dev pour moins de logs
 });
 
 

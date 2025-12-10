@@ -24,7 +24,9 @@ export async function DELETE(
             return new NextResponse("Message not found", { status: 404 });
         }
 
-        if (message.userId !== session.user.id) {
+        const isAdmin = (session.user as any).role === 'ADMIN';
+
+        if (message.userId !== session.user.id && !isAdmin) {
             return new NextResponse("Forbidden", { status: 403 });
         }
 
@@ -67,7 +69,9 @@ export async function PATCH(
             return new NextResponse("Message not found", { status: 404 });
         }
 
-        if (message.userId !== session.user.id) {
+        const isAdmin = (session.user as any).role === 'ADMIN';
+
+        if (message.userId !== session.user.id && !isAdmin) {
             return new NextResponse("Forbidden", { status: 403 });
         }
 

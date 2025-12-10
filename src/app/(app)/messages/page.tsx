@@ -413,16 +413,18 @@ export default function MessagesPage() {
                                                 <div
                                                     className="message-bubble"
                                                     style={{
-                                                        padding: '10px 16px',
-                                                        borderRadius: '18px',
-                                                        borderTopLeftRadius: !isOwnMessage && !message.showAvatar ? '4px' : '18px',
-                                                        borderTopRightRadius: isOwnMessage && !message.showAvatar ? '4px' : '18px',
-                                                        borderBottomLeftRadius: !isOwnMessage ? '4px' : '18px',
-                                                        borderBottomRightRadius: isOwnMessage ? '4px' : '18px',
+                                                        padding: '6px 10px',
+                                                        // borderRadius removed to avoid shorthand conflict
+                                                        borderTopLeftRadius: !isOwnMessage && !message.showAvatar ? '2px' : '12px',
+                                                        borderTopRightRadius: isOwnMessage && !message.showAvatar ? '2px' : '12px',
+                                                        borderBottomLeftRadius: !isOwnMessage ? '2px' : '12px',
+                                                        borderBottomRightRadius: isOwnMessage ? '2px' : '12px',
                                                         backgroundColor: isOwnMessage ? 'var(--primary)' : '#f0f2f5',
                                                         color: isOwnMessage ? 'white' : 'var(--text-main)',
-                                                        boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                                                        boxShadow: '0 0.5px 1px rgba(0,0,0,0.1)',
                                                         position: 'relative',
+                                                        fontSize: '0.85rem',
+                                                        maxWidth: '85%',
                                                     }}
                                                 >
                                                     {/* Reply preview */}
@@ -567,9 +569,9 @@ export default function MessagesPage() {
                                                                 marginTop: '4px',
                                                                 backgroundColor: 'white',
                                                                 borderRadius: '8px',
-                                                                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                                                                boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
                                                                 zIndex: 1000,
-                                                                minWidth: '160px',
+                                                                minWidth: '120px',
                                                                 overflow: 'hidden',
                                                                 animation: 'fadeIn 0.1s ease',
                                                                 border: '1px solid var(--border)',
@@ -583,7 +585,7 @@ export default function MessagesPage() {
                                                                         }}
                                                                         style={{
                                                                             width: '100%',
-                                                                            padding: '10px 16px',
+                                                                            padding: '8px 12px',
                                                                             textAlign: 'left',
                                                                             border: 'none',
                                                                             background: 'none',
@@ -591,7 +593,7 @@ export default function MessagesPage() {
                                                                             display: 'flex',
                                                                             alignItems: 'center',
                                                                             gap: '8px',
-                                                                            fontSize: '0.9rem',
+                                                                            fontSize: '0.85rem',
                                                                             color: 'var(--text-main)',
                                                                         }}
                                                                         onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
@@ -606,7 +608,7 @@ export default function MessagesPage() {
                                                                         }}
                                                                         style={{
                                                                             width: '100%',
-                                                                            padding: '10px 16px',
+                                                                            padding: '8px 12px',
                                                                             textAlign: 'left',
                                                                             border: 'none',
                                                                             background: 'none',
@@ -614,7 +616,7 @@ export default function MessagesPage() {
                                                                             display: 'flex',
                                                                             alignItems: 'center',
                                                                             gap: '8px',
-                                                                            fontSize: '0.9rem',
+                                                                            fontSize: '0.85rem',
                                                                             color: '#ef4444',
                                                                         }}
                                                                         onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fef2f2'}
@@ -633,7 +635,7 @@ export default function MessagesPage() {
                                                                         }}
                                                                         style={{
                                                                             width: '100%',
-                                                                            padding: '10px 16px',
+                                                                            padding: '8px 12px',
                                                                             textAlign: 'left',
                                                                             border: 'none',
                                                                             background: 'none',
@@ -641,7 +643,7 @@ export default function MessagesPage() {
                                                                             display: 'flex',
                                                                             alignItems: 'center',
                                                                             gap: '8px',
-                                                                            fontSize: '0.9rem',
+                                                                            fontSize: '0.85rem',
                                                                             color: 'var(--text-main)',
                                                                         }}
                                                                         onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
@@ -657,7 +659,7 @@ export default function MessagesPage() {
                                                                         }}
                                                                         style={{
                                                                             width: '100%',
-                                                                            padding: '10px 16px',
+                                                                            padding: '8px 12px',
                                                                             textAlign: 'left',
                                                                             border: 'none',
                                                                             background: 'none',
@@ -665,7 +667,7 @@ export default function MessagesPage() {
                                                                             display: 'flex',
                                                                             alignItems: 'center',
                                                                             gap: '8px',
-                                                                            fontSize: '0.9rem',
+                                                                            fontSize: '0.85rem',
                                                                             color: 'var(--text-main)',
                                                                         }}
                                                                         onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
@@ -810,67 +812,86 @@ export default function MessagesPage() {
                                     </div>
                                 )}
 
-                                <form onSubmit={sendMessage} style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                                    <button
-                                        type="button"
-                                        style={{
-                                            flexShrink: 0,
-                                            padding: '8px',
-                                            borderRadius: '50%',
-                                            border: 'none',
-                                            background: 'none',
-                                            cursor: 'pointer',
-                                            color: 'var(--text-secondary)',
-                                            transition: 'background 0.2s',
-                                        }}
-                                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.05)'}
-                                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                    >
-                                        <Smile size={24} />
-                                    </button>
-                                    <button
-                                        type="button"
-                                        style={{
-                                            flexShrink: 0,
-                                            padding: '8px',
-                                            borderRadius: '50%',
-                                            border: 'none',
-                                            background: 'none',
-                                            cursor: 'pointer',
-                                            color: 'var(--text-secondary)',
-                                            transition: 'background 0.2s',
-                                        }}
-                                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.05)'}
-                                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                    >
-                                        <Paperclip size={24} />
-                                    </button>
+                                <form onSubmit={sendMessage} style={{ display: 'flex', gap: '8px', alignItems: 'flex-end', maxWidth: '100%', paddingRight: '2px' }}>
+                                    <div style={{
+                                        flexGrow: 1,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        backgroundColor: 'white',
+                                        borderRadius: '20px',
+                                        border: '1px solid #e0e0e0',
+                                        padding: '4px 4px',
+                                        boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+                                    }}>
+                                        <button
+                                            type="button"
+                                            style={{
+                                                flexShrink: 0,
+                                                padding: '6px',
+                                                borderRadius: '50%',
+                                                border: 'none',
+                                                background: 'none',
+                                                cursor: 'pointer',
+                                                color: '#65676b',
+                                                transition: 'background 0.2s',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                            }}
+                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.05)'}
+                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                            title="Emojis"
+                                        >
+                                            <Smile size={18} />
+                                        </button>
+                                        <button
+                                            type="button"
+                                            style={{
+                                                flexShrink: 0,
+                                                padding: '6px',
+                                                borderRadius: '50%',
+                                                border: 'none',
+                                                background: 'none',
+                                                cursor: 'pointer',
+                                                color: '#65676b',
+                                                transition: 'background 0.2s',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                marginRight: '2px'
+                                            }}
+                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.05)'}
+                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                            title="Pièce jointe"
+                                        >
+                                            <Paperclip size={18} />
+                                        </button>
 
-                                    <input
-                                        type="text"
-                                        value={newMessage}
-                                        onChange={(e) => setNewMessage(e.target.value)}
-                                        placeholder="Écrivez un message..."
-                                        style={{
-                                            flexGrow: 1,
-                                            minWidth: 0,
-                                            padding: '12px 20px',
-                                            borderRadius: '24px',
-                                            border: 'none',
-                                            fontSize: '1rem',
-                                            backgroundColor: 'white',
-                                            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                                            outline: 'none',
-                                        }}
-                                    />
+                                        <input
+                                            type="text"
+                                            value={newMessage}
+                                            onChange={(e) => setNewMessage(e.target.value)}
+                                            placeholder="Écrivez un message..."
+                                            style={{
+                                                flexGrow: 1,
+                                                minWidth: '0',
+                                                padding: '8px 2px',
+                                                border: 'none',
+                                                fontSize: '0.9rem',
+                                                backgroundColor: 'transparent',
+                                                outline: 'none',
+                                                color: 'var(--text-main)',
+                                            }}
+                                        />
+                                    </div>
 
                                     <button
                                         type="submit"
                                         disabled={!newMessage.trim()}
                                         style={{
                                             flexShrink: 0,
-                                            width: '48px',
-                                            height: '48px',
+                                            width: '40px',
+                                            height: '40px',
                                             borderRadius: '50%',
                                             border: 'none',
                                             backgroundColor: newMessage.trim() ? 'var(--primary)' : '#e4e6eb',
@@ -883,7 +904,7 @@ export default function MessagesPage() {
                                             boxShadow: newMessage.trim() ? '0 2px 4px rgba(0,0,0,0.1)' : 'none',
                                         }}
                                     >
-                                        <Send size={20} />
+                                        <Send size={16} />
                                     </button>
                                 </form>
                             </div>

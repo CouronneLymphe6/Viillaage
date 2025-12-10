@@ -7,7 +7,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -58,14 +58,16 @@ model User {
 
 
 model Village {
-  id        String   @id @default(cuid())
-  name      String
-  zipCode   String   @unique
-  region    String?
-  isActive  Boolean  @default(true)
-  users     User[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String          @id @default(cuid())
+  name           String
+  zipCode        String          @unique
+  region         String?
+  isActive       Boolean         @default(true)
+  users          User[]
+  dailySummaries DailySummary[]
+  pressReviews   PressReview[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 }
 
 model Profile {
@@ -482,3 +484,36 @@ model PushSubscription {
   @@unique([userId, endpoint])
 }
 
+// ========================================
+// AI-GENERATED SUMMARIES
+// ========================================
+
+// Résumé quotidien de l'activité du village (Les Potins de Beaupuy)
+model DailySummary {
+  id          String   @id @default(cuid())
+  villageId   String
+  village     Village  @relation(fields: [villageId], references: [id], onDelete: Cascade)
+  date        DateTime // Date du résumé (jour concerné)
+  summary     String // Résumé IA généré
+  stats       String // JSON: {messages: 15, alerts: 3, events: 2, etc.}
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([villageId, date])
+  @@index([villageId, date])
+}
+
+// Revue de presse locale quotidienne
+model PressReview {
+  id          String   @id @default(cuid())
+  villageId   String
+  village     Village  @relation(fields: [villageId], references: [id], onDelete: Cascade)
+  date        DateTime // Date du résumé (jour concerné)
+  summary     String // Résumé IA généré
+  articles    String // JSON: [{title, source, url, snippet, publishedAt}]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([villageId, date])
+  @@index([villageId, date])
+}

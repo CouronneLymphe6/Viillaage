@@ -24,7 +24,9 @@ export async function DELETE(
             return new NextResponse("Listing not found", { status: 404 });
         }
 
-        if (listing.userId !== session.user.id) {
+        const isAdmin = (session.user as any).role === 'ADMIN';
+
+        if (listing.userId !== session.user.id && !isAdmin) {
             return new NextResponse("Forbidden", { status: 403 });
         }
 
@@ -60,7 +62,9 @@ export async function PATCH(
             return new NextResponse("Listing not found", { status: 404 });
         }
 
-        if (listing.userId !== session.user.id) {
+        const isAdmin = (session.user as any).role === 'ADMIN';
+
+        if (listing.userId !== session.user.id && !isAdmin) {
             return new NextResponse("Forbidden", { status: 403 });
         }
 

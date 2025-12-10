@@ -6,18 +6,20 @@ import ImageUpload from './ImageUpload';
 interface AlertFormProps {
     onSuccess?: () => void;
     initialData?: any;
+    onRequestMapClick?: (callback: (lat: number, lon: number) => void) => void;
 }
 
 const alertTypes = [
     { value: 'ANIMAL', label: '🐾 Animal perdu' },
-    { value: 'DANGER', label: '⚠️ Danger' },
+    { value: 'ROAD_HAZARD', label: '⚠️ Danger / Travaux' }, // Remplace WORKS et DANGER
     { value: 'ACCIDENT', label: '🚗 Accident' },
     { value: 'SUSPICIOUS', label: '🕵️ Présence suspecte' },
-    { value: 'WORKS', label: '🚧 Travaux' },
+    { value: 'THEFT', label: '🦹 Vol / Cambriolage' },
+    { value: 'FIRE', label: '🔥 Incendie' },
     { value: 'OTHER', label: '📢 Autre' },
 ];
 
-export default function AlertForm({ onSuccess, initialData }: AlertFormProps) {
+export default function AlertForm({ onSuccess, initialData, onRequestMapClick }: AlertFormProps) {
     const [type, setType] = useState(initialData?.type || 'ANIMAL');
     const [description, setDescription] = useState(initialData?.description || '');
     const [latitude, setLatitude] = useState<number | null>(initialData?.latitude || null);
@@ -28,7 +30,7 @@ export default function AlertForm({ onSuccess, initialData }: AlertFormProps) {
     const [locationLoading, setLocationLoading] = useState(false);
 
     // Address input state
-    const [locationType, setLocationType] = useState<'gps' | 'address'>('gps');
+    const [locationType, setLocationType] = useState<'gps' | 'address' | 'map'>('map');
     const [address, setAddress] = useState('');
 
     const getLocation = () => {
@@ -194,6 +196,23 @@ export default function AlertForm({ onSuccess, initialData }: AlertFormProps) {
                 <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
                     <button
                         type="button"
+                        onClick={() => setLocationType('map')}
+                        style={{
+                            flex: 1,
+                            padding: '8px',
+                            backgroundColor: locationType === 'map' ? 'var(--primary)' : 'var(--secondary)',
+                            color: locationType === 'map' ? 'white' : 'var(--text-main)',
+                            border: '1px solid var(--border)',
+                            borderRadius: 'var(--radius-sm)',
+                            fontSize: '0.9rem',
+                            fontWeight: '500',
+                            cursor: 'pointer',
+                        }}
+                    >
+                        🗺️ Carte
+                    </button>
+                    <button
+                        type="button"
                         onClick={() => setLocationType('gps')}
                         style={{
                             flex: 1,
@@ -227,6 +246,38 @@ export default function AlertForm({ onSuccess, initialData }: AlertFormProps) {
                         🏠 Adresse
                     </button>
                 </div>
+
+                {/* Map Click Option */}
+                {locationType === 'map' && (
+                    <button
+                        type="button"
+                        onClick={() => {
+                            console.log('🗺️ Bouton cliqué - Activation du mode carte');
+                            if (onRequestMapClick) {
+                                onRequestMapClick((lat, lon) => {
+                                    console.log('📍 Position reçue:', lat, lon);
+                                    setLatitude(lat);
+                                    setLongitude(lon);
+                                });
+                            } else {
+                                console.error('❌ onRequestMapClick non défini');
+                            }
+                        }}
+                        style={{
+                            width: '100%',
+                            padding: '12px',
+                            backgroundColor: latitude && longitude ? 'var(--primary)' : 'var(--accent-light)',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: 'var(--radius-sm)',
+                            fontSize: '0.95rem',
+                            fontWeight: '500',
+                            cursor: 'pointer',
+                        }}
+                    >
+                        {latitude && longitude ? '✓ Position sélectionnée' : '👆 Cliquez sur la carte pour localiser'}
+                    </button>
+                )}
 
                 {/* GPS Option */}
                 {locationType === 'gps' && (

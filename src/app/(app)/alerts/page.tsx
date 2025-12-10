@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import AlertForm from '@/components/AlertForm';
 import { Alert } from '@/types';
@@ -15,6 +15,11 @@ export default function AlertsPage() {
     const [showForm, setShowForm] = useState(false);
     const [mapCenter, setMapCenter] = useState<[number, number]>([43.6487, 1.5536]); // Beaupuy
     const [editingAlert, setEditingAlert] = useState<Alert | null>(null);
+    const [mapClickCallback, setMapClickCallback] = useState<((lat: number, lon: number) => void) | null>(null);
+    const [formMinimized, setFormMinimized] = useState(false);
+
+    // Utiliser une ref pour préserver le callback
+    const callbackRef = useRef<((lat: number, lon: number) => void) | null>(null);
 
     const fetchAlerts = async () => {
         try {
@@ -90,6 +95,27 @@ export default function AlertsPage() {
         setShowForm(true);
     };
 
+    const handleRequestMapClick = (callback: (lat: number, lon: number) => void) => {
+        console.log('📝 Enregistrement du callback');
+        callbackRef.current = callback; // Stocker dans la ref
+        setFormMinimized(true); // Minimiser le formulaire
+        setMapClickCallback(() => callback); // Pour activer le mode clic
+    };
+
+    const handleMapClick = (lat: number, lon: number) => {
+        console.log('🖱️ Clic sur carte détecté:', lat, lon);
+        console.log('📞 Callback dans ref?', !!callbackRef.current);
+        if (callbackRef.current) {
+            callbackRef.current(lat, lon);
+            callbackRef.current = null; // Nettoyer la ref
+            setMapClickCallback(null); // Désactiver après un clic
+            setFormMinimized(false); // Restaurer le formulaire
+            console.log('✅ Callback exécuté et formulaire restauré');
+        } else {
+            console.warn('⚠️ Pas de callback défini');
+        }
+    };
+
     return (
         <div style={{ height: 'calc(100vh - 64px)', position: 'relative' }}>
             {/* Full-screen Map */}
@@ -110,6 +136,8 @@ export default function AlertsPage() {
                     onVote={handleVote}
                     onDelete={handleDelete}
                     onEdit={handleEdit}
+                    onMapClick={mapClickCallback ? handleMapClick : undefined}
+                    clickMode={!!mapClickCallback}
                 />
             )}
 
@@ -148,38 +176,74 @@ export default function AlertsPage() {
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    backgroundColor: 'rgba(0,0,0,0.5)',
+                    backgroundColor: formMinimized ? 'transparent' : 'rgba(0,0,0,0.5)',
                     zIndex: 2000,
                     display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: 'var(--spacing-md)',
+                    alignItems: formMinimized ? 'flex-end' : 'center',
+                    justifyContent: formMinimized ? 'flex-end' : 'center',
+                    padding: formMinimized ? '0' : 'var(--spacing-md)',
+                    pointerEvents: formMinimized ? 'none' : 'auto',
                 }}>
                     <div style={{
                         backgroundColor: 'var(--background)',
                         padding: 'var(--spacing-lg)',
                         borderRadius: 'var(--radius-md)',
-                        width: '100%',
-                        maxWidth: '500px',
-                        maxHeight: '90vh',
-                        overflowY: 'auto',
+                        width: formMinimized ? '300px' : '100%',
+                        maxWidth: formMinimized ? '300px' : '500px',
+                        maxHeight: formMinimized ? '80px' : '90vh',
+                        overflowY: formMinimized ? 'hidden' : 'auto',
                         position: 'relative',
+                        margin: formMinimized ? '16px' : '0',
+                        pointerEvents: 'auto',
+                        transition: 'all 0.3s ease',
                     }}>
-                        <button
-                            onClick={() => setShowForm(false)}
-                            style={{
-                                position: 'absolute',
-                                top: '16px',
-                                right: '16px',
-                                background: 'none',
-                                border: 'none',
-                                cursor: 'pointer',
-                            }}
-                        >
-                            <X size={24} />
-                        </button>
-                        <h3 style={{ marginBottom: 'var(--spacing-md)' }}>{editingAlert ? 'Modifier l\'alerte' : 'Nouveau signalement'}</h3>
-                        <AlertForm onSuccess={handleFormSuccess} initialData={editingAlert} />
+                        {/* Mode MINIMISÉ */}
+                        <div style={{ display: formMinimized ? 'block' : 'none', textAlign: 'center' }}>
+                            <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                                👆 Cliquez sur la carte pour sélectionner la position
+                            </p>
+                            <button
+                                onClick={() => {
+                                    setFormMinimized(false);
+                                    setMapClickCallback(null);
+                                }}
+                                style={{
+                                    marginTop: '8px',
+                                    padding: '6px 12px',
+                                    backgroundColor: 'var(--primary)',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: 'var(--radius-sm)',
+                                    fontSize: '0.85rem',
+                                    cursor: 'pointer',
+                                }}
+                            >
+                                Annuler
+                            </button>
+                        </div>
+
+                        {/* Mode NORMAL */}
+                        <div style={{ display: formMinimized ? 'none' : 'block' }}>
+                            <button
+                                onClick={() => setShowForm(false)}
+                                style={{
+                                    position: 'absolute',
+                                    top: '16px',
+                                    right: '16px',
+                                    background: 'none',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                }}
+                            >
+                                <X size={24} />
+                            </button>
+                            <h3 style={{ marginBottom: 'var(--spacing-md)' }}>{editingAlert ? 'Modifier l\'alerte' : 'Nouveau signalement'}</h3>
+                            <AlertForm
+                                onSuccess={handleFormSuccess}
+                                initialData={editingAlert}
+                                onRequestMapClick={handleRequestMapClick}
+                            />
+                        </div>
                     </div>
                 </div>
             )}
