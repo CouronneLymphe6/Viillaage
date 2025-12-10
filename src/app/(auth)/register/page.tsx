@@ -8,7 +8,7 @@ import { validatePassword } from '@/lib/passwordValidator';
 interface Village {
     id: string;
     name: string;
-    zipCode: string;
+    postalCode: string;
     region?: string;
 }
 
@@ -167,7 +167,7 @@ export default function RegisterPage() {
                         <option value="">Sélectionnez votre village</option>
                         {villages.map((village) => (
                             <option key={village.id} value={village.id}>
-                                {village.name} ({village.zipCode})
+                                {village.name} ({village.postalCode})
                             </option>
                         ))}
                     </select>
