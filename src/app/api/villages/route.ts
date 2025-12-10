@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+// Force rebuild - postalCode migration
+
 // GET /api/villages - Get all active villages (public, no auth required)
 export async function GET() {
     try {
