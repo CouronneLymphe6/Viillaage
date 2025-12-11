@@ -135,9 +135,15 @@ export const priceSchema = z.number()
     .max(1000000, 'Prix trop élevé')
     .optional();
 
-// Validation d'ID (CUID)
+// Validation d'ID (CUID ou UUID)
 export const idSchema = z.string()
-    .regex(/^c[a-z0-9]{24}$/, 'ID invalide');
+    .refine((id) => {
+        // Accept cuid format: c followed by 24 alphanumeric chars
+        const isCuid = /^c[a-z0-9]{24}$/.test(id);
+        // Accept UUID format: 8-4-4-4-12 hex chars
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+        return isCuid || isUuid;
+    }, 'ID invalide');
 
 /**
  * Fonction utilitaire pour sanitizer les chaînes de caractères
