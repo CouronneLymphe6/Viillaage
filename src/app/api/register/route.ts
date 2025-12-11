@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
                 village: {
                     select: {
                         name: true,
-                        zipCode: true,
+                        postalCode: true,
                     },
                 },
             },
