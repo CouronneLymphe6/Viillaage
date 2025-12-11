@@ -1,21 +1,37 @@
-import DOMPurify from 'isomorphic-dompurify';
+/**
+ * Simple HTML entity encoder (no external dependencies)
+ */
+function encodeHtmlEntities(str: string): string {
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#x27;')
+        .replace(/\//g, '&#x2F;');
+}
 
 /**
- * Configuration DOMPurify pour sanitizer le HTML
+ * Strip HTML tags using regex (safe for server-side)
  */
-const purifyConfig = {
-    ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br'],
-    ALLOWED_ATTR: ['href'],
-    ALLOW_DATA_ATTR: false,
-    ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
-};
+function stripHtmlTags(html: string): string {
+    return html
+        .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+        .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+        .replace(/<[^>]+>/g, '')
+        .replace(/&nbsp;/g, ' ')
+        .trim();
+}
 
 /**
  * Sanitize HTML content to prevent XSS attacks
+ * Uses a simple whitelist approach without external dependencies
  */
 export function sanitizeHtml(dirty: string): string {
     if (!dirty) return '';
-    return DOMPurify.sanitize(dirty, purifyConfig);
+
+    // For now, strip all HTML for maximum security
+    return stripHtmlTags(dirty);
 }
 
 /**
@@ -23,7 +39,7 @@ export function sanitizeHtml(dirty: string): string {
  */
 export function sanitizeText(dirty: string): string {
     if (!dirty) return '';
-    return DOMPurify.sanitize(dirty, { ALLOWED_TAGS: [] });
+    return stripHtmlTags(dirty);
 }
 
 /**
@@ -31,13 +47,7 @@ export function sanitizeText(dirty: string): string {
  */
 export function escapeHtml(unsafe: string): string {
     if (!unsafe) return '';
-
-    return unsafe
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
+    return encodeHtmlEntities(unsafe);
 }
 
 /**

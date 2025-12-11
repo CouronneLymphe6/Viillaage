@@ -52,8 +52,7 @@ export async function POST(request: NextRequest) {
         const { acceptCGU, acceptPrivacy } = body;
 
         // Sanitize text inputs
-        // const sanitizedName = sanitizeText(name); // Temporarily disabled due to ES Module issue
-        const sanitizedName = name.trim();
+        const sanitizedName = sanitizeText(name);
         const sanitizedEmail = email.toLowerCase().trim();
 
         // Validation de l'acceptation des CGU et Privacy
