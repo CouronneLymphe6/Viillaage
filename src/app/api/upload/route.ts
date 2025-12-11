@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { writeFile } from "fs/promises";
-import { join } from "path";
+import { put } from '@vercel/blob';
 import { checkRateLimit, RATE_LIMITS } from "@/lib/security/rate-limiter";
 import { logFileUpload, getIpAddress, logSecurityViolation, AuditEventType } from "@/lib/security/audit-logger";
 
@@ -141,11 +140,14 @@ export async function POST(request: NextRequest) {
 
         // Generate secure filename
         const filename = generateSecureFilename(file.name);
-        const filepath = join(process.cwd(), "public", "uploads", filename);
 
-        await writeFile(filepath, buffer);
+        // Upload to Vercel Blob Storage instead of local filesystem
+        const blob = await put(filename, buffer, {
+            access: 'public',
+            contentType: file.type,
+        });
 
-        const publicUrl = `/uploads/${filename}`;
+        const publicUrl = blob.url;
 
         // Log successful upload
         await logFileUpload(
