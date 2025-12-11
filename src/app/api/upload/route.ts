@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { put } from '@vercel/blob';
+import { v2 as cloudinary } from 'cloudinary';
 import { checkRateLimit, RATE_LIMITS } from "@/lib/security/rate-limiter";
 import { logFileUpload, getIpAddress, logSecurityViolation, AuditEventType } from "@/lib/security/audit-logger";
+
+// Configure Cloudinary
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 // Allowed MIME types and their magic numbers (file signatures)
 const ALLOWED_IMAGE_TYPES = {
@@ -141,13 +148,17 @@ export async function POST(request: NextRequest) {
         // Generate secure filename
         const filename = generateSecureFilename(file.name);
 
-        // Upload to Vercel Blob Storage instead of local filesystem
-        const blob = await put(filename, buffer, {
-            access: 'public',
-            contentType: file.type,
+        // Upload to Cloudinary
+        const base64Image = buffer.toString('base64');
+        const dataURI = `data:${file.type};base64,${base64Image}`;
+
+        const uploadResponse = await cloudinary.uploader.upload(dataURI, {
+            folder: 'viillaage',
+            public_id: filename.split('.')[0], // Remove extension
+            resource_type: 'image',
         });
 
-        const publicUrl = blob.url;
+        const publicUrl = uploadResponse.secure_url;
 
         // Log successful upload
         await logFileUpload(

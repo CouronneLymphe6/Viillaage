@@ -3,6 +3,9 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import DashboardGrid from "@/components/DashboardGrid";
 
+// Enable ISR with 60 seconds revalidation for better performance
+export const revalidate = 60;
+
 export default async function Dashboard() {
     const session = await getServerSession(authOptions);
 
