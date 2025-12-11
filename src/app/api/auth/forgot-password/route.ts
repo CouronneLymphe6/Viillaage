@@ -43,19 +43,21 @@ export async function POST(request: NextRequest) {
             },
         });
 
-        // TODO: Send email with reset link
-        // For now, we'll just log it (you'll need to set up an email service)
+        // Send email with reset link
         const resetLink = `${process.env.NEXTAUTH_URL || 'https://viillaage.vercel.app'}/reset-password/${token}`;
-        console.log(`Password reset link for ${email}: ${resetLink}`);
 
-        // In production, you would send an email here using Resend, SendGrid, etc.
-        // Example with Resend:
-        // await resend.emails.send({
-        //   from: 'noreply@viillaage.app',
-        //   to: email,
-        //   subject: 'Réinitialisation de votre mot de passe',
-        //   html: `<p>Cliquez sur ce lien pour réinitialiser votre mot de passe: <a href="${resetLink}">${resetLink}</a></p>`
-        // });
+        // Try to send email if RESEND_API_KEY is configured
+        if (process.env.RESEND_API_KEY) {
+            const { sendPasswordResetEmail } = await import('@/lib/email');
+            await sendPasswordResetEmail({
+                to: user.email,
+                resetLink,
+                userName: user.name || undefined,
+            });
+        } else {
+            // Fallback: log to console for development
+            console.log(`Password reset link for ${email}: ${resetLink}`);
+        }
 
         return NextResponse.json({
             message: "Si cet email existe, un lien de réinitialisation a été envoyé.",
