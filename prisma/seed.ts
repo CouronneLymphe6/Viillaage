@@ -25,17 +25,18 @@ async function main() {
 
     // Create Beaupuy village
     const beaupuy = await prisma.village.upsert({
-        where: { zipCode: '31850' },
+        where: { postalCode: '31850' },
         update: {},
         create: {
             name: 'Beaupuy',
-            zipCode: '31850',
+            postalCode: '31850',
             region: 'Occitanie',
+            department: 'Haute-Garonne',
             isActive: true,
         },
     });
 
-    console.log('✅ Village créé:', beaupuy.name, beaupuy.zipCode);
+    console.log('✅ Village créé:', beaupuy.name, beaupuy.postalCode);
 
     // Assign all existing users to Beaupuy
     const updatedUsers = await prisma.user.updateMany({
