@@ -40,7 +40,25 @@ CREATE UNIQUE INDEX IF NOT EXISTS "User_email_key" ON "User"("email");
 ALTER TABLE "User" ADD CONSTRAINT "User_villageId_fkey" 
 FOREIGN KEY ("villageId") REFERENCES "Village"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- 3. Insérer le village Beaupuy
+-- 3. Créer la table PasswordResetToken
+CREATE TABLE IF NOT EXISTS "PasswordResetToken" (
+    "id" TEXT NOT NULL,
+    "token" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "used" BOOLEAN NOT NULL DEFAULT false,
+    CONSTRAINT "PasswordResetToken_pkey" PRIMARY KEY ("id")
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS "PasswordResetToken_token_key" ON "PasswordResetToken"("token");
+CREATE INDEX IF NOT EXISTS "PasswordResetToken_token_idx" ON "PasswordResetToken"("token");
+CREATE INDEX IF NOT EXISTS "PasswordResetToken_userId_idx" ON "PasswordResetToken"("userId");
+
+ALTER TABLE "PasswordResetToken" ADD CONSTRAINT "PasswordResetToken_userId_fkey" 
+FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- 4. Insérer le village Beaupuy
 INSERT INTO "Village" (id, name, "postalCode", region, department, "createdAt", "updatedAt")
 VALUES (
   gen_random_uuid(),
@@ -53,7 +71,7 @@ VALUES (
 )
 ON CONFLICT ("postalCode") DO NOTHING;
 
--- 4. Créer l'utilisateur admin
+-- 5. Créer l'utilisateur admin
 -- Mot de passe: !Laguerreprendfinle8mai1945/:
 INSERT INTO "User" (id, email, name, password, role, "villageId", "createdAt", "updatedAt")
 VALUES (
