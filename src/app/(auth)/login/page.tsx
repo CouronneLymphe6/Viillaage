@@ -70,6 +70,9 @@ export default function LoginPage() {
                     Se connecter
                 </button>
             </form>
+            <p style={{ marginTop: 'var(--spacing-sm)', textAlign: 'center', fontSize: '0.9rem' }}>
+                <Link href="/forgot-password" style={{ color: 'var(--primary)' }}>Mot de passe oublié ?</Link>
+            </p>
             <p style={{ marginTop: 'var(--spacing-md)', textAlign: 'center', fontSize: '0.9rem' }}>
                 Pas encore de compte ? <Link href="/register" style={{ color: 'var(--primary)' }}>S'inscrire</Link>
             </p>
