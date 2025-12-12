@@ -155,41 +155,65 @@ export async function generateDailySummary(stats: {
     // Note: Le paramètre weather est conservé pour la compatibilité mais ignoré.
 
     const prompt = `Tu es le correspondant local de l'application "Village" à Beaupuy (31850).
-Ta mission : Rédiger "L'Essentiel de la Veille", un résumé court et informatif de l'activité d'HIER.
+Ta mission : Rédiger "L'Essentiel de la Veille", un résumé DÉTAILLÉ et NARRATIF de l'activité d'HIER.
+
+⚠️ IMPORTANT : Ne te contente PAS de répéter les chiffres. RACONTE ce qu'il s'est passé avec des DÉTAILS CONCRETS.
 
 DONNÉES D'HIER (${stats.date}) :
 
-📬 MESSAGERIE (${stats.totalMessages} messages) :
+📬 MESSAGERIE (${stats.totalMessages} messages sur ${stats.activeChannels} canaux) :
 ${stats.topTopics.length > 0 ? `Sujets détectés : ${stats.topTopics.join(', ')}` : ''}
 ${(stats as any).messageSnippets ? `Extraits des discussions :\n${(stats as any).messageSnippets}` : ''}
 
-🚨 SÉCURITÉ (${stats.newAlerts} nouvelles) :
+🚨 SÉCURITÉ (${stats.newAlerts} alerte(s)) :
 ${(stats as any).alertDetailedList || stats.alertDetails.join('\n')}
+${stats.resolvedAlerts > 0 ? `\n✅ ${stats.resolvedAlerts} alerte(s) résolue(s)` : ''}
 
-📢 OFFICIEL : ${stats.officialAnnouncements} annonces.
-Sujets : ${stats.officialTopics.join(', ')}
+📢 OFFICIEL : ${stats.officialAnnouncements} annonce(s) officielles.
+${stats.officialTopics.length > 0 ? `Sujets : ${stats.officialTopics.join(', ')}` : ''}
 
-📅 AGENDA : ${stats.newEvents} nouveaux événements créés.
+📅 AGENDA : ${stats.newEvents} nouvel(aux) événement(s) créé(s).
 ${(stats as any).eventDetailedList || stats.eventDetails.join('\n')}
+${stats.upcomingEvents > 0 ? `\n🔜 ${stats.upcomingEvents} événement(s) à venir prochainement` : ''}
 
 🏪 VIE LOCALE (Pros & Assos) :
-${stats.proPosts} publications de pros.
+${stats.proPosts} publication(s) de professionnels.
 ${(stats as any).proPostDetails || ''}
+${stats.activeBusinesses.length > 0 ? `\nCommerçants actifs : ${stats.activeBusinesses.join(', ')}` : ''}
+${stats.newProducts > 0 ? `\n🆕 ${stats.newProducts} nouveau(x) produit(s)/service(s)` : ''}
 
-🛍️ MARCHÉ : ${stats.newListings} nouvelles annonces.
+🛍️ MARCHÉ : ${stats.newListings} nouvelle(s) annonce(s).
+${stats.listingCategories.length > 0 ? `Catégories : ${stats.listingCategories.join(', ')}` : ''}
 
 CONSIGNES DE RÉDACTION :
-1. TON : "Esprit Village". Bienveillant, factuel, utile. Tu es un voisin bien informé.
-2. FORMAT : Un paragraphe fluide ou 2-3 points clés. Max 100 mots.
-3. PRÉCISION :
-   - Pour les ALERTES : Dis "Une alerte de [Nom] a été signalée concernant [Sujet]". NE DIS PAS "non résolue" ou "en attente". Indique juste le fait.
-   - Pour les PROS/ASSOS : Mentionne explicitement qui a posté quoi si c'est pertinent (ex: "La Boulangerie X propose...").
-   - Pour la MESSAGERIE : Synthétise l'ambiance ou les sujets principaux si tu les identifies dans les extraits.
-4. SI C'EST CALME : "Une journée calme hier à Beaupuy. Profitez-en pour consulter l'agenda !"
+1. TON : "Esprit Village". Bienveillant, factuel, utile. Tu es un voisin bien informé qui RACONTE ce qu'il s'est passé.
+2. FORMAT : 2-4 paragraphes. Max 150 mots. Style JOURNALISTIQUE et NARRATIF.
+3. PRÉCISION ABSOLUE :
+   ⚠️ **POUR LES ALERTES** : 
+   - NE DIS JAMAIS juste "1 alerte signalée"
+   - DIS PLUTÔT : "Une alerte [TYPE D'ALERTE] a été signalée hier par [NOM]. [BREF RÉSUMÉ DE LA SITUATION]"
+   - Exemple : "Marie a signalé une activité suspecte rue des Lilas hier soir. Soyez vigilants."
+   
+   📅 **POUR LES ÉVÉNEMENTS** : 
+   - NE DIS JAMAIS juste "1 événement créé"
+   - DIS PLUTÔT : "[NOM DE L'ÉVÉNEMENT] est prévu le [DATE]. [BREF DÉTAIL]"
+   - Exemple : "La Fête de la Saint-Jean est programmée le 24 juin par l'association du village."
+   
+   🏪 **POUR LES PROS** :
+   - NE DIS JAMAIS juste "1 publication"
+   - DIS PLUTÔT : "[NOM DU COMMERCE] a annoncé [QUOI]"
+   - Exemple : "La Boulangerie du Village propose des croissants aux amandes cette semaine."
+   
+   💬 **POUR LA MESSAGERIE** :
+   - Synthétise l'AMBIANCE ou les SUJETS si tu les identifies
+   - Exemple : "Les voisins ont échangé sur l'organisation du vide-grenier et la météo clémente à venir."
+
+4. SI C'EST CALME : "Une journée calme hier à Beaupuy. Profitez-en pour consulter l'agenda ou le marché !"
+
 5. STRUCTURE JSON OBLIGATOIRE :
 {
-  "title": "Titre accrocheur (ex: Alerte Voisinage, Nouveaux Événements...)",
-  "content": "Le résumé rédigé..."
+  "title": "Titre accrocheur qui résume l'info principale (ex: 'Alerte Sécurité et Fête à venir', 'Journée calme au village'...)",
+  "content": "Le résumé NARRATIF avec les DÉTAILS CONCRETS..."
 }`;
 
     const result = await generateContent(prompt);

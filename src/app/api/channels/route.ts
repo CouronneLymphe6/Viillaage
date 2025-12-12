@@ -3,44 +3,70 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET() {
     try {
-        const channels = await prisma.channel.findMany({
+        let channels = await prisma.channel.findMany({
             orderBy: { createdAt: 'asc' },
         });
 
-        // Compatibility Layer: Force alignment with Vercel/Production state
-        // 1. Rename "Annonces" -> "Alertes et Sécurité"
-        // 2. Ensure "Ecole" exists
+        // ----------------------------------------------------------------------
+        // SELF-HEALING / ALIGNMENT LOGIC
+        // We ensure the DB state matches the desired Vercel/Production configuration.
+        // This runs on read to fix any environments (local or prod) lazily.
+        // ----------------------------------------------------------------------
 
-        let processedChannels = channels.map(channel => {
-            if (channel.name === 'Annonces') {
-                return {
-                    ...channel,
-                    name: 'Alertes et Sécurité',
-                    description: 'Signalements urgents, sûreté du village et vigilance voisins'
-                };
-            }
-            return channel;
-        });
+        const updates = [];
 
-        // Check if "Alertes et Sécurité" exists (either renamed or native)
-        const hasSecurity = processedChannels.some(c => c.name === 'Alertes et Sécurité');
-
-        // If "Annonces" didn't exist and "Alertes" doesn't exist, we might want to create a fake one?
-        // But usually "Annonces" exists in the seed. If not, we leave it be or injecting it might be safer.
-
-        // Check if "Ecole" exists
-        const hasEcole = processedChannels.some(c => c.name === 'Ecole');
-
-        if (!hasEcole) {
-            processedChannels.push({
-                id: 'channel-ecole-placeholder', // Safe placeholder ID
-                name: 'Ecole',
-                description: 'Actualités scolaires, périscolaires et informations parents',
-                createdAt: new Date(),
-            } as any);
+        // 1. Rename "Annonces" to "Alertes et Sécurité" if it exists
+        const annoncesChannel = channels.find(c => c.name === 'Annonces');
+        if (annoncesChannel) {
+            updates.push(
+                prisma.channel.update({
+                    where: { id: annoncesChannel.id },
+                    data: {
+                        name: 'Alertes et Sécurité',
+                        description: 'Signalements urgents, sûreté du village et vigilance voisins'
+                    }
+                }).catch(e => console.error("Failed to auto-rename Annonces channel:", e))
+            );
         }
 
-        return NextResponse.json(processedChannels);
+        // 2. Rename "Loisir" to "Assos" if it exists
+        const loisirChannel = channels.find(c => c.name === 'Loisir' || c.name === 'Loisirs');
+        if (loisirChannel) {
+            updates.push(
+                prisma.channel.update({
+                    where: { id: loisirChannel.id },
+                    data: {
+                        name: 'Assos',
+                        description: 'Associations, clubs et activités du village'
+                    }
+                }).catch(e => console.error("Failed to auto-rename Loisir channel:", e))
+            );
+        }
+
+        // 3. Create "Ecole" if it doesn't exist
+        const hasEcole = channels.some(c => c.name === 'Ecole');
+        if (!hasEcole) {
+            updates.push(
+                prisma.channel.create({
+                    data: {
+                        name: 'Ecole',
+                        description: 'Actualités scolaires, périscolaires et informations parents',
+                    }
+                }).catch(e => console.error("Failed to auto-create Ecole channel:", e))
+            );
+        }
+
+        if (updates.length > 0) {
+            // Await updates to ensure consistency for the immediate user response
+            await Promise.allSettled(updates);
+
+            // Re-fetch to get the clean state (with valid IDs for new/renamed channels)
+            channels = await prisma.channel.findMany({
+                orderBy: { createdAt: 'asc' },
+            });
+        }
+
+        return NextResponse.json(channels);
     } catch (error) {
         console.error("GET_CHANNELS_ERROR", error);
         return new NextResponse("Internal Error", { status: 500 });
