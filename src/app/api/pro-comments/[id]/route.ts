@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 // DELETE /api/pro-comments/[id] - Supprimer un commentaire Pro
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    props: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions);
@@ -15,6 +15,7 @@ export async function DELETE(
             return new NextResponse("Unauthorized", { status: 401 });
         }
 
+        const params = await props.params;
         const commentId = params.id;
 
         // Récupérer le commentaire
@@ -49,7 +50,7 @@ export async function DELETE(
 // PUT /api/pro-comments/[id] - Modifier un commentaire Pro
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    props: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions);
@@ -58,6 +59,7 @@ export async function PUT(
             return new NextResponse("Unauthorized", { status: 401 });
         }
 
+        const params = await props.params;
         const commentId = params.id;
         const body = await request.json();
         const { content } = body;

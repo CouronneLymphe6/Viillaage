@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 // DELETE /api/pro-posts/[id] - Supprimer un post Pro
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    props: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions);
@@ -15,6 +15,7 @@ export async function DELETE(
             return new NextResponse("Unauthorized", { status: 401 });
         }
 
+        const params = await props.params;
         const postId = params.id;
 
         // Vérifier que le post appartient à un business du user
@@ -52,7 +53,7 @@ export async function DELETE(
 // PUT /api/pro-posts/[id] - Modifier un post Pro
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    props: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions);
@@ -61,6 +62,7 @@ export async function PUT(
             return new NextResponse("Unauthorized", { status: 401 });
         }
 
+        const params = await props.params;
         const postId = params.id;
         const body = await request.json();
         const { content, mediaUrl, mediaType } = body;
