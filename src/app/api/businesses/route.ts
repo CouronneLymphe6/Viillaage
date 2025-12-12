@@ -29,7 +29,13 @@ export async function GET() {
             },
             orderBy: { name: 'asc' },
         });
-        return NextResponse.json(businesses);
+
+        // Aggressive caching - 60 seconds cache
+        return NextResponse.json(businesses, {
+            headers: {
+                'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
+            },
+        });
     } catch (error) {
         console.error("GET_BUSINESSES_ERROR", error);
         return new NextResponse("Internal Error", { status: 500 });
