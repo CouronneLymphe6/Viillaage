@@ -22,7 +22,12 @@ export async function GET() {
             take: 50, // Limit to 50 most recent
         });
 
-        return NextResponse.json(notifications);
+        // Cache for 30 seconds to reduce DB load
+        return NextResponse.json(notifications, {
+            headers: {
+                'Cache-Control': 'private, s-maxage=30, stale-while-revalidate=60',
+            },
+        });
     } catch (error) {
         console.error('Error fetching notifications:', error);
         return new NextResponse("Internal Server Error", { status: 500 });

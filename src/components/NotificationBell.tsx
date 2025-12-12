@@ -19,18 +19,26 @@ export default function NotificationBell() {
     const router = useRouter();
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [showDropdown, setShowDropdown] = useState(false);
-    const [unreadCount, setUnreadCount] = useState(0);
+    const [isLoading, setIsLoading] = useState(false);
 
-    useEffect(() => {
-        if (session) {
-            fetchNotifications();
-            // Poll for new notifications every 30 seconds
-            const interval = setInterval(fetchNotifications, 30000);
-            return () => clearInterval(interval);
+    // Fetch notifications count only (lightweight)
+    const fetchNotificationsCount = async () => {
+        if (isLoading) return; // Prevent concurrent requests
+
+        try {
+            const response = await fetch('/api/notifications/count');
+            if (response.ok) {
+                const data = await response.json();
+                setUnreadCount(data.unreadCount);
+            }
+        } catch (error) {
+            console.error('Error fetching notification count:', error);
         }
-    }, [session]);
+    };
 
+    // Fetch full notifications (called when dropdown opens)
     const fetchNotifications = async () => {
+        setIsLoading(true);
         try {
             const response = await fetch('/api/notifications');
             if (response.ok) {
@@ -40,8 +48,20 @@ export default function NotificationBell() {
             }
         } catch (error) {
             console.error('Error fetching notifications:', error);
+        } finally {
+            setIsLoading(false);
         }
     };
+
+    useEffect(() => {
+        if (session) {
+            // Initial load: only count
+            fetchNotificationsCount();
+            // Poll for NEW notifications every 60 seconds (was 30, now optimized)
+            const interval = setInterval(fetchNotificationsCount, 60000);
+            return () => clearInterval(interval);
+        }
+    }, [session]);
 
     const markAsRead = async (notificationId: string) => {
         try {
@@ -110,7 +130,14 @@ export default function NotificationBell() {
         <div style={{ position: 'relative', zIndex: 1002 }}>
             {/* Bell Icon */}
             <button
-                onClick={() => setShowDropdown(!showDropdown)}
+                onClick={() => {
+                    const newState = !showDropdown;
+                    setShowDropdown(newState);
+                    // Fetch full notifications ONLY when opening dropdown
+                    if (newState && notifications.length === 0) {
+                        fetchNotifications();
+                    }
+                }}
                 style={{
                     position: 'relative',
                     background: 'white',
