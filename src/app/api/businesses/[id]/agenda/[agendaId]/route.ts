@@ -3,77 +3,73 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-// PATCH - Modifier un événement d'agenda (owner only)
+// PATCH - Update an agenda item
 export async function PATCH(
     request: Request,
     { params }: { params: Promise<{ id: string; agendaId: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions);
-
         if (!session?.user?.id) {
             return new NextResponse("Unauthorized", { status: 401 });
         }
 
-        const { id, agendaId } = await params;
+        const { agendaId } = await params;
         const body = await request.json();
-        const { title, description, type, startDate, endDate, isPublic } = body;
 
-        // Vérifier que l'événement existe et appartient au business de l'utilisateur
-        const agendaItem = await prisma.proAgenda.findUnique({
+        // Verify agenda exists and user is owner
+        const agenda = await prisma.proAgenda.findUnique({
             where: { id: agendaId },
             include: { business: true },
         });
 
-        if (!agendaItem || agendaItem.business.ownerId !== session.user.id) {
+        if (!agenda || agenda.business.ownerId !== session.user.id) {
             return new NextResponse("Forbidden", { status: 403 });
         }
 
-        // Mettre à jour l'événement
-        const updatedAgendaItem = await prisma.proAgenda.update({
+        // Update agenda
+        const updatedAgenda = await prisma.proAgenda.update({
             where: { id: agendaId },
             data: {
-                title: title || agendaItem.title,
-                description: description !== undefined ? description : agendaItem.description,
-                type: type || agendaItem.type,
-                startDate: startDate ? new Date(startDate) : agendaItem.startDate,
-                endDate: endDate ? new Date(endDate) : agendaItem.endDate,
-                isPublic: isPublic !== undefined ? isPublic : agendaItem.isPublic,
+                title: body.title || agenda.title,
+                description: body.description !== undefined ? body.description : agenda.description,
+                type: body.type || agenda.type,
+                startDate: body.startDate ? new Date(body.startDate) : agenda.startDate,
+                endDate: body.endDate ? new Date(body.endDate) : agenda.endDate,
             },
         });
 
-        return NextResponse.json(updatedAgendaItem);
+        return NextResponse.json(updatedAgenda);
     } catch (error) {
         console.error("UPDATE_AGENDA_ERROR", error);
         return new NextResponse("Internal Error", { status: 500 });
     }
 }
 
-// DELETE - Supprimer un événement d'agenda (owner only)
+// DELETE - Delete an agenda item
 export async function DELETE(
     request: Request,
     { params }: { params: Promise<{ id: string; agendaId: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions);
-
         if (!session?.user?.id) {
             return new NextResponse("Unauthorized", { status: 401 });
         }
 
         const { agendaId } = await params;
 
-        // Vérifier que l'événement existe et appartient au business de l'utilisateur
-        const agendaItem = await prisma.proAgenda.findUnique({
+        // Verify agenda exists and user is owner
+        const agenda = await prisma.proAgenda.findUnique({
             where: { id: agendaId },
             include: { business: true },
         });
 
-        if (!agendaItem || agendaItem.business.ownerId !== session.user.id) {
+        if (!agenda || agenda.business.ownerId !== session.user.id) {
             return new NextResponse("Forbidden", { status: 403 });
         }
 
-        // Supprimer l'événement
+        // Delete agenda
         await prisma.proAgenda.delete({
             where: { id: agendaId },
         });
