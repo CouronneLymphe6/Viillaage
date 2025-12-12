@@ -191,9 +191,9 @@ export function validateAndSanitize<T>(
 export const createAlertSchema = z.object({
     type: alertTypeSchema,
     description: descriptionSchema,
-    latitude: latitudeSchema,
-    longitude: longitudeSchema,
-    photoUrl: urlSchema.optional()
+    latitude: latitudeSchema.optional().default(0),
+    longitude: longitudeSchema.optional().default(0),
+    photoUrl: z.string().url('URL invalide').optional().or(z.literal(''))
 });
 
 // POST /api/register
