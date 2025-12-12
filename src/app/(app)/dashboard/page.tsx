@@ -57,7 +57,6 @@ export default async function Dashboard() {
                 title: true,
                 description: true,
                 date: true,
-                type: true,
                 organizer: { select: { name: true } }
             },
         }),
