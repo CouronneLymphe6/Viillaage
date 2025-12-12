@@ -158,7 +158,55 @@ export function PostsTab({ businessId, isOwner }: PostsTabProps) {
                                 borderRadius: 'var(--radius-md)',
                                 padding: '20px',
                                 boxShadow: 'var(--shadow-sm)',
+                                position: 'relative',
                             }}>
+                                {isOwner && (
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: '12px',
+                                        right: '12px',
+                                        display: 'flex',
+                                        gap: '8px',
+                                        zIndex: 1,
+                                    }}>
+                                        <button
+                                            onClick={() => handleEdit(post)}
+                                            style={{
+                                                width: '32px',
+                                                height: '32px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                                                border: 'none',
+                                                borderRadius: '8px',
+                                                cursor: 'pointer',
+                                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                            }}
+                                            title="Modifier"
+                                        >
+                                            <Edit2 size={16} color="#666" />
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(post.id)}
+                                            style={{
+                                                width: '32px',
+                                                height: '32px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                                                border: 'none',
+                                                borderRadius: '8px',
+                                                cursor: 'pointer',
+                                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                            }}
+                                            title="Supprimer"
+                                        >
+                                            <Trash2 size={16} color="#c33" />
+                                        </button>
+                                    </div>
+                                )}
                                 <div style={{ marginBottom: '12px' }}>
                                     <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
                                         {new Date(post.createdAt).toLocaleDateString('fr-FR', {
@@ -219,52 +267,6 @@ export function PostsTab({ businessId, isOwner }: PostsTabProps) {
                                         {post.commentCount} Commentaire{post.commentCount > 1 ? 's' : ''}
                                     </div>
                                 </div>
-
-                                {isOwner && (
-                                    <div style={{ display: 'flex', gap: '8px', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid var(--border)' }}>
-                                        <button
-                                            onClick={() => handleEdit(post)}
-                                            style={{
-                                                flex: 1,
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                gap: '6px',
-                                                padding: '8px',
-                                                backgroundColor: 'var(--background)',
-                                                border: '2px solid var(--border)',
-                                                borderRadius: 'var(--radius-md)',
-                                                fontSize: '0.85rem',
-                                                fontWeight: '600',
-                                                cursor: 'pointer',
-                                            }}
-                                        >
-                                            <Edit2 size={14} />
-                                            Modifier
-                                        </button>
-                                        <button
-                                            onClick={() => handleDelete(post.id)}
-                                            style={{
-                                                flex: 1,
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                gap: '6px',
-                                                padding: '8px',
-                                                backgroundColor: '#fee',
-                                                border: '2px solid #fcc',
-                                                borderRadius: 'var(--radius-md)',
-                                                color: '#c33',
-                                                fontSize: '0.85rem',
-                                                fontWeight: '600',
-                                                cursor: 'pointer',
-                                            }}
-                                        >
-                                            <Trash2 size={14} />
-                                            Supprimer
-                                        </button>
-                                    </div>
-                                )}
 
                                 {post.comments.length > 0 && (
                                     <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--border)' }}>

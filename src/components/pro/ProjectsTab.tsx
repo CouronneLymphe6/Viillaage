@@ -135,7 +135,55 @@ export function ProjectsTab({ businessId, isOwner }: ProjectsTabProps) {
                                     padding: '16px',
                                     borderRadius: 'var(--radius-md)',
                                     boxShadow: 'var(--shadow-sm)',
+                                    position: 'relative',
                                 }}>
+                                    {isOwner && (
+                                        <div style={{
+                                            position: 'absolute',
+                                            top: '12px',
+                                            right: '12px',
+                                            display: 'flex',
+                                            gap: '8px',
+                                            zIndex: 1,
+                                        }}>
+                                            <button
+                                                onClick={() => handleEdit(project)}
+                                                style={{
+                                                    width: '32px',
+                                                    height: '32px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                                                    border: 'none',
+                                                    borderRadius: '8px',
+                                                    cursor: 'pointer',
+                                                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                                }}
+                                                title="Modifier"
+                                            >
+                                                <Edit2 size={16} color="#666" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(project.id)}
+                                                style={{
+                                                    width: '32px',
+                                                    height: '32px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                                                    border: 'none',
+                                                    borderRadius: '8px',
+                                                    cursor: 'pointer',
+                                                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                                }}
+                                                title="Supprimer"
+                                            >
+                                                <Trash2 size={16} color="#c33" />
+                                            </button>
+                                        </div>
+                                    )}
                                     {project.photo && (
                                         <div style={{
                                             width: '100%',
@@ -167,52 +215,6 @@ export function ProjectsTab({ businessId, isOwner }: ProjectsTabProps) {
                                         <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>
                                             📅 Début : {new Date(project.startDate).toLocaleDateString('fr-FR')}
                                         </p>
-                                    )}
-
-                                    {isOwner && (
-                                        <div style={{ display: 'flex', gap: '8px', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid var(--border)' }}>
-                                            <button
-                                                onClick={() => handleEdit(project)}
-                                                style={{
-                                                    flex: 1,
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    gap: '6px',
-                                                    padding: '8px',
-                                                    backgroundColor: 'var(--background)',
-                                                    border: '2px solid var(--border)',
-                                                    borderRadius: 'var(--radius-md)',
-                                                    fontSize: '0.85rem',
-                                                    fontWeight: '600',
-                                                    cursor: 'pointer',
-                                                }}
-                                            >
-                                                <Edit2 size={14} />
-                                                Modifier
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(project.id)}
-                                                style={{
-                                                    flex: 1,
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    gap: '6px',
-                                                    padding: '8px',
-                                                    backgroundColor: '#fee',
-                                                    border: '2px solid #fcc',
-                                                    borderRadius: 'var(--radius-md)',
-                                                    color: '#c33',
-                                                    fontSize: '0.85rem',
-                                                    fontWeight: '600',
-                                                    cursor: 'pointer',
-                                                }}
-                                            >
-                                                <Trash2 size={14} />
-                                                Supprimer
-                                            </button>
-                                        </div>
                                     )}
                                 </div>
                             </div>
