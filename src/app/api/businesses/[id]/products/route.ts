@@ -72,3 +72,12 @@ export async function POST(
         return new NextResponse("Internal Error", { status: 500 });
     }
 }
+
+// Augmenter la limite de taille du body pour les photos de produits
+export const config = {
+    api: {
+        bodyParser: {
+            sizeLimit: '10mb',
+        },
+    },
+};

@@ -82,16 +82,21 @@ export async function POST(
             return NextResponse.json({ error: "Invalid stat type" }, { status: 400 });
         }
 
-        await prisma.proStats.upsert({
-            where: { businessId: id },
-            update: updateData,
-            create: {
-                businessId: id,
-                ...updateData,
-            },
-        });
+        try {
+            await prisma.proStats.upsert({
+                where: { businessId: id },
+                update: updateData,
+                create: {
+                    businessId: id,
+                    ...updateData,
+                },
+            });
 
-        return NextResponse.json({ success: true });
+            return NextResponse.json({ success: true });
+        } catch (dbError) {
+            console.error("STATS_UPSERT_ERROR:", dbError);
+            return NextResponse.json({ error: "Database error" }, { status: 500 });
+        }
 
     } catch (error) {
         console.error("INCREMENT_STATS_ERROR", error);

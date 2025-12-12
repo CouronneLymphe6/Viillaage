@@ -193,7 +193,15 @@ export const createAlertSchema = z.object({
     description: descriptionSchema,
     latitude: latitudeSchema.optional().default(0),
     longitude: longitudeSchema.optional().default(0),
-    photoUrl: z.string().url('URL invalide').optional().or(z.literal(''))
+    photoUrl: z.string().optional().refine((val) => {
+        if (!val || val === '') return true;
+        try {
+            new URL(val);
+            return true;
+        } catch {
+            return false;
+        }
+    }, { message: 'URL invalide' })
 });
 
 // POST /api/register
