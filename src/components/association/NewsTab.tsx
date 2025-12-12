@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { MessageCircle, Plus, ThumbsUp, Send, Edit2, Trash2 } from 'lucide-react';
+import { compressImage, formatFileSize } from '@/lib/imageUtils';
 
 interface AssociationPost {
     id: string;
@@ -367,32 +368,36 @@ function PostForm({ associationId, post, onClose, onSuccess }: { associationId: 
         mediaUrl: post?.mediaUrl || '',
     });
     const [uploading, setUploading] = useState(false);
+    const [uploadError, setUploadError] = useState<string | null>(null);
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
+        setUploadError(null);
+
         if (!file.type.startsWith('image/')) {
-            alert('Veuillez sélectionner une image valide');
+            setUploadError('Veuillez sélectionner une image valide (JPG, PNG, etc.)');
             return;
         }
 
-        if (file.size > 5 * 1024 * 1024) {
-            alert('L\'image est trop grande. Maximum 5MB.');
+        const fileSizeMB = file.size / (1024 * 1024);
+        if (fileSizeMB > 10) {
+            setUploadError(`Image trop grande (${formatFileSize(file.size)}). Maximum 10MB.`);
             return;
         }
 
         setUploading(true);
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            setFormData({ ...formData, mediaUrl: reader.result as string });
+        try {
+            const compressed = await compressImage(file, 1200, 1200, 0.8);
+            setFormData({ ...formData, mediaUrl: compressed });
+            setUploadError(null);
+        } catch (error) {
+            console.error('Image compression error:', error);
+            setUploadError('Erreur lors du traitement de l\'image. Veuillez réessayer.');
+        } finally {
             setUploading(false);
-        };
-        reader.onerror = () => {
-            alert('Erreur lors de la lecture de l\'image');
-            setUploading(false);
-        };
-        reader.readAsDataURL(file);
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -477,7 +482,8 @@ function PostForm({ associationId, post, onClose, onSuccess }: { associationId: 
                                 borderRadius: 'var(--radius-md)',
                             }}
                         />
-                        {uploading && <p style={{ marginTop: '8px', color: 'var(--primary)' }}>Chargement...</p>}
+                        {uploading && <p style={{ marginTop: '8px', color: 'var(--primary)' }}>Compression en cours...</p>}
+                        {uploadError && <p style={{ marginTop: '8px', color: '#c33', fontSize: '0.9rem' }}>{uploadError}</p>}
                         {formData.mediaUrl && (
                             <div style={{ marginTop: '12px' }}>
                                 <img src={formData.mediaUrl} alt="Preview" style={{ width: '100%', borderRadius: 'var(--radius-md)' }} />
