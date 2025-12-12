@@ -39,7 +39,6 @@ export default async function Dashboard() {
                 id: true,
                 type: true,
                 description: true,
-                severity: true,
                 status: true,
                 createdAt: true,
                 user: { select: { name: true } }
