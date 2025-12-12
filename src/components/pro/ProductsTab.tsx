@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Package, Plus } from 'lucide-react';
+import { Package, Plus, Edit2, Trash2 } from 'lucide-react';
 
 interface Product {
     id: string;
@@ -22,6 +22,7 @@ export function ProductsTab({ businessId, isOwner }: ProductsTabProps) {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(false);
     const [showForm, setShowForm] = useState(false);
+    const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
     useEffect(() => {
         fetchProducts();
@@ -42,6 +43,26 @@ export function ProductsTab({ businessId, isOwner }: ProductsTabProps) {
         }
     };
 
+    const handleDelete = async (productId: string) => {
+        if (!confirm('Voulez-vous vraiment supprimer ce produit ?')) return;
+
+        try {
+            const response = await fetch(`/api/businesses/${businessId}/products/${productId}`, {
+                method: 'DELETE',
+            });
+            if (response.ok) {
+                fetchProducts();
+            }
+        } catch (error) {
+            console.error('Error deleting product:', error);
+        }
+    };
+
+    const handleEdit = (product: Product) => {
+        setEditingProduct(product);
+        setShowForm(true);
+    };
+
     if (loading) {
         return <p style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>Chargement...</p>;
     }
@@ -52,7 +73,10 @@ export function ProductsTab({ businessId, isOwner }: ProductsTabProps) {
                 <h2 style={{ margin: 0 }}>Produits & Services</h2>
                 {isOwner && (
                     <button
-                        onClick={() => setShowForm(true)}
+                        onClick={() => {
+                            setEditingProduct(null);
+                            setShowForm(true);
+                        }}
                         style={{
                             display: 'flex',
                             alignItems: 'center',
@@ -91,6 +115,7 @@ export function ProductsTab({ businessId, isOwner }: ProductsTabProps) {
                                 borderRadius: 'var(--radius-md)',
                                 overflow: 'hidden',
                                 boxShadow: 'var(--shadow-sm)',
+                                position: 'relative',
                             }}>
                                 {productPhotos[0] && (
                                     <div style={{
@@ -112,7 +137,7 @@ export function ProductsTab({ businessId, isOwner }: ProductsTabProps) {
                                         </p>
                                     )}
                                     {productTags.length > 0 && (
-                                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '8px' }}>
                                             {productTags.map((tag: string, idx: number) => (
                                                 <span key={idx} style={{
                                                     backgroundColor: 'var(--primary)',
@@ -131,6 +156,52 @@ export function ProductsTab({ businessId, isOwner }: ProductsTabProps) {
                                             Indisponible
                                         </p>
                                     )}
+
+                                    {isOwner && (
+                                        <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                                            <button
+                                                onClick={() => handleEdit(product)}
+                                                style={{
+                                                    flex: 1,
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    gap: '6px',
+                                                    padding: '8px',
+                                                    backgroundColor: 'var(--background)',
+                                                    border: '2px solid var(--border)',
+                                                    borderRadius: 'var(--radius-md)',
+                                                    fontSize: '0.85rem',
+                                                    fontWeight: '600',
+                                                    cursor: 'pointer',
+                                                }}
+                                            >
+                                                <Edit2 size={14} />
+                                                Modifier
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(product.id)}
+                                                style={{
+                                                    flex: 1,
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    gap: '6px',
+                                                    padding: '8px',
+                                                    backgroundColor: '#fee',
+                                                    border: '2px solid #fcc',
+                                                    borderRadius: 'var(--radius-md)',
+                                                    color: '#c33',
+                                                    fontSize: '0.85rem',
+                                                    fontWeight: '600',
+                                                    cursor: 'pointer',
+                                                }}
+                                            >
+                                                <Trash2 size={14} />
+                                                Supprimer
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         );
@@ -141,10 +212,15 @@ export function ProductsTab({ businessId, isOwner }: ProductsTabProps) {
             {showForm && (
                 <ProductForm
                     businessId={businessId}
-                    onClose={() => setShowForm(false)}
+                    product={editingProduct}
+                    onClose={() => {
+                        setShowForm(false);
+                        setEditingProduct(null);
+                    }}
                     onSuccess={() => {
                         fetchProducts();
                         setShowForm(false);
+                        setEditingProduct(null);
                     }}
                 />
             )}
@@ -152,14 +228,19 @@ export function ProductsTab({ businessId, isOwner }: ProductsTabProps) {
     );
 }
 
-// Formulaire modal pour ajouter un produit
-function ProductForm({ businessId, onClose, onSuccess }: { businessId: string, onClose: () => void, onSuccess: () => void }) {
+// Formulaire modal pour ajouter/modifier un produit
+function ProductForm({ businessId, product, onClose, onSuccess }: {
+    businessId: string;
+    product: Product | null;
+    onClose: () => void;
+    onSuccess: () => void;
+}) {
     const [formData, setFormData] = useState({
-        name: '',
-        description: '',
-        price: '',
-        photos: '',
-        tags: '',
+        name: product?.name || '',
+        description: product?.description || '',
+        price: product?.price?.toString() || '',
+        photos: product ? JSON.parse(product.photos)[0] || '' : '',
+        tags: product ? JSON.parse(product.tags).join(', ') : '',
     });
     const [uploading, setUploading] = useState(false);
 
@@ -196,8 +277,14 @@ function ProductForm({ businessId, onClose, onSuccess }: { businessId: string, o
             const photos = formData.photos ? JSON.stringify([formData.photos]) : '[]';
             const tags = formData.tags ? JSON.stringify(formData.tags.split(',').map(t => t.trim())) : '[]';
 
-            const response = await fetch(`/api/businesses/${businessId}/products`, {
-                method: 'POST',
+            const url = product
+                ? `/api/businesses/${businessId}/products/${product.id}`
+                : `/api/businesses/${businessId}/products`;
+
+            const method = product ? 'PATCH' : 'POST';
+
+            const response = await fetch(url, {
+                method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     ...formData,
@@ -211,7 +298,7 @@ function ProductForm({ businessId, onClose, onSuccess }: { businessId: string, o
                 onSuccess();
             }
         } catch (error) {
-            console.error('Error creating product:', error);
+            console.error('Error saving product:', error);
         }
     };
 
@@ -238,7 +325,7 @@ function ProductForm({ businessId, onClose, onSuccess }: { businessId: string, o
                 maxHeight: '90vh',
                 overflowY: 'auto',
             }}>
-                <h2 style={{ marginBottom: '20px' }}>Ajouter un produit</h2>
+                <h2 style={{ marginBottom: '20px' }}>{product ? 'Modifier le produit' : 'Ajouter un produit'}</h2>
                 <form onSubmit={handleSubmit}>
                     <div style={{ marginBottom: '16px' }}>
                         <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Nom *</label>
@@ -362,7 +449,7 @@ function ProductForm({ businessId, onClose, onSuccess }: { businessId: string, o
                                 opacity: uploading ? 0.5 : 1,
                             }}
                         >
-                            Ajouter
+                            {product ? 'Modifier' : 'Ajouter'}
                         </button>
                     </div>
                 </form>

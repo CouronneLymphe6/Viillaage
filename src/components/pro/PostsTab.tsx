@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { MessageCircle, Plus, ThumbsUp, Send } from 'lucide-react';
+import { MessageCircle, Plus, ThumbsUp, Send, Edit2, Trash2 } from 'lucide-react';
 
 interface Post {
     id: string;
@@ -36,6 +36,7 @@ export function PostsTab({ businessId, isOwner }: PostsTabProps) {
     const [posts, setPosts] = useState<Post[]>([]);
     const [loading, setLoading] = useState(false);
     const [showForm, setShowForm] = useState(false);
+    const [editingPost, setEditingPost] = useState<Post | null>(null);
     const [newComment, setNewComment] = useState<{ [key: string]: string }>({});
 
     useEffect(() => {
@@ -87,6 +88,25 @@ export function PostsTab({ businessId, isOwner }: PostsTabProps) {
         }
     };
 
+    const handleDelete = async (postId: string) => {
+        if (!confirm('Voulez-vous vraiment supprimer cette publication ?')) return;
+        try {
+            const response = await fetch(`/api/pro-posts/${postId}`, {
+                method: 'DELETE',
+            });
+            if (response.ok) {
+                fetchPosts();
+            }
+        } catch (error) {
+            console.error('Error deleting post:', error);
+        }
+    };
+
+    const handleEdit = (post: Post) => {
+        setEditingPost(post);
+        setShowForm(true);
+    };
+
     if (loading) {
         return <p style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>Chargement...</p>;
     }
@@ -97,7 +117,10 @@ export function PostsTab({ businessId, isOwner }: PostsTabProps) {
                 <h2 style={{ margin: 0 }}>Actualités</h2>
                 {isOwner && (
                     <button
-                        onClick={() => setShowForm(true)}
+                        onClick={() => {
+                            setEditingPost(null);
+                            setShowForm(true);
+                        }}
                         style={{
                             display: 'flex',
                             alignItems: 'center',
@@ -197,6 +220,52 @@ export function PostsTab({ businessId, isOwner }: PostsTabProps) {
                                     </div>
                                 </div>
 
+                                {isOwner && (
+                                    <div style={{ display: 'flex', gap: '8px', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid var(--border)' }}>
+                                        <button
+                                            onClick={() => handleEdit(post)}
+                                            style={{
+                                                flex: 1,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                gap: '6px',
+                                                padding: '8px',
+                                                backgroundColor: 'var(--background)',
+                                                border: '2px solid var(--border)',
+                                                borderRadius: 'var(--radius-md)',
+                                                fontSize: '0.85rem',
+                                                fontWeight: '600',
+                                                cursor: 'pointer',
+                                            }}
+                                        >
+                                            <Edit2 size={14} />
+                                            Modifier
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(post.id)}
+                                            style={{
+                                                flex: 1,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                gap: '6px',
+                                                padding: '8px',
+                                                backgroundColor: '#fee',
+                                                border: '2px solid #fcc',
+                                                borderRadius: 'var(--radius-md)',
+                                                color: '#c33',
+                                                fontSize: '0.85rem',
+                                                fontWeight: '600',
+                                                cursor: 'pointer',
+                                            }}
+                                        >
+                                            <Trash2 size={14} />
+                                            Supprimer
+                                        </button>
+                                    </div>
+                                )}
+
                                 {post.comments.length > 0 && (
                                     <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
                                         {post.comments.map((comment) => (
@@ -274,10 +343,15 @@ export function PostsTab({ businessId, isOwner }: PostsTabProps) {
             {showForm && (
                 <PostForm
                     businessId={businessId}
-                    onClose={() => setShowForm(false)}
+                    post={editingPost}
+                    onClose={() => {
+                        setShowForm(false);
+                        setEditingPost(null);
+                    }}
                     onSuccess={() => {
                         fetchPosts();
                         setShowForm(false);
+                        setEditingPost(null);
                     }}
                 />
             )}
@@ -285,10 +359,10 @@ export function PostsTab({ businessId, isOwner }: PostsTabProps) {
     );
 }
 
-function PostForm({ businessId, onClose, onSuccess }: { businessId: string, onClose: () => void, onSuccess: () => void }) {
+function PostForm({ businessId, post, onClose, onSuccess }: { businessId: string, post: Post | null, onClose: () => void, onSuccess: () => void }) {
     const [formData, setFormData] = useState({
-        content: '',
-        mediaUrl: '',
+        content: post?.content || '',
+        mediaUrl: post?.mediaUrl || '',
     });
     const [uploading, setUploading] = useState(false);
 
@@ -322,8 +396,11 @@ function PostForm({ businessId, onClose, onSuccess }: { businessId: string, onCl
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const response = await fetch(`/api/businesses/${businessId}/posts`, {
-                method: 'POST',
+            const url = post ? `/api/pro-posts/${post.id}` : `/api/businesses/${businessId}/posts`;
+            const method = post ? 'PUT' : 'POST';
+
+            const response = await fetch(url, {
+                method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     content: formData.content,
@@ -336,7 +413,7 @@ function PostForm({ businessId, onClose, onSuccess }: { businessId: string, onCl
                 onSuccess();
             }
         } catch (error) {
-            console.error('Error creating post:', error);
+            console.error('Error saving post:', error);
         }
     };
 
@@ -363,7 +440,7 @@ function PostForm({ businessId, onClose, onSuccess }: { businessId: string, onCl
                 maxHeight: '90vh',
                 overflowY: 'auto',
             }}>
-                <h2 style={{ marginBottom: '20px' }}>Nouvelle publication</h2>
+                <h2 style={{ marginBottom: '20px' }}>{post ? 'Modifier la publication' : 'Nouvelle publication'}</h2>
                 <form onSubmit={handleSubmit}>
                     <div style={{ marginBottom: '16px' }}>
                         <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Message *</label>
@@ -437,7 +514,7 @@ function PostForm({ businessId, onClose, onSuccess }: { businessId: string, onCl
                                 opacity: uploading ? 0.5 : 1,
                             }}
                         >
-                            Publier
+                            {post ? 'Modifier' : 'Publier'}
                         </button>
                     </div>
                 </form>
