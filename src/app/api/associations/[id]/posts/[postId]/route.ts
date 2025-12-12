@@ -70,7 +70,7 @@ export async function DELETE(
         // Delete post and all related data
         await prisma.$transaction([
             prisma.associationPostLike.deleteMany({ where: { postId } }),
-            prisma.associationPostComment.deleteMany({ where: { postId } }),
+            prisma.associationComment.deleteMany({ where: { postId } }),
             prisma.associationPost.delete({ where: { id: postId } }),
         ]);
 
