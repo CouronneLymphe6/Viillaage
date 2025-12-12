@@ -80,12 +80,16 @@ export async function POST(request: NextRequest) {
         );
 
         if (rateLimitResponse) {
-            await logSecurityViolation(
-                AuditEventType.RATE_LIMIT_EXCEEDED,
-                session.user.id,
-                ipAddress,
-                { endpoint: '/api/upload' }
-            );
+            try {
+                await logSecurityViolation(
+                    AuditEventType.RATE_LIMIT_EXCEEDED,
+                    session.user.id,
+                    ipAddress,
+                    { endpoint: '/api/upload' }
+                );
+            } catch (logError) {
+                console.error("AUDIT_LOG_ERROR:", logError);
+            }
             return rateLimitResponse;
         }
 
@@ -101,15 +105,19 @@ export async function POST(request: NextRequest) {
 
         // Validate file size
         if (file.size > MAX_FILE_SIZE) {
-            await logFileUpload(
-                session.user.id,
-                file.name,
-                file.size,
-                file.type,
-                false,
-                ipAddress,
-                'File too large'
-            );
+            try {
+                await logFileUpload(
+                    session.user.id,
+                    file.name,
+                    file.size,
+                    file.type,
+                    false,
+                    ipAddress,
+                    'File too large'
+                );
+            } catch (logError) {
+                console.error("AUDIT_LOG_ERROR:", logError);
+            }
 
             return NextResponse.json(
                 { error: `File too large (max ${MAX_FILE_SIZE / 1024 / 1024}MB)` },
@@ -119,15 +127,19 @@ export async function POST(request: NextRequest) {
 
         // Validate MIME type
         if (!Object.keys(ALLOWED_IMAGE_TYPES).includes(file.type)) {
-            await logFileUpload(
-                session.user.id,
-                file.name,
-                file.size,
-                file.type,
-                false,
-                ipAddress,
-                'Invalid MIME type'
-            );
+            try {
+                await logFileUpload(
+                    session.user.id,
+                    file.name,
+                    file.size,
+                    file.type,
+                    false,
+                    ipAddress,
+                    'Invalid MIME type'
+                );
+            } catch (logError) {
+                console.error("AUDIT_LOG_ERROR:", logError);
+            }
 
             return NextResponse.json(
                 { error: "Only images are allowed (JPEG, PNG, WebP)" },
@@ -140,15 +152,19 @@ export async function POST(request: NextRequest) {
 
         // Verify actual file type by checking magic numbers
         if (!verifyFileType(buffer, file.type)) {
-            await logFileUpload(
-                session.user.id,
-                file.name,
-                file.size,
-                file.type,
-                false,
-                ipAddress,
-                'File signature mismatch'
-            );
+            try {
+                await logFileUpload(
+                    session.user.id,
+                    file.name,
+                    file.size,
+                    file.type,
+                    false,
+                    ipAddress,
+                    'File signature mismatch'
+                );
+            } catch (logError) {
+                console.error("AUDIT_LOG_ERROR:", logError);
+            }
 
             return NextResponse.json(
                 { error: "Invalid file type detected" },
@@ -172,28 +188,40 @@ export async function POST(request: NextRequest) {
         const publicUrl = uploadResponse.secure_url;
 
         // Log successful upload
-        await logFileUpload(
-            session.user.id,
-            filename,
-            file.size,
-            file.type,
-            true,
-            ipAddress
-        );
+        try {
+            await logFileUpload(
+                session.user.id,
+                filename,
+                file.size,
+                file.type,
+                true,
+                ipAddress
+            );
+        } catch (logError) {
+            console.error("AUDIT_LOG_ERROR:", logError);
+        }
 
         return NextResponse.json({ url: publicUrl });
     } catch (error) {
-        console.error("UPLOAD_ERROR", error);
+        console.error("UPLOAD_ERROR - Full details:", {
+            message: error instanceof Error ? error.message : 'Unknown error',
+            stack: error instanceof Error ? error.stack : undefined,
+            error: error
+        });
 
-        await logFileUpload(
-            'unknown',
-            'unknown',
-            0,
-            'unknown',
-            false,
-            ipAddress,
-            error instanceof Error ? error.message : 'Unknown error'
-        );
+        try {
+            await logFileUpload(
+                'unknown',
+                'unknown',
+                0,
+                'unknown',
+                false,
+                ipAddress,
+                error instanceof Error ? error.message : 'Unknown error'
+            );
+        } catch (logError) {
+            console.error("AUDIT_LOG_ERROR:", logError);
+        }
 
         return NextResponse.json(
             { error: "Internal Error", details: error instanceof Error ? error.message : 'Unknown' },
