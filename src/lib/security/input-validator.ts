@@ -116,6 +116,11 @@ export const alertTypeSchema = z.enum([
     'ROAD_HAZARD',
     'ANIMAL',
     'OTHER',
+    'OFFICIAL_INFO',
+    'OFFICIAL_DECREE',
+    'OFFICIAL_WARNING',
+    'OFFICIAL_EVENT',
+    'OFFICIAL_WORK',
     'OFFICIAL_ANNOUNCEMENT',
     'OFFICIAL_EMERGENCY',
     'OFFICIAL_MAINTENANCE'
