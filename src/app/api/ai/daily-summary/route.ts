@@ -285,6 +285,11 @@ Hier à Beaupuy, ${stats.totalMessages > 0 ? `${stats.totalMessages} messages on
             }
         }
 
+        // Formatter le résumé complet avec titre
+        const fullSummary = aiResponse.title
+            ? `**${aiResponse.title}**\n\n${aiResponse.content || aiResponse.text || ''}`
+            : aiResponse.content || aiResponse.text || '';
+
         // Sauvegarder le résumé en base
         try {
             const savedSummary = await prisma.dailySummary.upsert({
@@ -295,13 +300,13 @@ Hier à Beaupuy, ${stats.totalMessages > 0 ? `${stats.totalMessages} messages on
                     },
                 },
                 update: {
-                    summary: aiResponse.text || '',
+                    summary: fullSummary,
                     stats: JSON.stringify(stats),
                 },
                 create: {
                     villageId: userVillageId,
                     date: targetDate,
-                    summary: aiResponse.text || '',
+                    summary: fullSummary,
                     stats: JSON.stringify(stats),
                 },
             });
@@ -315,7 +320,7 @@ Hier à Beaupuy, ${stats.totalMessages > 0 ? `${stats.totalMessages} messages on
         } catch (saveError) {
             console.error("FAIL_SAVE_SUMMARY", saveError);
             return NextResponse.json({
-                summary: aiResponse.text,
+                summary: fullSummary,
                 stats,
                 date: targetDate,
                 error: "Saved locally only (DB error)"
