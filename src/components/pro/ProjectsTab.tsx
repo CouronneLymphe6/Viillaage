@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Briefcase, Plus } from 'lucide-react';
+import { Briefcase, Plus, Edit2, Trash2 } from 'lucide-react';
 
 interface Project {
     id: string;
@@ -22,6 +22,7 @@ export function ProjectsTab({ businessId, isOwner }: ProjectsTabProps) {
     const [projects, setProjects] = useState<Project[]>([]);
     const [loading, setLoading] = useState(false);
     const [showForm, setShowForm] = useState(false);
+    const [editingProject, setEditingProject] = useState<Project | null>(null);
 
     useEffect(() => {
         fetchProjects();
@@ -42,6 +43,25 @@ export function ProjectsTab({ businessId, isOwner }: ProjectsTabProps) {
         }
     };
 
+    const handleDelete = async (projectId: string) => {
+        if (!confirm('Voulez-vous vraiment supprimer ce projet ?')) return;
+        try {
+            const response = await fetch(`/api/businesses/${businessId}/projects/${projectId}`, {
+                method: 'DELETE',
+            });
+            if (response.ok) {
+                fetchProjects();
+            }
+        } catch (error) {
+            console.error('Error deleting project:', error);
+        }
+    };
+
+    const handleEdit = (project: Project) => {
+        setEditingProject(project);
+        setShowForm(true);
+    };
+
     if (loading) {
         return <p style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>Chargement...</p>;
     }
@@ -52,7 +72,10 @@ export function ProjectsTab({ businessId, isOwner }: ProjectsTabProps) {
                 <h2 style={{ margin: 0 }}>Projets & Actions</h2>
                 {isOwner && (
                     <button
-                        onClick={() => setShowForm(true)}
+                        onClick={() => {
+                            setEditingProject(null);
+                            setShowForm(true);
+                        }}
                         style={{
                             display: 'flex',
                             alignItems: 'center',
@@ -141,9 +164,55 @@ export function ProjectsTab({ businessId, isOwner }: ProjectsTabProps) {
                                         {project.description}
                                     </p>
                                     {project.startDate && (
-                                        <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                                        <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>
                                             📅 Début : {new Date(project.startDate).toLocaleDateString('fr-FR')}
                                         </p>
+                                    )}
+
+                                    {isOwner && (
+                                        <div style={{ display: 'flex', gap: '8px', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid var(--border)' }}>
+                                            <button
+                                                onClick={() => handleEdit(project)}
+                                                style={{
+                                                    flex: 1,
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    gap: '6px',
+                                                    padding: '8px',
+                                                    backgroundColor: 'var(--background)',
+                                                    border: '2px solid var(--border)',
+                                                    borderRadius: 'var(--radius-md)',
+                                                    fontSize: '0.85rem',
+                                                    fontWeight: '600',
+                                                    cursor: 'pointer',
+                                                }}
+                                            >
+                                                <Edit2 size={14} />
+                                                Modifier
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(project.id)}
+                                                style={{
+                                                    flex: 1,
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    gap: '6px',
+                                                    padding: '8px',
+                                                    backgroundColor: '#fee',
+                                                    border: '2px solid #fcc',
+                                                    borderRadius: 'var(--radius-md)',
+                                                    color: '#c33',
+                                                    fontSize: '0.85rem',
+                                                    fontWeight: '600',
+                                                    cursor: 'pointer',
+                                                }}
+                                            >
+                                                <Trash2 size={14} />
+                                                Supprimer
+                                            </button>
+                                        </div>
                                     )}
                                 </div>
                             </div>
@@ -155,10 +224,15 @@ export function ProjectsTab({ businessId, isOwner }: ProjectsTabProps) {
             {showForm && (
                 <ProjectForm
                     businessId={businessId}
-                    onClose={() => setShowForm(false)}
+                    project={editingProject}
+                    onClose={() => {
+                        setShowForm(false);
+                        setEditingProject(null);
+                    }}
                     onSuccess={() => {
                         fetchProjects();
                         setShowForm(false);
+                        setEditingProject(null);
                     }}
                 />
             )}
@@ -166,13 +240,18 @@ export function ProjectsTab({ businessId, isOwner }: ProjectsTabProps) {
     );
 }
 
-function ProjectForm({ businessId, onClose, onSuccess }: { businessId: string, onClose: () => void, onSuccess: () => void }) {
+function ProjectForm({ businessId, project, onClose, onSuccess }: {
+    businessId: string;
+    project: Project | null;
+    onClose: () => void;
+    onSuccess: () => void;
+}) {
     const [formData, setFormData] = useState({
-        title: '',
-        description: '',
-        status: 'PLANNED',
-        startDate: '',
-        photo: '',
+        title: project?.title || '',
+        description: project?.description || '',
+        status: project?.status || 'PLANNED',
+        startDate: project?.startDate ? new Date(project.startDate).toISOString().split('T')[0] : '',
+        photo: project?.photo || '',
     });
     const [uploading, setUploading] = useState(false);
 
@@ -206,8 +285,13 @@ function ProjectForm({ businessId, onClose, onSuccess }: { businessId: string, o
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const response = await fetch(`/api/businesses/${businessId}/projects`, {
-                method: 'POST',
+            const url = project
+                ? `/api/businesses/${businessId}/projects/${project.id}`
+                : `/api/businesses/${businessId}/projects`;
+            const method = project ? 'PATCH' : 'POST';
+
+            const response = await fetch(url, {
+                method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     ...formData,
@@ -220,7 +304,7 @@ function ProjectForm({ businessId, onClose, onSuccess }: { businessId: string, o
                 onSuccess();
             }
         } catch (error) {
-            console.error('Error creating project:', error);
+            console.error('Error saving project:', error);
         }
     };
 
@@ -247,7 +331,7 @@ function ProjectForm({ businessId, onClose, onSuccess }: { businessId: string, o
                 maxHeight: '90vh',
                 overflowY: 'auto',
             }}>
-                <h2 style={{ marginBottom: '20px' }}>Ajouter un projet</h2>
+                <h2 style={{ marginBottom: '20px' }}>{project ? 'Modifier le projet' : 'Ajouter un projet'}</h2>
                 <form onSubmit={handleSubmit}>
                     <div style={{ marginBottom: '16px' }}>
                         <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Titre *</label>
@@ -373,7 +457,7 @@ function ProjectForm({ businessId, onClose, onSuccess }: { businessId: string, o
                                 opacity: uploading ? 0.5 : 1,
                             }}
                         >
-                            Ajouter
+                            {project ? 'Modifier' : 'Ajouter'}
                         </button>
                     </div>
                 </form>
