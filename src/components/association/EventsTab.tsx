@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Calendar, Plus } from 'lucide-react';
+import { Calendar, Plus, Edit2, Trash2 } from 'lucide-react';
 
 interface AssociationEvent {
     id: string;
@@ -22,6 +22,7 @@ export function EventsTab({ associationId, isOwner }: EventsTabProps) {
     const [events, setEvents] = useState<AssociationEvent[]>([]);
     const [loading, setLoading] = useState(false);
     const [showForm, setShowForm] = useState(false);
+    const [editingEvent, setEditingEvent] = useState<AssociationEvent | null>(null);
 
     useEffect(() => {
         fetchEvents();
@@ -42,6 +43,25 @@ export function EventsTab({ associationId, isOwner }: EventsTabProps) {
         }
     };
 
+    const handleDelete = async (eventId: string) => {
+        if (!confirm('Voulez-vous vraiment supprimer cet événement ?')) return;
+        try {
+            const response = await fetch(`/api/associations/${associationId}/events/${eventId}`, {
+                method: 'DELETE',
+            });
+            if (response.ok) {
+                fetchEvents();
+            }
+        } catch (error) {
+            console.error('Error deleting event:', error);
+        }
+    };
+
+    const handleEdit = (event: AssociationEvent) => {
+        setEditingEvent(event);
+        setShowForm(true);
+    };
+
     if (loading) {
         return <p style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>Chargement...</p>;
     }
@@ -52,7 +72,10 @@ export function EventsTab({ associationId, isOwner }: EventsTabProps) {
                 <h2 style={{ margin: 0 }}>Événements</h2>
                 {isOwner && (
                     <button
-                        onClick={() => setShowForm(true)}
+                        onClick={() => {
+                            setEditingEvent(null);
+                            setShowForm(true);
+                        }}
                         style={{
                             display: 'flex',
                             alignItems: 'center',
@@ -112,6 +135,51 @@ export function EventsTab({ associationId, isOwner }: EventsTabProps) {
                                         )}
                                     </div>
                                 </div>
+                                {isOwner && (
+                                    <div style={{ display: 'flex', gap: '8px', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid var(--border)' }}>
+                                        <button
+                                            onClick={() => handleEdit(event)}
+                                            style={{
+                                                flex: 1,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                gap: '6px',
+                                                padding: '8px',
+                                                backgroundColor: 'var(--background)',
+                                                border: '2px solid var(--border)',
+                                                borderRadius: 'var(--radius-md)',
+                                                fontSize: '0.85rem',
+                                                fontWeight: '600',
+                                                cursor: 'pointer',
+                                            }}
+                                        >
+                                            <Edit2 size={14} />
+                                            Modifier
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(event.id)}
+                                            style={{
+                                                flex: 1,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                gap: '6px',
+                                                padding: '8px',
+                                                backgroundColor: '#fee',
+                                                border: '2px solid #fcc',
+                                                borderRadius: 'var(--radius-md)',
+                                                color: '#c33',
+                                                fontSize: '0.85rem',
+                                                fontWeight: '600',
+                                                cursor: 'pointer',
+                                            }}
+                                        >
+                                            <Trash2 size={14} />
+                                            Supprimer
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         );
                     })}
@@ -121,10 +189,15 @@ export function EventsTab({ associationId, isOwner }: EventsTabProps) {
             {showForm && (
                 <EventForm
                     associationId={associationId}
-                    onClose={() => setShowForm(false)}
+                    event={editingEvent}
+                    onClose={() => {
+                        setShowForm(false);
+                        setEditingEvent(null);
+                    }}
                     onSuccess={() => {
                         fetchEvents();
                         setShowForm(false);
+                        setEditingEvent(null);
                     }}
                 />
             )}
@@ -132,21 +205,26 @@ export function EventsTab({ associationId, isOwner }: EventsTabProps) {
     );
 }
 
-function EventForm({ associationId, onClose, onSuccess }: { associationId: string, onClose: () => void, onSuccess: () => void }) {
+function EventForm({ associationId, event, onClose, onSuccess }: { associationId: string, event: AssociationEvent | null, onClose: () => void, onSuccess: () => void }) {
     const [formData, setFormData] = useState({
-        title: '',
-        description: '',
-        type: 'MEETING',
-        startDate: '',
-        endDate: '',
-        location: '',
+        title: event?.title || '',
+        description: event?.description || '',
+        type: event?.type || 'MEETING',
+        startDate: event?.startDate ? new Date(event.startDate).toISOString().slice(0, 16) : '',
+        endDate: event?.endDate ? new Date(event.endDate).toISOString().slice(0, 16) : '',
+        location: event?.location || '',
     });
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const response = await fetch(`/api/associations/${associationId}/events`, {
-                method: 'POST',
+            const url = event
+                ? `/api/associations/${associationId}/events/${event.id}`
+                : `/api/associations/${associationId}/events`;
+            const method = event ? 'PATCH' : 'POST';
+
+            const response = await fetch(url, {
+                method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData),
             });
@@ -155,7 +233,7 @@ function EventForm({ associationId, onClose, onSuccess }: { associationId: strin
                 onSuccess();
             }
         } catch (error) {
-            console.error('Error creating event:', error);
+            console.error('Error saving event:', error);
         }
     };
 
@@ -182,7 +260,7 @@ function EventForm({ associationId, onClose, onSuccess }: { associationId: strin
                 maxHeight: '90vh',
                 overflowY: 'auto',
             }}>
-                <h2 style={{ marginBottom: '20px' }}>Ajouter un événement</h2>
+                <h2 style={{ marginBottom: '20px' }}>{event ? 'Modifier l\'événement' : 'Ajouter un événement'}</h2>
                 <form onSubmit={handleSubmit}>
                     <div style={{ marginBottom: '16px' }}>
                         <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Titre *</label>
@@ -318,7 +396,7 @@ function EventForm({ associationId, onClose, onSuccess }: { associationId: strin
                                 cursor: 'pointer',
                             }}
                         >
-                            Ajouter
+                            {event ? 'Modifier' : 'Ajouter'}
                         </button>
                     </div>
                 </form>
