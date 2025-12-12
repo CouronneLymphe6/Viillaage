@@ -55,6 +55,17 @@ export async function POST(request: NextRequest) {
     const ipAddress = getIpAddress(request.headers);
 
     try {
+        // 1. Verify Cloudinary Configuration
+        if (!process.env.CLOUDINARY_CLOUD_NAME ||
+            !process.env.CLOUDINARY_API_KEY ||
+            !process.env.CLOUDINARY_API_SECRET) {
+            console.error("UPLOAD_ERROR: Cloudinary Not Configured");
+            return NextResponse.json(
+                { error: "Upload service not configured" },
+                { status: 500 }
+            );
+        }
+
         const session = await getServerSession(authOptions);
 
         if (!session?.user?.id) {
@@ -185,7 +196,7 @@ export async function POST(request: NextRequest) {
         );
 
         return NextResponse.json(
-            { error: "Internal Error" },
+            { error: "Internal Error", details: error instanceof Error ? error.message : 'Unknown' },
             { status: 500 }
         );
     }

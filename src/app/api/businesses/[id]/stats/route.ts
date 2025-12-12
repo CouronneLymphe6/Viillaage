@@ -53,8 +53,23 @@ export async function POST(
 ) {
     try {
         const { id } = await params;
-        const body = await request.json();
-        const { type } = body; // "view", "catalogView"
+
+        // Handle possibility of empty body
+        let body;
+        try {
+            body = await request.json();
+        } catch (jsonError) {
+            // If invalid JSON, valid case might be just a ping? No, POST implies action.
+            // But for stats, maybe we just want to ensure it doesn't crash.
+            console.warn("STATS_POST_JSON_ERROR", jsonError);
+            return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+        }
+
+        const { type } = body || {};
+
+        if (!type) {
+            return NextResponse.json({ error: "Missing stat type" }, { status: 400 });
+        }
 
         // Mettre à jour ou créer les stats
         const updateData: any = {};
@@ -63,6 +78,8 @@ export async function POST(
             updateData.viewCount = { increment: 1 };
         } else if (type === 'catalogView') {
             updateData.catalogViewCount = { increment: 1 };
+        } else {
+            return NextResponse.json({ error: "Invalid stat type" }, { status: 400 });
         }
 
         await prisma.proStats.upsert({
@@ -75,6 +92,7 @@ export async function POST(
         });
 
         return NextResponse.json({ success: true });
+
     } catch (error) {
         console.error("INCREMENT_STATS_ERROR", error);
         return new NextResponse("Internal Error", { status: 500 });

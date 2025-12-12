@@ -14,12 +14,14 @@ export async function GET(request: NextRequest) {
         const session = await getServerSession(authOptions);
 
         if (!session?.user) {
+            console.warn("DAILY_SUMMARY: No session found");
             return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
         }
 
         const userVillageId = (session.user as any).villageId;
 
         if (!userVillageId) {
+            console.warn(`DAILY_SUMMARY: No villageId for user ${session.user.email}`);
             return NextResponse.json({ error: 'Village non défini' }, { status: 400 });
         }
 
@@ -27,8 +29,13 @@ export async function GET(request: NextRequest) {
         const searchParams = request.nextUrl.searchParams;
         const dateParam = searchParams.get('date');
 
-        const targetDate = dateParam ? new Date(dateParam) : new Date();
-        if (!dateParam) {
+        let targetDate = new Date();
+        if (dateParam) {
+            const parsed = new Date(dateParam);
+            if (!isNaN(parsed.getTime())) {
+                targetDate = parsed;
+            }
+        } else {
             // Par défaut, on prend hier
             targetDate.setDate(targetDate.getDate() - 1);
         }
@@ -40,97 +47,82 @@ export async function GET(request: NextRequest) {
         nextDay.setDate(nextDay.getDate() + 1);
 
         // Vérifier si un résumé existe déjà pour cette date
-        const existingSummary = await prisma.dailySummary.findUnique({
-            where: {
-                villageId_date: {
-                    villageId: userVillageId,
-                    date: targetDate,
+        try {
+            const existingSummary = await prisma.dailySummary.findUnique({
+                where: {
+                    villageId_date: {
+                        villageId: userVillageId,
+                        date: targetDate,
+                    },
                 },
-            },
-        });
-
-        if (existingSummary) {
-            return NextResponse.json({
-                summary: existingSummary.summary,
-                stats: JSON.parse(existingSummary.stats),
-                date: existingSummary.date,
-                cached: true,
             });
+
+            if (existingSummary) {
+                return NextResponse.json({
+                    summary: existingSummary.summary,
+                    stats: JSON.parse(existingSummary.stats),
+                    date: existingSummary.date,
+                    cached: true,
+                });
+            }
+        } catch (dbError) {
+            console.error("DAILY_SUMMARY_DB_READ_ERROR", dbError);
+            // Continue to regenerate if read fails? No, might be connection issue.
+            // Return fallback empty if DB is dead?
+            // Let's propagate if it's a hard error, but maybe log it well
         }
 
         // Collecter les statistiques de la journée
-        const [messages, alerts, events, proPosts, listings] = await Promise.all([
-            // Messages
-            prisma.message.findMany({
-                where: {
-                    user: { villageId: userVillageId },
-                    createdAt: {
-                        gte: targetDate,
-                        lt: nextDay,
-                    },
-                },
-                include: {
-                    channel: true,
-                    reactions: true,
-                    user: true,
-                },
-            }),
+        // Wrap in try/catch to identify WHICH query fails
+        let messages, alerts, events, proPosts, listings;
 
-            // Alertes
-            prisma.alert.findMany({
-                where: {
-                    user: { villageId: userVillageId },
-                    createdAt: {
-                        gte: targetDate,
-                        lt: nextDay,
+        try {
+            [messages, alerts, events, proPosts, listings] = await Promise.all([
+                // Messages
+                prisma.message.findMany({
+                    where: {
+                        user: { villageId: userVillageId },
+                        createdAt: { gte: targetDate, lt: nextDay },
                     },
-                },
-                include: {
-                    user: true,
-                },
-            }),
+                    include: { channel: true, reactions: true, user: true },
+                }),
+                // Alertes
+                prisma.alert.findMany({
+                    where: {
+                        user: { villageId: userVillageId },
+                        createdAt: { gte: targetDate, lt: nextDay },
+                    },
+                    include: { user: true },
+                }),
+                // Événements
+                prisma.event.findMany({
+                    where: {
+                        organizer: { villageId: userVillageId },
+                        createdAt: { gte: targetDate, lt: nextDay },
+                    },
+                    include: { organizer: true },
+                }),
+                // Posts des pros
+                prisma.proPost.findMany({
+                    where: {
+                        business: { owner: { villageId: userVillageId } },
+                        createdAt: { gte: targetDate, lt: nextDay },
+                    },
+                    include: { business: true },
+                }),
+                // Annonces marché
+                prisma.listing.findMany({
+                    where: {
+                        user: { villageId: userVillageId },
+                        createdAt: { gte: targetDate, lt: nextDay },
+                    },
+                }),
+            ]);
+        } catch (queryError) {
+            console.error("DAILY_SUMMARY_QUERY_ERROR", queryError);
+            return NextResponse.json({ error: "Database error fetching daily stats" }, { status: 500 });
+        }
 
-            // Événements
-            prisma.event.findMany({
-                where: {
-                    organizer: { villageId: userVillageId },
-                    createdAt: {
-                        gte: targetDate,
-                        lt: nextDay,
-                    },
-                },
-                include: {
-                    organizer: true,
-                },
-            }),
-
-            // Posts des pros
-            prisma.proPost.findMany({
-                where: {
-                    business: {
-                        owner: { villageId: userVillageId },
-                    },
-                    createdAt: {
-                        gte: targetDate,
-                        lt: nextDay,
-                    },
-                },
-                include: {
-                    business: true,
-                },
-            }),
-
-            // Annonces marché
-            prisma.listing.findMany({
-                where: {
-                    user: { villageId: userVillageId },
-                    createdAt: {
-                        gte: targetDate,
-                        lt: nextDay,
-                    },
-                },
-            }),
-        ]);
 
         // Calculer les statistiques
         const activeChannels = new Set(messages.map(m => m.channelId)).size;
@@ -186,19 +178,29 @@ export async function GET(request: NextRequest) {
             })
             .join('\n');
 
-        const newProducts = await prisma.proProduct.count({
-            where: {
-                business: {
-                    owner: { villageId: userVillageId },
+        let newProducts = 0;
+        try {
+            newProducts = await prisma.proProduct.count({
+                where: {
+                    business: { owner: { villageId: userVillageId } },
+                    createdAt: { gte: targetDate, lt: nextDay },
                 },
-                createdAt: {
-                    gte: targetDate,
-                    lt: nextDay,
-                },
-            },
-        });
+            });
+        } catch (e) { console.warn("Error counting products", e); }
 
         const listingCategories = [...new Set(listings.map(l => l.category))];
+
+        let upcomingEvents = 0;
+        try {
+            upcomingEvents = await prisma.event.count({
+                where: {
+                    organizer: { villageId: userVillageId },
+                    date: { gte: new Date() },
+                },
+            });
+        } catch (e) {
+            console.warn("Could not count upcoming events", e);
+        }
 
         const stats = {
             date: targetDate.toLocaleDateString('fr-FR'),
@@ -213,12 +215,7 @@ export async function GET(request: NextRequest) {
             officialAnnouncements: officialAnnouncements.length,
             officialTopics,
             newEvents: events.length,
-            upcomingEvents: await prisma.event.count({
-                where: {
-                    organizer: { villageId: userVillageId },
-                    date: { gte: new Date() },
-                },
-            }),
+            upcomingEvents,
             eventDetails,
             proPosts: proPosts.length,
             newProducts,
@@ -233,17 +230,22 @@ export async function GET(request: NextRequest) {
         };
 
         // Générer le résumé avec Gemini
-        const aiResponse = await generateDailySummary(stats);
+        let aiResponse;
+        try {
+            aiResponse = await generateDailySummary(stats);
+        } catch (aiError) {
+            console.error("GEMINI_ERROR", aiError);
+            aiResponse = { success: false, error: aiError instanceof Error ? aiError.message : 'Unknown AI Error' };
+        }
 
         if (!aiResponse.success) {
+            console.warn("Generating fallback summary due to AI failure:", aiResponse.error);
             // Mode fallback : générer un résumé simple sans IA
-            if (aiResponse.error?.includes('Clé API Gemini non configurée')) {
-                const fallbackSummary = `📊 Résumé du ${stats.date}
+            const fallbackSummary = `📊 Résumé du ${stats.date}
 
-Hier à Beaupuy, ${stats.totalMessages > 0 ? `${stats.totalMessages} messages ont été échangés` : 'journée calme sur la messagerie'}. ${stats.newAlerts > 0 ? `${stats.newAlerts} alerte(s) signalée(s)` : 'Aucune alerte'}. ${stats.newEvents > 0 ? `${stats.newEvents} nouvel(aux) événement(s) créé(s)` : ''}${stats.proPosts > 0 ? ` et ${stats.proPosts} publication(s) de nos commerçants` : ''}.
+Hier à Beaupuy, ${stats.totalMessages > 0 ? `${stats.totalMessages} messages ont été échangés` : 'journée calme sur la messagerie'}. ${stats.newAlerts > 0 ? `${stats.newAlerts} alerte(s) signalée(s)` : 'Aucune alerte'}. ${stats.newEvents > 0 ? `${stats.newEvents} nouvel(aux) événement(s) créé(s)` : ''}${stats.proPosts > 0 ? ` et ${stats.proPosts} publication(s) de nos commerçants` : ''}.`;
 
-⚙️ Pour des résumés IA personnalisés, configurez votre clé API Gemini.`;
-
+            try {
                 // Sauvegarder le résumé fallback en base
                 const savedSummary = await prisma.dailySummary.upsert({
                     where: {
@@ -269,43 +271,59 @@ Hier à Beaupuy, ${stats.totalMessages > 0 ? `${stats.totalMessages} messages on
                     stats,
                     date: savedSummary.date,
                     cached: false,
+                    warning: "AI generation failed, using fallback"
+                });
+            } catch (dbError) {
+                console.error("FAIL_SAVE_FALLBACK", dbError);
+                return NextResponse.json({
+                    summary: fallbackSummary,
+                    stats,
+                    date: targetDate,
+                    cached: false,
+                    error: "Database write failed"
                 });
             }
-
-            return NextResponse.json(
-                { error: 'Erreur lors de la génération du résumé', details: aiResponse.error },
-                { status: 500 }
-            );
         }
 
         // Sauvegarder le résumé en base
-        const savedSummary = await prisma.dailySummary.upsert({
-            where: {
-                villageId_date: {
+        try {
+            const savedSummary = await prisma.dailySummary.upsert({
+                where: {
+                    villageId_date: {
+                        villageId: userVillageId,
+                        date: targetDate,
+                    },
+                },
+                update: {
+                    summary: aiResponse.text || '',
+                    stats: JSON.stringify(stats),
+                },
+                create: {
                     villageId: userVillageId,
                     date: targetDate,
+                    summary: aiResponse.text || '',
+                    stats: JSON.stringify(stats),
                 },
-            },
-            update: {
-                summary: aiResponse.text || '',
-                stats: JSON.stringify(stats),
-            },
-            create: {
-                villageId: userVillageId,
-                date: targetDate,
-                summary: aiResponse.text || '',
-                stats: JSON.stringify(stats),
-            },
-        });
+            });
 
-        return NextResponse.json({
-            summary: savedSummary.summary,
-            stats,
-            date: savedSummary.date,
-            cached: false,
-        });
+            return NextResponse.json({
+                summary: savedSummary.summary,
+                stats,
+                date: savedSummary.date,
+                cached: false,
+            });
+        } catch (saveError) {
+            console.error("FAIL_SAVE_SUMMARY", saveError);
+            return NextResponse.json({
+                summary: aiResponse.text,
+                stats,
+                date: targetDate,
+                error: "Saved locally only (DB error)"
+            });
+        }
+
     } catch (error) {
-        console.error('❌ Erreur dans /api/ai/daily-summary:', error);
+        console.error('❌ FATAL ERROR /api/ai/daily-summary:', error);
         return NextResponse.json(
             { error: 'Erreur serveur', details: error instanceof Error ? error.message : 'Erreur inconnue' },
             { status: 500 }
