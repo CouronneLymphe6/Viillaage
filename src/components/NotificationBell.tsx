@@ -19,6 +19,7 @@ export default function NotificationBell() {
     const router = useRouter();
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [showDropdown, setShowDropdown] = useState(false);
+    const [unreadCount, setUnreadCount] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
 
     // Fetch notifications count only (lightweight)
