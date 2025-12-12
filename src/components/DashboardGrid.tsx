@@ -1,9 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-// TEMPORARILY DISABLED FOR PERFORMANCE TESTING
-// import DailySummaryCard from '@/components/DailySummaryCard';
-// import WeatherCard from '@/components/WeatherCard';
+import DailySummaryCard from '@/components/DailySummaryCard';
+import WeatherCard from '@/components/WeatherCard';
 
 interface DashboardGridProps {
     userName: string;
@@ -164,14 +163,14 @@ export default function DashboardGrid({
 
             <div className="dashboard-grid">
 
-                {/* 1. SECTION HERO - TEMPORARILY DISABLED FOR PERFORMANCE TESTING */}
-                {/* <div className="col-span-3 span-2-md">
+                {/* 1. SECTION HERO */}
+                <div className="col-span-3 span-2-md">
                     <DailySummaryCard />
                 </div>
 
                 <div className="col-span-1">
                     <WeatherCard />
-                </div> */}
+                </div>
 
                 {/* 2. SECTION URGENT */}
                 <div className="card col-span-2 span-2-md">
