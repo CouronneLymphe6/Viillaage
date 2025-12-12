@@ -115,7 +115,55 @@ export function EventsTab({ associationId, isOwner }: EventsTabProps) {
                                 padding: '16px',
                                 borderRadius: 'var(--radius-md)',
                                 borderLeft: '4px solid var(--primary)',
+                                position: 'relative',
                             }}>
+                                {isOwner && (
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: '12px',
+                                        right: '12px',
+                                        display: 'flex',
+                                        gap: '8px',
+                                        zIndex: 1,
+                                    }}>
+                                        <button
+                                            onClick={() => handleEdit(event)}
+                                            style={{
+                                                width: '32px',
+                                                height: '32px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                                                border: 'none',
+                                                borderRadius: '8px',
+                                                cursor: 'pointer',
+                                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                            }}
+                                            title="Modifier"
+                                        >
+                                            <Edit2 size={16} color="#666" />
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(event.id)}
+                                            style={{
+                                                width: '32px',
+                                                height: '32px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                                                border: 'none',
+                                                borderRadius: '8px',
+                                                cursor: 'pointer',
+                                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                            }}
+                                            title="Supprimer"
+                                        >
+                                            <Trash2 size={16} color="#c33" />
+                                        </button>
+                                    </div>
+                                )}
                                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
                                     <div style={{ fontSize: '2rem' }}>{typeEmoji}</div>
                                     <div style={{ flex: 1 }}>
@@ -135,51 +183,6 @@ export function EventsTab({ associationId, isOwner }: EventsTabProps) {
                                         )}
                                     </div>
                                 </div>
-                                {isOwner && (
-                                    <div style={{ display: 'flex', gap: '8px', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid var(--border)' }}>
-                                        <button
-                                            onClick={() => handleEdit(event)}
-                                            style={{
-                                                flex: 1,
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                gap: '6px',
-                                                padding: '8px',
-                                                backgroundColor: 'var(--background)',
-                                                border: '2px solid var(--border)',
-                                                borderRadius: 'var(--radius-md)',
-                                                fontSize: '0.85rem',
-                                                fontWeight: '600',
-                                                cursor: 'pointer',
-                                            }}
-                                        >
-                                            <Edit2 size={14} />
-                                            Modifier
-                                        </button>
-                                        <button
-                                            onClick={() => handleDelete(event.id)}
-                                            style={{
-                                                flex: 1,
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                gap: '6px',
-                                                padding: '8px',
-                                                backgroundColor: '#fee',
-                                                border: '2px solid #fcc',
-                                                borderRadius: 'var(--radius-md)',
-                                                color: '#c33',
-                                                fontSize: '0.85rem',
-                                                fontWeight: '600',
-                                                cursor: 'pointer',
-                                            }}
-                                        >
-                                            <Trash2 size={14} />
-                                            Supprimer
-                                        </button>
-                                    </div>
-                                )}
                             </div>
                         );
                     })}
