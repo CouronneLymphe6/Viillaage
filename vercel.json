@@ -1,0 +1,14 @@
+{
+  "buildCommand": "prisma generate && next build",
+  "functions": {
+    "api/**/*.ts": {
+      "maxDuration": 10,
+      "memory": 1024
+    },
+    "app/api/**/*.ts": {
+      "maxDuration": 10,
+      "memory": 1024
+    }
+  },
+  "crons": []
+}
