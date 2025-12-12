@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { MessageCircle, Plus, ThumbsUp, Send } from 'lucide-react';
+import { MessageCircle, Plus, ThumbsUp, Send, Edit2, Trash2 } from 'lucide-react';
 
 interface AssociationPost {
     id: string;
@@ -36,6 +36,7 @@ export function NewsTab({ associationId, isOwner }: NewsTabProps) {
     const [posts, setPosts] = useState<AssociationPost[]>([]);
     const [loading, setLoading] = useState(false);
     const [showForm, setShowForm] = useState(false);
+    const [editingPost, setEditingPost] = useState<AssociationPost | null>(null);
     const [newComment, setNewComment] = useState<{ [key: string]: string }>({});
 
     useEffect(() => {
@@ -87,6 +88,25 @@ export function NewsTab({ associationId, isOwner }: NewsTabProps) {
         }
     };
 
+    const handleDelete = async (postId: string) => {
+        if (!confirm('Voulez-vous vraiment supprimer cette publication ?')) return;
+        try {
+            const response = await fetch(`/api/associations/${associationId}/posts/${postId}`, {
+                method: 'DELETE',
+            });
+            if (response.ok) {
+                fetchPosts();
+            }
+        } catch (error) {
+            console.error('Error deleting post:', error);
+        }
+    };
+
+    const handleEdit = (post: AssociationPost) => {
+        setEditingPost(post);
+        setShowForm(true);
+    };
+
     if (loading) {
         return <p style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>Chargement...</p>;
     }
@@ -97,7 +117,10 @@ export function NewsTab({ associationId, isOwner }: NewsTabProps) {
                 <h2 style={{ margin: 0 }}>Actualités</h2>
                 {isOwner && (
                     <button
-                        onClick={() => setShowForm(true)}
+                        onClick={() => {
+                            setEditingPost(null);
+                            setShowForm(true);
+                        }}
                         style={{
                             display: 'flex',
                             alignItems: 'center',
@@ -197,6 +220,52 @@ export function NewsTab({ associationId, isOwner }: NewsTabProps) {
                                     </div>
                                 </div>
 
+                                {isOwner && (
+                                    <div style={{ display: 'flex', gap: '8px', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid var(--border)' }}>
+                                        <button
+                                            onClick={() => handleEdit(post)}
+                                            style={{
+                                                flex: 1,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                gap: '6px',
+                                                padding: '8px',
+                                                backgroundColor: 'var(--background)',
+                                                border: '2px solid var(--border)',
+                                                borderRadius: 'var(--radius-md)',
+                                                fontSize: '0.85rem',
+                                                fontWeight: '600',
+                                                cursor: 'pointer',
+                                            }}
+                                        >
+                                            <Edit2 size={14} />
+                                            Modifier
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(post.id)}
+                                            style={{
+                                                flex: 1,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                gap: '6px',
+                                                padding: '8px',
+                                                backgroundColor: '#fee',
+                                                border: '2px solid #fcc',
+                                                borderRadius: 'var(--radius-md)',
+                                                color: '#c33',
+                                                fontSize: '0.85rem',
+                                                fontWeight: '600',
+                                                cursor: 'pointer',
+                                            }}
+                                        >
+                                            <Trash2 size={14} />
+                                            Supprimer
+                                        </button>
+                                    </div>
+                                )}
+
                                 {post.comments.length > 0 && (
                                     <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
                                         {post.comments.map((comment) => (
@@ -274,10 +343,15 @@ export function NewsTab({ associationId, isOwner }: NewsTabProps) {
             {showForm && (
                 <PostForm
                     associationId={associationId}
-                    onClose={() => setShowForm(false)}
+                    post={editingPost}
+                    onClose={() => {
+                        setShowForm(false);
+                        setEditingPost(null);
+                    }}
                     onSuccess={() => {
                         fetchPosts();
                         setShowForm(false);
+                        setEditingPost(null);
                     }}
                 />
             )}
@@ -285,10 +359,10 @@ export function NewsTab({ associationId, isOwner }: NewsTabProps) {
     );
 }
 
-function PostForm({ associationId, onClose, onSuccess }: { associationId: string, onClose: () => void, onSuccess: () => void }) {
+function PostForm({ associationId, post, onClose, onSuccess }: { associationId: string, post: AssociationPost | null, onClose: () => void, onSuccess: () => void }) {
     const [formData, setFormData] = useState({
-        content: '',
-        mediaUrl: '',
+        content: post?.content || '',
+        mediaUrl: post?.mediaUrl || '',
     });
     const [uploading, setUploading] = useState(false);
 
@@ -322,8 +396,11 @@ function PostForm({ associationId, onClose, onSuccess }: { associationId: string
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const response = await fetch(`/api/associations/${associationId}/posts`, {
-                method: 'POST',
+            const url = post ? `/api/associations/${associationId}/posts/${post.id}` : `/api/associations/${associationId}/posts`;
+            const method = post ? 'PATCH' : 'POST';
+
+            const response = await fetch(url, {
+                method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     content: formData.content,
@@ -336,7 +413,7 @@ function PostForm({ associationId, onClose, onSuccess }: { associationId: string
                 onSuccess();
             }
         } catch (error) {
-            console.error('Error creating post:', error);
+            console.error('Error saving post:', error);
         }
     };
 
@@ -363,7 +440,7 @@ function PostForm({ associationId, onClose, onSuccess }: { associationId: string
                 maxHeight: '90vh',
                 overflowY: 'auto',
             }}>
-                <h2 style={{ marginBottom: '20px' }}>Nouvelle publication</h2>
+                <h2 style={{ marginBottom: '20px' }}>{post ? 'Modifier la publication' : 'Nouvelle publication'}</h2>
                 <form onSubmit={handleSubmit}>
                     <div style={{ marginBottom: '16px' }}>
                         <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Message *</label>
@@ -437,7 +514,7 @@ function PostForm({ associationId, onClose, onSuccess }: { associationId: string
                                 opacity: uploading ? 0.5 : 1,
                             }}
                         >
-                            Publier
+                            {post ? 'Modifier' : 'Publier'}
                         </button>
                     </div>
                 </form>
