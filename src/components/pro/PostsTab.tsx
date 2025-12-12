@@ -227,12 +227,22 @@ export function PostsTab({ businessId, isOwner }: PostsTabProps) {
                                 {post.mediaUrl && post.mediaType === 'PHOTO' && (
                                     <div style={{
                                         width: '100%',
-                                        maxHeight: '400px',
+                                        height: '300px',
                                         borderRadius: 'var(--radius-md)',
                                         overflow: 'hidden',
                                         marginBottom: '12px',
+                                        backgroundColor: '#f5f5f5',
                                     }}>
-                                        <img src={post.mediaUrl} alt="Post media" style={{ width: '100%', height: 'auto', display: 'block' }} />
+                                        <img
+                                            src={post.mediaUrl}
+                                            alt="Post media"
+                                            style={{
+                                                width: '100%',
+                                                height: '100%',
+                                                objectFit: 'cover',
+                                                display: 'block'
+                                            }}
+                                        />
                                     </div>
                                 )}
 
