@@ -275,7 +275,7 @@ function ProductForm({ businessId, product, onClose, onSuccess }: {
         e.preventDefault();
         try {
             const photos = formData.photos ? JSON.stringify([formData.photos]) : '[]';
-            const tags = formData.tags ? JSON.stringify(formData.tags.split(',').map(t => t.trim())) : '[]';
+            const tags = formData.tags ? JSON.stringify(formData.tags.split(',').map((t: string) => t.trim())) : '[]';
 
             const url = product
                 ? `/api/businesses/${businessId}/products/${product.id}`
