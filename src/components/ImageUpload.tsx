@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 
 interface ImageUploadProps {
     onUpload: (url: string) => void;
@@ -59,15 +60,21 @@ export default function ImageUpload({ onUpload, currentImage }: ImageUploadProps
 
             {preview && (
                 <div style={{ marginBottom: '10px', position: 'relative', width: 'fit-content' }}>
-                    <img
+                    <Image
                         src={preview}
                         alt="Aperçu"
+                        width={400}
+                        height={200}
                         style={{
                             maxWidth: '100%',
+                            height: 'auto',
                             maxHeight: '200px',
                             borderRadius: 'var(--radius-sm)',
-                            border: '1px solid var(--border)'
+                            border: '1px solid var(--border)',
+                            objectFit: 'cover'
                         }}
+                        loading="lazy"
+                        sizes="(max-width: 768px) 100vw, 400px"
                     />
                     <button
                         type="button"
