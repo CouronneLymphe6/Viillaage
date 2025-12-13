@@ -39,6 +39,7 @@ export async function GET(
             orderBy: {
                 createdAt: 'desc',
             },
+            take: 50, // PWA: Limit results
         });
 
         // Ajouter les counts
@@ -48,7 +49,11 @@ export async function GET(
             commentCount: post.comments.length,
         }));
 
-        return NextResponse.json(postsWithCounts);
+        return NextResponse.json(postsWithCounts, {
+            headers: {
+                'Cache-Control': 'private, max-age=30, stale-while-revalidate=60',
+            },
+        });
     } catch (error) {
         console.error("GET_ASSOCIATION_POSTS_ERROR", error);
         return new NextResponse("Internal Error", { status: 500 });

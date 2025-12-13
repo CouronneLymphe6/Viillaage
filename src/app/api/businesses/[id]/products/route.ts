@@ -18,9 +18,14 @@ export async function GET(
             orderBy: {
                 createdAt: 'desc',
             },
+            take: 100, // PWA: Limit catalogue
         });
 
-        return NextResponse.json(products);
+        return NextResponse.json(products, {
+            headers: {
+                'Cache-Control': 'private, max-age=120, stale-while-revalidate=240',
+            },
+        });
     } catch (error) {
         console.error("GET_PRODUCTS_ERROR", error);
         return new NextResponse("Internal Error", { status: 500 });

@@ -4,10 +4,15 @@ import withSerwistInit from "@serwist/next";
 const withSerwist = withSerwistInit({
   swSrc: "src/app/sw.ts",
   swDest: "public/sw.js",
-
   cacheOnNavigation: true,
   reloadOnOnline: true,
-  disable: process.env.NODE_ENV === 'development', // Désactivé en dev pour moins de logs
+  disable: process.env.NODE_ENV === 'development',
+
+  // PWA OPTIMIZATION: Custom caching strategies
+  additionalPrecacheEntries: [
+    { url: '/dashboard', revision: '1' },
+    { url: '/offline', revision: '1' },
+  ],
 });
 
 
