@@ -60,6 +60,19 @@ export default function VillagePage() {
 
     const createBusiness = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // OPTIMISTIC UI: Add immediately with temp ID
+        const tempBusiness: Business = {
+            id: 'temp-' + Date.now(),
+            ...formData,
+            photos: formData.photoUrl ? JSON.stringify([formData.photoUrl]) : "[]",
+            ownerId: session?.user?.id || '',
+            owner: { name: session?.user?.name || null },
+        };
+        setBusinesses([...businesses, tempBusiness]);
+        setFormData({ name: '', description: '', category: '', type: 'MERCHANT', address: '', phone: '', email: '', website: '', photoUrl: '' });
+        setShowForm(false);
+
         try {
             const photos = formData.photoUrl ? JSON.stringify([formData.photoUrl]) : "[]";
             const response = await fetch('/api/businesses', {
@@ -69,12 +82,19 @@ export default function VillagePage() {
             });
 
             if (response.ok) {
-                setFormData({ name: '', description: '', category: '', type: 'MERCHANT', address: '', phone: '', email: '', website: '', photoUrl: '' });
-                setShowForm(false);
-                fetchBusinesses();
+                // Replace temp with real data
+                const realBusiness = await response.json();
+                setBusinesses(prev => prev.map(b => b.id === tempBusiness.id ? realBusiness : b));
+            } else {
+                // Rollback on error
+                setBusinesses(prev => prev.filter(b => b.id !== tempBusiness.id));
+                alert('Erreur lors de la création');
             }
         } catch (error) {
+            // Rollback on error
+            setBusinesses(prev => prev.filter(b => b.id !== tempBusiness.id));
             console.error('Error creating business:', error);
+            alert('Erreur lors de la création');
         }
     };
 
@@ -82,38 +102,60 @@ export default function VillagePage() {
         e.preventDefault();
         if (!editingBusiness) return;
 
+        // OPTIMISTIC UI: Update immediately
+        const previousBusinesses = [...businesses];
+        const photos = formData.photoUrl ? JSON.stringify([formData.photoUrl]) : "[]";
+        setBusinesses(businesses.map(b =>
+            b.id === editingBusiness.id
+                ? { ...b, ...formData, photos }
+                : b
+        ));
+        setFormData({ name: '', description: '', category: '', type: 'MERCHANT', address: '', phone: '', email: '', website: '', photoUrl: '' });
+        setEditingBusiness(null);
+        setShowForm(false);
+
         try {
-            const photos = formData.photoUrl ? JSON.stringify([formData.photoUrl]) : "[]";
             const response = await fetch(`/api/businesses/${editingBusiness.id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ...formData, photos }),
             });
 
-            if (response.ok) {
-                setFormData({ name: '', description: '', category: '', type: 'MERCHANT', address: '', phone: '', email: '', website: '', photoUrl: '' });
-                setEditingBusiness(null);
-                setShowForm(false);
-                fetchBusinesses();
+            if (!response.ok) {
+                // Rollback on error
+                setBusinesses(previousBusinesses);
+                alert('Erreur lors de la modification');
             }
         } catch (error) {
+            // Rollback on error
+            setBusinesses(previousBusinesses);
             console.error('Error updating business:', error);
+            alert('Erreur lors de la modification');
         }
     };
 
     const deleteBusiness = async (id: string) => {
         if (!confirm('Êtes-vous sûr de vouloir supprimer ce commerce ?')) return;
 
+        // OPTIMISTIC UI: Remove immediately
+        const previousBusinesses = [...businesses];
+        setBusinesses(businesses.filter(b => b.id !== id));
+
         try {
             const response = await fetch(`/api/businesses/${id}`, {
                 method: 'DELETE',
             });
 
-            if (response.ok || response.status === 204) {
-                fetchBusinesses();
+            if (!response.ok && response.status !== 204) {
+                // Rollback on error
+                setBusinesses(previousBusinesses);
+                alert('Erreur lors de la suppression');
             }
         } catch (error) {
+            // Rollback on error
+            setBusinesses(previousBusinesses);
             console.error('Error deleting business:', error);
+            alert('Erreur lors de la suppression');
         }
     };
 
