@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function Contact() {
+    const router = useRouter();
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -43,6 +45,35 @@ export default function Contact() {
 
     return (
         <div style={{ maxWidth: '700px', margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-md)' }}>
+            {/* Back Button */}
+            <button
+                onClick={() => router.back()}
+                style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '8px 16px',
+                    marginBottom: 'var(--spacing-lg)',
+                    backgroundColor: 'transparent',
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius-md)',
+                    color: 'var(--text-primary)',
+                    fontSize: '0.95rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                }}
+                onMouseOver={(e) => {
+                    e.currentTarget.style.backgroundColor = 'var(--bg-secondary)';
+                    e.currentTarget.style.borderColor = 'var(--primary)';
+                }}
+                onMouseOut={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.borderColor = 'var(--border)';
+                }}
+            >
+                ← Retour
+            </button>
+
             <h1 style={{ marginBottom: 'var(--spacing-lg)', color: 'var(--primary)' }}>
                 Nous Contacter
             </h1>
