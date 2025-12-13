@@ -91,17 +91,23 @@ export default function EventsPage() {
     const handleDelete = async (id: string) => {
         if (!confirm('Êtes-vous sûr de vouloir supprimer cet événement ?')) return;
 
+        // OPTIMISTIC UI: Remove immediately
+        const previousEvents = [...events];
+        setEvents(events.filter(event => event.id !== id));
+
         try {
             const response = await fetch(`/api/events/${id}`, {
                 method: 'DELETE',
             });
 
-            if (response.ok) {
-                fetchEvents();
-            } else {
+            if (!response.ok) {
+                // Rollback on error
+                setEvents(previousEvents);
                 alert('Erreur lors de la suppression');
             }
         } catch (error) {
+            // Rollback on error
+            setEvents(previousEvents);
             console.error('Error deleting event:', error);
         }
     };

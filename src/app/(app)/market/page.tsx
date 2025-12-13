@@ -80,18 +80,24 @@ export default function MarketPage() {
     const handleDelete = async (id: string) => {
         if (!confirm('Êtes-vous sûr de vouloir supprimer cette annonce ?')) return;
 
+        // OPTIMISTIC UI: Remove immediately
+        const previousListings = [...listings];
+        setListings(listings.filter(listing => listing.id !== id));
+
         try {
             const response = await fetch(`/api/listings/${id}`, {
                 method: 'DELETE',
             });
 
-            if (response.ok) {
-                fetchListings();
-            } else {
+            if (!response.ok) {
+                // Rollback on error
+                setListings(previousListings);
                 const errorText = await response.text();
                 alert(`Erreur: ${errorText}`);
             }
         } catch (error) {
+            // Rollback on error
+            setListings(previousListings);
             console.error('Error deleting listing:', error);
         }
     };

@@ -49,14 +49,22 @@ export function ProductsTab({ businessId, isOwner }: ProductsTabProps) {
     const handleDelete = async (productId: string) => {
         if (!confirm('Voulez-vous vraiment supprimer ce produit ?')) return;
 
+        // OPTIMISTIC UI: Remove immediately
+        const previousProducts = [...products];
+        setProducts(products.filter(p => p.id !== productId));
+
         try {
             const response = await fetch(`/api/businesses/${businessId}/products/${productId}`, {
                 method: 'DELETE',
             });
-            if (response.ok) {
-                fetchProducts();
+            if (!response.ok) {
+                // Rollback on error
+                setProducts(previousProducts);
+                alert('Erreur lors de la suppression');
             }
         } catch (error) {
+            // Rollback on error
+            setProducts(previousProducts);
             console.error('Error deleting product:', error);
         }
     };
