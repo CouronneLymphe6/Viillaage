@@ -38,11 +38,18 @@ export async function GET(request: Request) {
                     }
                 }
             },
-            orderBy: { createdAt: 'asc' },
-            take: 100,
+            orderBy: { createdAt: 'desc' },
+            take: 50, // Reduced from 100 for faster loading
         });
 
-        return NextResponse.json(messages);
+        // Return messages in ascending order for UI
+        const sortedMessages = messages.reverse();
+
+        return NextResponse.json(sortedMessages, {
+            headers: {
+                'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=30',
+            },
+        });
     } catch (error) {
         console.error("GET_MESSAGES_ERROR", error);
         return new NextResponse("Internal Error", { status: 500 });

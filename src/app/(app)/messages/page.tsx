@@ -165,15 +165,44 @@ export default function MessagesPage() {
 
     const sendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newMessage.trim() || !selectedChannel) return;
+        if (!newMessage.trim() || !selectedChannel || !session?.user) return;
+
+        const messageContent = newMessage;
+        const tempId = `temp-${Date.now()}`;
+
+        // Optimistic UI: Add message immediately
+        const optimisticMessage: Message = {
+            id: tempId,
+            content: messageContent,
+            createdAt: new Date().toISOString(),
+            userId: session.user.id!,
+            user: {
+                name: session.user.name || null,
+                email: session.user.email || null,
+                image: session.user.image || null,
+            },
+            reactions: [],
+            replyTo: replyingTo ? {
+                id: replyingTo.id,
+                content: replyingTo.content,
+                user: replyingTo.user,
+            } : null,
+        };
+
+        if (!editingMessage) {
+            setMessages(prev => [...prev, optimisticMessage]);
+        }
+
+        setNewMessage('');
+        setReplyingTo(null);
 
         try {
             const url = editingMessage ? `/api/messages/${editingMessage.id}` : '/api/messages';
             const method = editingMessage ? 'PATCH' : 'POST';
             const body = editingMessage
-                ? { content: newMessage }
+                ? { content: messageContent }
                 : {
-                    content: newMessage,
+                    content: messageContent,
                     channelId: selectedChannel.id,
                     replyToId: replyingTo?.id
                 };
@@ -185,13 +214,22 @@ export default function MessagesPage() {
             });
 
             if (response.ok) {
-                setNewMessage('');
+                const serverMessage = await response.json();
+                // Replace optimistic message with server response
+                setMessages(prev => prev.map(msg =>
+                    msg.id === tempId ? serverMessage : msg
+                ));
                 setEditingMessage(null);
-                setReplyingTo(null);
-                fetchMessages(selectedChannel.id);
+            } else {
+                // Remove optimistic message on error
+                setMessages(prev => prev.filter(msg => msg.id !== tempId));
+                setNewMessage(messageContent); // Restore message
             }
         } catch (error) {
             console.error('Error sending message:', error);
+            // Remove optimistic message on error
+            setMessages(prev => prev.filter(msg => msg.id !== tempId));
+            setNewMessage(messageContent); // Restore message
         }
     };
 
