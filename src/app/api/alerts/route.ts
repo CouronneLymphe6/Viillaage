@@ -165,48 +165,59 @@ export async function POST(request: NextRequest) {
             },
         });
 
-        // Log alert creation
-        await logContentCreation(
-            AuditEventType.ALERT_CREATED,
-            session.user.id,
-            alert.id,
-            ipAddress
-        );
+        // Respond immediately to client
+        const response = NextResponse.json(alert);
 
-        // Get user's village and notify other users
-        const user = await prisma.user.findUnique({
-            where: { id: session.user.id },
-            select: { villageId: true },
-        });
+        // Execute logging and notifications asynchronously (fire-and-forget)
+        Promise.all([
+            // Log alert creation in background
+            logContentCreation(
+                AuditEventType.ALERT_CREATED,
+                session.user.id,
+                alert.id,
+                ipAddress
+            ).catch(err => console.error('Log error:', err)),
 
-        if (user?.villageId) {
-            // Determine alert title based on type
-            const alertTitles: Record<string, string> = {
-                'THEFT': '🚨 Vol signalé',
-                'ACCIDENT': '🚑 Accident signalé',
-                'FIRE': '🔥 Incendie signalé',
-                'SUSPICIOUS': '👀 Activité suspecte',
-                'ROAD_HAZARD': '⚠️ Danger sur la route',
-                'ANIMAL': '🐾 Animal signalé',
-                'OTHER': '⚠️ Nouvelle alerte',
-                'OFFICIAL_ANNOUNCEMENT': '📢 Annonce officielle',
-                'OFFICIAL_EMERGENCY': '🚨 Urgence officielle',
-                'OFFICIAL_MAINTENANCE': '🔧 Travaux programmés',
-            };
+            // Send notifications in background
+            (async () => {
+                try {
+                    const user = await prisma.user.findUnique({
+                        where: { id: session.user.id },
+                        select: { villageId: true },
+                    });
 
-            const title = alertTitles[type] || '⚠️ Nouvelle alerte';
+                    if (user?.villageId) {
+                        const alertTitles: Record<string, string> = {
+                            'THEFT': '🚨 Vol signalé',
+                            'ACCIDENT': '🚑 Accident signalé',
+                            'FIRE': '🔥 Incendie signalé',
+                            'SUSPICIOUS': '👀 Activité suspecte',
+                            'ROAD_HAZARD': '⚠️ Danger sur la route',
+                            'ANIMAL': '🐾 Animal signalé',
+                            'OTHER': '⚠️ Nouvelle alerte',
+                            'OFFICIAL_ANNOUNCEMENT': '📢 Annonce officielle',
+                            'OFFICIAL_EMERGENCY': '🚨 Urgence officielle',
+                            'OFFICIAL_MAINTENANCE': '🔧 Travaux programmés',
+                        };
 
-            await notifyVillageUsers({
-                villageId: user.villageId,
-                excludeUserId: session.user.id,
-                type: 'ALERT',
-                title,
-                message: sanitizedDescription.substring(0, 100) + (sanitizedDescription.length > 100 ? '...' : ''),
-                link: '/alerts',
-            });
-        }
+                        const title = alertTitles[type] || '⚠️ Nouvelle alerte';
 
-        return NextResponse.json(alert);
+                        await notifyVillageUsers({
+                            villageId: user.villageId,
+                            excludeUserId: session.user.id,
+                            type: 'ALERT',
+                            title,
+                            message: sanitizedDescription.substring(0, 100) + (sanitizedDescription.length > 100 ? '...' : ''),
+                            link: '/alerts',
+                        });
+                    }
+                } catch (err) {
+                    console.error('Notification error:', err);
+                }
+            })()
+        ]);
+
+        return response;
     } catch (error) {
         console.error("CREATE_ALERT_ERROR", error);
         return new NextResponse(error instanceof Error ? error.message : "Internal Error", { status: 500 });
