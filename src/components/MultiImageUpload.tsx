@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import NextImage from 'next/image';
 
 interface MultiImageUploadProps {
     onUpload: (urls: string[]) => void;
@@ -119,9 +120,11 @@ export default function MultiImageUpload({ onUpload, currentImages = [], maxImag
                 <div style={{ display: 'flex', gap: 'var(--spacing-sm)', flexWrap: 'wrap' }}>
                     {images.map((url, index) => (
                         <div key={index} style={{ position: 'relative', width: '120px', height: '120px' }}>
-                            <img
+                            <NextImage
                                 src={url}
                                 alt={`Photo ${index + 1}`}
+                                width={120}
+                                height={120}
                                 style={{
                                     width: '100%',
                                     height: '100%',
@@ -129,6 +132,8 @@ export default function MultiImageUpload({ onUpload, currentImages = [], maxImag
                                     borderRadius: 'var(--radius-sm)',
                                     border: '1px solid var(--border)',
                                 }}
+                                loading="lazy"
+                                sizes="120px"
                             />
                             <button
                                 type="button"

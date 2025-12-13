@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import Image from 'next/image';
 
 interface PhotoCarouselProps {
     photos: string[];
@@ -79,15 +80,15 @@ export default function PhotoCarousel({ photos, title }: PhotoCarouselProps) {
                             overflow: 'hidden',
                         }}
                     >
-                        <img
+                        <Image
                             src={photo}
                             alt={`${title} - Photo ${index + 1}`}
+                            fill
                             style={{
-                                width: '100%',
-                                height: '100%',
                                 objectFit: 'cover',
-                                display: 'block',
                             }}
+                            loading="lazy"
+                            sizes="(max-width: 768px) 100vw, 400px"
                         />
                     </div>
                 ))}
