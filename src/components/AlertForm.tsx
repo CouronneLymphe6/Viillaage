@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import ImageUpload from './ImageUpload';
+import { ImageUpload } from './LazyComponents';
 
 interface AlertFormProps {
     onSuccess?: () => void;

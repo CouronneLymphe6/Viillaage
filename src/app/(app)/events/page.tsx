@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import ImageUpload from '@/components/ImageUpload';
+import { ImageUpload } from '@/components/LazyComponents';
 
 interface Event {
     id: string;

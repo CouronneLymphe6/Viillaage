@@ -2,9 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import MultiImageUpload from '@/components/MultiImageUpload';
-import PhotoCarousel from '@/components/PhotoCarousel';
-import ListingModal from '@/components/ListingModal';
+import { MultiImageUpload, PhotoCarousel, ListingModal } from '@/components/LazyComponents';
 
 interface Listing {
     id: string;

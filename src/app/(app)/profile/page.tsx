@@ -3,7 +3,7 @@
 import { useSession } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import ImageUpload from '@/components/ImageUpload';
+import { ImageUpload } from '@/components/LazyComponents';
 import { signOut } from 'next-auth/react';
 
 export default function ProfilePage() {
