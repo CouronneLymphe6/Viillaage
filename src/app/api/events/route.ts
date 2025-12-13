@@ -15,7 +15,10 @@ export async function GET() {
         const events = await prisma.event.findMany({
             where: {
                 organizer: {
-                    villageId: session.user.villageId, // Filter by village
+                    villageId: session.user.villageId,
+                },
+                date: {
+                    gte: new Date(), // PWA: Only future events
                 },
             },
             include: {
@@ -36,9 +39,14 @@ export async function GET() {
                 },
             },
             orderBy: { date: 'asc' },
+            take: 50, // PWA: Limit to 50 events
         });
 
-        return NextResponse.json(events);
+        return NextResponse.json(events, {
+            headers: {
+                'Cache-Control': 'private, max-age=60, stale-while-revalidate=120',
+            },
+        });
     } catch (error) {
         console.error("GET_EVENTS_ERROR", error);
         return new NextResponse("Internal Error", { status: 500 });

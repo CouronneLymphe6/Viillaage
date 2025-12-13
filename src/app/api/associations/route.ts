@@ -30,9 +30,14 @@ export async function GET() {
             orderBy: {
                 createdAt: 'desc',
             },
+            take: 50, // PWA: Limit results
         });
 
-        return NextResponse.json(associations);
+        return NextResponse.json(associations, {
+            headers: {
+                'Cache-Control': 'private, max-age=60, stale-while-revalidate=120',
+            },
+        });
     } catch (error) {
         console.error(error);
         return new NextResponse("Internal Server Error", { status: 500 });

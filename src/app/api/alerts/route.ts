@@ -22,7 +22,7 @@ export async function GET() {
             where: {
                 status: "ACTIVE",
                 user: {
-                    villageId: session.user.villageId, // Filter by village
+                    villageId: session.user.villageId,
                 },
             },
             include: {
@@ -41,17 +41,21 @@ export async function GET() {
             orderBy: {
                 createdAt: 'desc',
             },
-            take: 50,
+            take: 30, // PWA: Reduced from 50 for faster loading
         });
 
         // Transform to include userVote status
         const alertsWithUserVote = alerts.map(alert => ({
             ...alert,
             userVote: alert.votes.length > 0 ? alert.votes[0].type : null,
-            votes: undefined, // Remove votes array from response
+            votes: undefined,
         }));
 
-        return NextResponse.json(alertsWithUserVote);
+        return NextResponse.json(alertsWithUserVote, {
+            headers: {
+                'Cache-Control': 'private, max-age=30, stale-while-revalidate=60',
+            },
+        });
     } catch (error) {
         console.error("GET_ALERTS_ERROR", error);
         return new NextResponse("Internal Error", { status: 500 });

@@ -28,6 +28,7 @@ export async function GET() {
                 },
             },
             orderBy: { name: 'asc' },
+            take: 100, // PWA: Limit results
         });
 
         // Aggressive caching - 60 seconds cache

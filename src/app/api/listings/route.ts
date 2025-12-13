@@ -16,7 +16,7 @@ export async function GET() {
         const listings = await prisma.listing.findMany({
             where: {
                 user: {
-                    villageId: session.user.villageId, // Filter by village
+                    villageId: session.user.villageId,
                 },
             },
             include: {
@@ -28,6 +28,7 @@ export async function GET() {
                 },
             },
             orderBy: { createdAt: 'desc' },
+            take: 50, // PWA: Limit results
         });
 
         // Parse photos JSON for each listing
@@ -36,7 +37,11 @@ export async function GET() {
             photos: JSON.parse(listing.photos || '[]'),
         }));
 
-        return NextResponse.json(listingsWithPhotos);
+        return NextResponse.json(listingsWithPhotos, {
+            headers: {
+                'Cache-Control': 'private, max-age=45, stale-while-revalidate=90',
+            },
+        });
     } catch (error) {
         console.error("GET_LISTINGS_ERROR", error);
         return new NextResponse("Internal Error", { status: 500 });
