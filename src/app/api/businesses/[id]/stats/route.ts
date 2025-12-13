@@ -73,11 +73,14 @@ export async function POST(
 
         // Mettre à jour ou créer les stats
         const updateData: any = {};
+        const createData: any = { businessId: id };
 
         if (type === 'view') {
             updateData.viewCount = { increment: 1 };
+            createData.viewCount = 1;
         } else if (type === 'catalogView') {
             updateData.catalogViewCount = { increment: 1 };
+            createData.catalogViewCount = 1;
         } else {
             return NextResponse.json({ error: "Invalid stat type" }, { status: 400 });
         }
@@ -86,10 +89,7 @@ export async function POST(
             await prisma.proStats.upsert({
                 where: { businessId: id },
                 update: updateData,
-                create: {
-                    businessId: id,
-                    ...updateData,
-                },
+                create: createData,
             });
 
             return NextResponse.json({ success: true });
