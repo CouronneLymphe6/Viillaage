@@ -77,34 +77,43 @@ export async function POST(request: Request) {
             },
         });
 
-        // Notify village users about new market listing
-        const user = await prisma.user.findUnique({
-            where: { id: session.user.id },
-            select: { villageId: true },
-        });
-
-        if (user?.villageId) {
-            const categoryLabels: Record<string, string> = {
-                'SELL': '💰 Vente',
-                'GIVE': '🎁 Don',
-                'EXCHANGE': '🔄 Échange',
-                'LEND': '🤝 Prêt',
-            };
-
-            await notifyVillageUsers({
-                villageId: user.villageId,
-                excludeUserId: session.user.id,
-                type: 'MARKET',
-                title: `${categoryLabels[category] || '📌'} Nouvelle annonce`,
-                message: `${title} - ${description.substring(0, 80)}${description.length > 80 ? '...' : ''}`,
-                link: '/market',
-            });
-        }
-
-        return NextResponse.json({
+        // Respond immediately
+        const response = NextResponse.json({
             ...listing,
             photos: JSON.parse(listing.photos),
         });
+
+        // Send notifications in background (fire-and-forget)
+        (async () => {
+            try {
+                const user = await prisma.user.findUnique({
+                    where: { id: session.user.id },
+                    select: { villageId: true },
+                });
+
+                if (user?.villageId) {
+                    const categoryLabels: Record<string, string> = {
+                        'SELL': '💰 Vente',
+                        'GIVE': '🎁 Don',
+                        'EXCHANGE': '🔄 Échange',
+                        'LEND': '🤝 Prêt',
+                    };
+
+                    await notifyVillageUsers({
+                        villageId: user.villageId,
+                        excludeUserId: session.user.id,
+                        type: 'MARKET',
+                        title: `${categoryLabels[category] || '📌'} Nouvelle annonce`,
+                        message: `${title} - ${description.substring(0, 80)}${description.length > 80 ? '...' : ''}`,
+                        link: '/market',
+                    });
+                }
+            } catch (err) {
+                console.error('Notification error:', err);
+            }
+        })();
+
+        return response;
     } catch (error) {
         console.error("CREATE_LISTING_ERROR", error);
         return new NextResponse(error instanceof Error ? error.message : "Internal Error", { status: 500 });

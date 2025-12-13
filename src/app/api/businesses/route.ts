@@ -81,24 +81,33 @@ export async function POST(request: Request) {
             },
         });
 
-        // Notify village users about new business
-        const user = await prisma.user.findUnique({
-            where: { id: session.user.id },
-            select: { villageId: true },
-        });
+        // Respond immediately
+        const response = NextResponse.json(business);
 
-        if (user?.villageId) {
-            await notifyVillageUsers({
-                villageId: user.villageId,
-                excludeUserId: session.user.id,
-                type: 'BUSINESS',
-                title: '🏪 Nouveau commerce',
-                message: `${name} - ${description.substring(0, 80)}${description.length > 80 ? '...' : ''}`,
-                link: '/village',
-            });
-        }
+        // Send notifications in background (fire-and-forget)
+        (async () => {
+            try {
+                const user = await prisma.user.findUnique({
+                    where: { id: session.user.id },
+                    select: { villageId: true },
+                });
 
-        return NextResponse.json(business);
+                if (user?.villageId) {
+                    await notifyVillageUsers({
+                        villageId: user.villageId,
+                        excludeUserId: session.user.id,
+                        type: 'BUSINESS',
+                        title: '🏪 Nouveau commerce',
+                        message: `${name} - ${description.substring(0, 80)}${description.length > 80 ? '...' : ''}`,
+                        link: '/village',
+                    });
+                }
+            } catch (err) {
+                console.error('Notification error:', err);
+            }
+        })();
+
+        return response;
     } catch (error) {
         console.error("CREATE_BUSINESS_ERROR", error);
         return new NextResponse("Internal Error", { status: 500 });
