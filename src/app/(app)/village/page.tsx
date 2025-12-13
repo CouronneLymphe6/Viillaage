@@ -102,14 +102,27 @@ export default function VillagePage() {
         e.preventDefault();
         if (!editingBusiness) return;
 
-        // OPTIMISTIC UI: Update immediately
+        // OPTIMISTIC UI: Update immediately - preserve all business properties
         const previousBusinesses = [...businesses];
         const photos = formData.photoUrl ? JSON.stringify([formData.photoUrl]) : "[]";
+
         setBusinesses(businesses.map(b =>
             b.id === editingBusiness.id
-                ? { ...b, ...formData, photos }
+                ? {
+                    ...b, // Keep all existing properties (id, ownerId, owner, etc.)
+                    name: formData.name,
+                    description: formData.description,
+                    category: formData.category,
+                    type: formData.type,
+                    address: formData.address || null,
+                    phone: formData.phone || null,
+                    email: formData.email || null,
+                    website: formData.website || null,
+                    photos,
+                }
                 : b
         ));
+
         setFormData({ name: '', description: '', category: '', type: 'MERCHANT', address: '', phone: '', email: '', website: '', photoUrl: '' });
         setEditingBusiness(null);
         setShowForm(false);
