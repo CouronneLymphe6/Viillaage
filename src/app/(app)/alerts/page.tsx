@@ -42,6 +42,20 @@ export default function AlertsPage() {
     }, []);
 
     const handleVote = async (id: string, type: 'CONFIRM' | 'REPORT') => {
+        // OPTIMISTIC UI: Update vote count immediately
+        const previousAlerts = [...alerts];
+        setAlerts(alerts.map(alert => {
+            if (alert.id === id) {
+                return {
+                    ...alert,
+                    userVote: type,
+                    confirmations: type === 'CONFIRM' ? (alert.confirmations || 0) + 1 : alert.confirmations,
+                    reports: type === 'REPORT' ? (alert.reports || 0) + 1 : alert.reports,
+                };
+            }
+            return alert;
+        }));
+
         try {
             const response = await fetch(`/api/alerts/${id}/vote`, {
                 method: 'POST',
@@ -49,18 +63,23 @@ export default function AlertsPage() {
                 body: JSON.stringify({ type }),
             });
 
-            if (response.ok) {
-                fetchAlerts();
-            } else {
+            if (!response.ok) {
+                // Rollback on error
+                setAlerts(previousAlerts);
                 const err = await response.text();
                 if (response.status === 409) {
                     alert("Vous avez déjà voté !");
                 } else {
                     console.error("Vote error:", err);
+                    alert("Erreur lors du vote");
                 }
             }
+            // Success: vote already updated in UI
         } catch (error) {
+            // Rollback on error
+            setAlerts(previousAlerts);
             console.error('Error voting:', error);
+            alert("Erreur lors du vote");
         }
     };
 
