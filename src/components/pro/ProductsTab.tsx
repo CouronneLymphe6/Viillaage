@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { Package, Plus, Edit2, Trash2 } from 'lucide-react';
 import { compressImage, formatFileSize } from '@/lib/imageUtils';
+import Image from 'next/image';
 
 interface Product {
     id: string;
@@ -421,8 +422,8 @@ function ProductForm({ businessId, product, onClose, onSuccess }: {
                         {uploading && <p style={{ marginTop: '8px', color: 'var(--primary)' }}>Compression en cours...</p>}
                         {uploadError && <p style={{ marginTop: '8px', color: '#c33', fontSize: '0.9rem' }}>{uploadError}</p>}
                         {formData.photos && (
-                            <div style={{ marginTop: '12px' }}>
-                                <img src={formData.photos} alt="Preview" style={{ width: '100%', borderRadius: 'var(--radius-md)' }} />
+                            <div style={{ marginTop: '12px', position: 'relative', width: '100%', height: '200px' }}>
+                                <Image src={formData.photos} alt="Preview" fill style={{ borderRadius: 'var(--radius-md)', objectFit: 'cover' }} loading="lazy" sizes="600px" />
                             </div>
                         )}
                     </div>

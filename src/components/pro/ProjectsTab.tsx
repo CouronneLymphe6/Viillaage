@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Briefcase, Plus, Edit2, Trash2 } from 'lucide-react';
 import { compressImage, formatFileSize } from '@/lib/imageUtils';
+import Image from 'next/image';
 
 interface Project {
     id: string;
@@ -428,8 +429,8 @@ function ProjectForm({ businessId, project, onClose, onSuccess }: {
                         {uploading && <p style={{ marginTop: '8px', color: 'var(--primary)' }}>Compression en cours...</p>}
                         {uploadError && <p style={{ marginTop: '8px', color: '#c33', fontSize: '0.9rem' }}>{uploadError}</p>}
                         {formData.photo && (
-                            <div style={{ marginTop: '12px' }}>
-                                <img src={formData.photo} alt="Preview" style={{ width: '100%', borderRadius: 'var(--radius-md)' }} />
+                            <div style={{ marginTop: '12px', position: 'relative', width: '100%', height: '200px' }}>
+                                <Image src={formData.photo} alt="Preview" fill style={{ borderRadius: 'var(--radius-md)', objectFit: 'cover' }} loading="lazy" sizes="600px" />
                             </div>
                         )}
                     </div>

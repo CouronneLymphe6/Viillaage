@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { MessageCircle, Plus, ThumbsUp, Send, Edit2, Trash2 } from 'lucide-react';
 import { compressImage, formatFileSize } from '@/lib/imageUtils';
+import Image from 'next/image';
 
 interface Post {
     id: string;
@@ -233,15 +234,15 @@ export function PostsTab({ businessId, isOwner }: PostsTabProps) {
                                         marginBottom: '12px',
                                         backgroundColor: '#f5f5f5',
                                     }}>
-                                        <img
+                                        <Image
                                             src={post.mediaUrl}
                                             alt="Post media"
+                                            fill
                                             style={{
-                                                width: '100%',
-                                                height: '100%',
                                                 objectFit: 'cover',
-                                                display: 'block'
                                             }}
+                                            loading="lazy"
+                                            sizes="(max-width: 768px) 100vw, 600px"
                                         />
                                     </div>
                                 )}
@@ -495,8 +496,8 @@ function PostForm({ businessId, post, onClose, onSuccess }: { businessId: string
                         {uploading && <p style={{ marginTop: '8px', color: 'var(--primary)' }}>Compression en cours...</p>}
                         {uploadError && <p style={{ marginTop: '8px', color: '#c33', fontSize: '0.9rem' }}>{uploadError}</p>}
                         {formData.mediaUrl && (
-                            <div style={{ marginTop: '12px' }}>
-                                <img src={formData.mediaUrl} alt="Preview" style={{ width: '100%', borderRadius: 'var(--radius-md)' }} />
+                            <div style={{ marginTop: '12px', position: 'relative', width: '100%', height: '200px' }}>
+                                <Image src={formData.mediaUrl} alt="Preview" fill style={{ borderRadius: 'var(--radius-md)', objectFit: 'cover' }} loading="lazy" sizes="600px" />
                             </div>
                         )}
                     </div>

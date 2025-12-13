@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { Send, Smile, Paperclip, MoreVertical, Edit2, Trash2, X, ArrowLeft } from 'lucide-react';
+import Image from 'next/image';
 
 interface Channel {
     id: string;
@@ -56,16 +57,17 @@ const getInitials = (name: string | null, email: string | null): string => {
 const UserAvatar = ({ user, size = 32 }: { user: Message['user'], size?: number }) => {
     if (user.image) {
         return (
-            <img
+            <Image
                 src={user.image}
                 alt={user.name || 'User'}
+                width={size}
+                height={size}
                 style={{
-                    width: `${size}px`,
-                    height: `${size}px`,
                     borderRadius: '50%',
                     objectFit: 'cover',
                     flexShrink: 0,
                 }}
+                loading="lazy"
             />
         );
     }
