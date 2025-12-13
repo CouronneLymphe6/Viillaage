@@ -73,18 +73,25 @@ export default function AlertsPage() {
     const handleDelete = async (id: string) => {
         if (!confirm('Êtes-vous sûr de vouloir supprimer cette alerte ?')) return;
 
+        // OPTIMISTIC UI: Remove immediately from UI
+        const previousAlerts = [...alerts];
+        setAlerts(alerts.filter(alert => alert.id !== id));
+
         try {
             const response = await fetch(`/api/alerts/${id}`, {
                 method: 'DELETE',
             });
 
-            if (response.ok) {
-                fetchAlerts();
-            } else {
+            if (!response.ok) {
+                // Rollback on error
+                setAlerts(previousAlerts);
                 const err = await response.text();
                 alert(`Erreur lors de la suppression: ${err}`);
             }
+            // Success: alert already removed from UI, no need to refetch
         } catch (error) {
+            // Rollback on error
+            setAlerts(previousAlerts);
             console.error('Error deleting alert:', error);
             alert('Erreur lors de la suppression');
         }
