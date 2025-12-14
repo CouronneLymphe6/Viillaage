@@ -62,32 +62,80 @@ export function PostsTab({ businessId, isOwner }: PostsTabProps) {
     };
 
     const toggleLike = async (postId: string) => {
+        // OPTIMISTIC UI: Toggle like immediately
+        const previousPosts = [...posts];
+        setPosts(posts.map(post => {
+            if (post.id === postId) {
+                const hasLiked = post.likes?.some(like => like.userId === session?.user?.id);
+                return {
+                    ...post,
+                    likes: hasLiked
+                        ? post.likes?.filter(like => like.userId !== session?.user?.id) || []
+                        : [...(post.likes || []), { userId: session?.user?.id || '' }],
+                    likeCount: hasLiked ? (post.likeCount || 1) - 1 : (post.likeCount || 0) + 1,
+                };
+            }
+            return post;
+        }));
+
         try {
             const response = await fetch(`/api/businesses/${businessId}/posts/${postId}/like`, {
                 method: 'POST',
             });
-            if (response.ok) {
-                fetchPosts();
+            if (!response.ok) {
+                // Rollback on error
+                setPosts(previousPosts);
             }
         } catch (error) {
+            // Rollback on error
+            setPosts(previousPosts);
             console.error('Error toggling like:', error);
         }
     };
 
     const addComment = async (postId: string) => {
         if (!newComment[postId]?.trim()) return;
+
+        // OPTIMISTIC UI: Add comment immediately
+        const previousPosts = [...posts];
+        const tempComment = {
+            id: 'temp-' + Date.now(),
+            content: newComment[postId],
+            userId: session?.user?.id || '',
+            user: { name: session?.user?.name || '', image: session?.user?.image || null },
+            createdAt: new Date().toISOString(),
+        };
+
+        setPosts(posts.map(post => {
+            if (post.id === postId) {
+                return {
+                    ...post,
+                    comments: [...(post.comments || []), tempComment],
+                    commentCount: (post.commentCount || 0) + 1,
+                };
+            }
+            return post;
+        }));
+        setNewComment({ ...newComment, [postId]: '' });
+
         try {
             const response = await fetch(`/api/businesses/${businessId}/posts/${postId}/comments`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ content: newComment[postId] }),
             });
-            if (response.ok) {
-                setNewComment({ ...newComment, [postId]: '' });
-                fetchPosts();
+            if (!response.ok) {
+                // Rollback on error
+                setPosts(previousPosts);
+                setNewComment({ ...newComment, [postId]: newComment[postId] });
+                alert('Erreur lors de l\'ajout du commentaire');
             }
         } catch (error) {
+            // Rollback on error
+            setPosts(previousPosts);
+            setNewComment({ ...newComment, [postId]: newComment[postId] });
             console.error('Error adding comment:', error);
+            alert('Erreur lors de l\'ajout du commentaire');
         }
     };
 
