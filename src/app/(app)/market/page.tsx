@@ -56,6 +56,43 @@ export default function MarketPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        // OPTIMISTIC UI: Add/Update immediately
+        const previousListings = [...listings];
+
+        if (editingListing) {
+            // Update existing
+            setListings(listings.map(l =>
+                l.id === editingListing.id
+                    ? {
+                        ...l,
+                        ...formData,
+                        price: formData.price ? parseFloat(formData.price) : null,
+                        photos: formData.photos || [],
+                    }
+                    : l
+            ));
+        } else {
+            // Create new with temp ID
+            const tempListing: Listing = {
+                id: 'temp-' + Date.now(),
+                title: formData.title,
+                description: formData.description,
+                price: formData.price ? parseFloat(formData.price) : null,
+                category: formData.category,
+                photos: formData.photos || [],
+                createdAt: new Date().toISOString(),
+                userId: session?.user?.id || '',
+                user: {
+                    name: session?.user?.name || null,
+                },
+            };
+            setListings([tempListing, ...listings]);
+        }
+
+        setFormData({ title: '', description: '', price: '', category: 'SELL', photos: [] });
+        setShowForm(false);
+        setEditingListing(null);
+
         try {
             const url = editingListing ? `/api/listings/${editingListing.id}` : '/api/listings';
             const method = editingListing ? 'PATCH' : 'POST';
@@ -67,13 +104,23 @@ export default function MarketPage() {
             });
 
             if (response.ok) {
-                setFormData({ title: '', description: '', price: '', category: 'SELL', photos: [] });
-                setShowForm(false);
-                setEditingListing(null);
-                fetchListings();
+                if (!editingListing) {
+                    // Replace temp with real data
+                    const realListing = await response.json();
+                    setListings(prev => prev.map(l =>
+                        l.id.startsWith('temp-') ? realListing : l
+                    ));
+                }
+            } else {
+                // Rollback on error
+                setListings(previousListings);
+                alert('Erreur lors de l\'enregistrement');
             }
         } catch (error) {
+            // Rollback on error
+            setListings(previousListings);
             console.error('Error submitting listing:', error);
+            alert('Erreur lors de l\'enregistrement');
         }
     };
 
@@ -460,7 +507,7 @@ export default function MarketPage() {
                                 )}
 
                                 {/* Photo carousel */}
-                                <PhotoCarousel photos={listing.photos} title={listing.title} />
+                                <PhotoCarousel photos={listing.photos || []} title={listing.title} />
 
                                 <div style={{ padding: '16px' }}>
                                     {/* Category and Price */}
