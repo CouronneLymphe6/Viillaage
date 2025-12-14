@@ -49,7 +49,7 @@ export function PostsTab({ businessId, isOwner }: PostsTabProps) {
     const fetchPosts = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`/ api / businesses / ${businessId}/posts`);
+            const response = await fetch(`/api/businesses/${businessId}/posts`);
             if (response.ok) {
                 const data = await response.json();
                 setPosts(data);
