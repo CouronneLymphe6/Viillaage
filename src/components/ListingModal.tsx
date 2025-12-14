@@ -10,6 +10,8 @@ interface Listing {
     price?: number | null;
     category: string;
     photos: string[];
+    contactPhone?: string | null;
+    contactEmail?: string | null;
     createdAt: string;
     userId: string;
     user: {
@@ -190,6 +192,87 @@ export default function ListingModal({ listing, isOpen, onClose, onEdit, onDelet
                                 </div>
                             </div>
                         </div>
+
+                        {/* Contact Information */}
+                        {(listing.contactPhone || listing.contactEmail) && (
+                            <div style={{
+                                marginBottom: '24px',
+                                paddingBottom: '24px',
+                                borderBottom: '1px solid var(--border)',
+                            }}>
+                                <h3 style={{ fontSize: '1.1rem', fontWeight: '600', marginBottom: '12px' }}>📞 Contact</h3>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                    {listing.contactPhone && (
+                                        <a
+                                            href={`tel:${listing.contactPhone}`}
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '12px',
+                                                padding: '12px 16px',
+                                                backgroundColor: 'rgba(0, 191, 165, 0.1)',
+                                                borderRadius: '8px',
+                                                textDecoration: 'none',
+                                                color: 'var(--text-main)',
+                                                fontSize: '1rem',
+                                                transition: 'all 0.2s',
+                                                border: '1px solid rgba(0, 191, 165, 0.2)'
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.currentTarget.style.backgroundColor = 'var(--primary)';
+                                                e.currentTarget.style.color = 'white';
+                                                e.currentTarget.style.borderColor = 'var(--primary)';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.backgroundColor = 'rgba(0, 191, 165, 0.1)';
+                                                e.currentTarget.style.color = 'var(--text-main)';
+                                                e.currentTarget.style.borderColor = 'rgba(0, 191, 165, 0.2)';
+                                            }}
+                                        >
+                                            <span style={{ fontSize: '1.5rem' }}>📱</span>
+                                            <div>
+                                                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '2px' }}>Téléphone</div>
+                                                <div style={{ fontWeight: '600' }}>{listing.contactPhone}</div>
+                                            </div>
+                                        </a>
+                                    )}
+                                    {listing.contactEmail && (
+                                        <a
+                                            href={`mailto:${listing.contactEmail}`}
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '12px',
+                                                padding: '12px 16px',
+                                                backgroundColor: 'rgba(0, 191, 165, 0.1)',
+                                                borderRadius: '8px',
+                                                textDecoration: 'none',
+                                                color: 'var(--text-main)',
+                                                fontSize: '1rem',
+                                                transition: 'all 0.2s',
+                                                border: '1px solid rgba(0, 191, 165, 0.2)'
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.currentTarget.style.backgroundColor = 'var(--primary)';
+                                                e.currentTarget.style.color = 'white';
+                                                e.currentTarget.style.borderColor = 'var(--primary)';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.backgroundColor = 'rgba(0, 191, 165, 0.1)';
+                                                e.currentTarget.style.color = 'var(--text-main)';
+                                                e.currentTarget.style.borderColor = 'rgba(0, 191, 165, 0.2)';
+                                            }}
+                                        >
+                                            <span style={{ fontSize: '1.5rem' }}>✉️</span>
+                                            <div>
+                                                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '2px' }}>Email</div>
+                                                <div style={{ fontWeight: '600' }}>{listing.contactEmail}</div>
+                                            </div>
+                                        </a>
+                                    )}
+                                </div>
+                            </div>
+                        )}
 
                         {/* Action buttons */}
                         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
