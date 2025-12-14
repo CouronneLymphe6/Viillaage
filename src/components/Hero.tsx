@@ -81,8 +81,7 @@ export default function Hero() {
                         marginBottom: 'var(--spacing-lg)',
                         lineHeight: '1.6'
                     }}>
-                        Connectez-vous avec vos voisins, participez à la vie locale et sécurisez votre communauté.
-                        Un espace numérique bienveillant, moderne et <span style={{ fontWeight: '600', color: 'var(--text-main)' }}>100% sécurisé</span>.
+                        Connectez-vous avec vos voisins, participez à la vie locale et sécurisez votre communauté dans un espace numérique bienveillant et moderne.
                     </p>
 
                     <div style={{ display: 'flex', gap: 'var(--spacing-md)', flexWrap: 'wrap' }}>
