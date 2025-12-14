@@ -292,6 +292,7 @@ export function PostsTab({ businessId, isOwner }: PostsTabProps) {
 
                                 {post.mediaUrl && post.mediaType === 'PHOTO' && (
                                     <div style={{
+                                        position: 'relative',
                                         width: '100%',
                                         height: '300px',
                                         borderRadius: 'var(--radius-md)',
