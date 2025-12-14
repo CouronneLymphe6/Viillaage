@@ -280,7 +280,13 @@ export function PostsTab({ businessId, isOwner }: PostsTabProps) {
                                     </p>
                                 </div>
 
-                                <p style={{ lineHeight: '1.6', marginBottom: '12px', whiteSpace: 'pre-wrap' }}>
+                                <p style={{
+                                    lineHeight: '1.6',
+                                    marginBottom: '12px',
+                                    whiteSpace: 'pre-wrap',
+                                    color: 'var(--text-main)',
+                                    fontSize: '1rem',
+                                }}>
                                     {post.content}
                                 </p>
 
