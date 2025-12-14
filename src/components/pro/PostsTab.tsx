@@ -93,15 +93,25 @@ export function PostsTab({ businessId, isOwner }: PostsTabProps) {
 
     const handleDelete = async (postId: string) => {
         if (!confirm('Voulez-vous vraiment supprimer cette publication ?')) return;
+
+        // OPTIMISTIC UI: Remove immediately
+        const previousPosts = [...posts];
+        setPosts(posts.filter(p => p.id !== postId));
+
         try {
             const response = await fetch(`/api/pro-posts/${postId}`, {
                 method: 'DELETE',
             });
-            if (response.ok) {
-                fetchPosts();
+            if (!response.ok) {
+                // Rollback on error
+                setPosts(previousPosts);
+                alert('Erreur lors de la suppression');
             }
         } catch (error) {
+            // Rollback on error
+            setPosts(previousPosts);
             console.error('Error deleting post:', error);
+            alert('Erreur lors de la suppression');
         }
     };
 

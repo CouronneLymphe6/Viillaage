@@ -45,15 +45,25 @@ export function AgendaTab({ businessId, isOwner }: AgendaTabProps) {
 
     const handleDelete = async (eventId: string) => {
         if (!confirm('Voulez-vous vraiment supprimer cet événement ?')) return;
+
+        // OPTIMISTIC UI: Remove immediately
+        const previousEvents = [...events];
+        setEvents(events.filter(e => e.id !== eventId));
+
         try {
             const response = await fetch(`/api/businesses/${businessId}/agenda/${eventId}`, {
                 method: 'DELETE',
             });
-            if (response.ok) {
-                fetchEvents();
+            if (!response.ok) {
+                // Rollback on error
+                setEvents(previousEvents);
+                alert('Erreur lors de la suppression');
             }
         } catch (error) {
+            // Rollback on error
+            setEvents(previousEvents);
             console.error('Error deleting event:', error);
+            alert('Erreur lors de la suppression');
         }
     };
 

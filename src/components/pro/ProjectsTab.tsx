@@ -48,15 +48,25 @@ export function ProjectsTab({ businessId, isOwner }: ProjectsTabProps) {
 
     const handleDelete = async (projectId: string) => {
         if (!confirm('Voulez-vous vraiment supprimer ce projet ?')) return;
+
+        // OPTIMISTIC UI: Remove immediately
+        const previousProjects = [...projects];
+        setProjects(projects.filter(p => p.id !== projectId));
+
         try {
             const response = await fetch(`/api/businesses/${businessId}/projects/${projectId}`, {
                 method: 'DELETE',
             });
-            if (response.ok) {
-                fetchProjects();
+            if (!response.ok) {
+                // Rollback on error
+                setProjects(previousProjects);
+                alert('Erreur lors de la suppression');
             }
         } catch (error) {
+            // Rollback on error
+            setProjects(previousProjects);
             console.error('Error deleting project:', error);
+            alert('Erreur lors de la suppression');
         }
     };
 
