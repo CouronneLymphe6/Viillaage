@@ -192,7 +192,7 @@ export default function DashboardGrid({
 
                 {/* Community Stats Card */}
                 <div className="card col-span-2 span-2-md" style={{
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    background: 'linear-gradient(135deg, #00BFA5 0%, #00897B 100%)',
                     border: 'none'
                 }}>
                     <div className="card-content" style={{
@@ -218,7 +218,7 @@ export default function DashboardGrid({
                             style={{
                                 padding: '14px 32px',
                                 backgroundColor: 'white',
-                                color: '#667eea',
+                                color: '#00BFA5',
                                 border: 'none',
                                 borderRadius: '10px',
                                 fontSize: '1.05rem',
