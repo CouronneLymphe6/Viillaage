@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { MultiImageUpload, PhotoCarousel, ListingModal } from '@/components/LazyComponents';
+import { MapPin, User, Clock, Tag, Edit2, Trash2 } from 'lucide-react';
 
 interface Listing {
     id: string;
@@ -509,63 +510,113 @@ export default function MarketPage() {
                                 {/* Photo carousel */}
                                 <PhotoCarousel photos={listing.photos || []} title={listing.title} />
 
-                                <div style={{ padding: '16px' }}>
-                                    {/* Category and Price */}
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                                        <span style={{
+                                <div style={{
+                                    padding: '20px',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    flex: 1,
+                                    background: 'linear-gradient(180deg, var(--secondary) 0%, rgba(255,255,255,0.5) 100%)'
+                                }}>
+                                    {/* Header: Category & Price */}
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                                        <div style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '6px',
+                                            padding: '6px 12px',
+                                            backgroundColor: 'rgba(0, 191, 165, 0.1)',
+                                            color: 'var(--primary)',
+                                            borderRadius: '20px',
+                                            fontSize: '0.8rem',
                                             fontWeight: '600',
-                                            color: 'white',
-                                            backgroundColor: 'var(--primary)',
-                                            padding: '4px 12px',
-                                            borderRadius: '16px',
-                                            fontSize: '0.85rem',
+                                            border: '1px solid rgba(0, 191, 165, 0.2)',
                                         }}>
+                                            <Tag size={14} />
                                             {categoryLabels[listing.category] || listing.category}
-                                        </span>
-                                        {listing.price && (
-                                            <span style={{
-                                                fontWeight: '700',
-                                                color: 'var(--accent)',
-                                                fontSize: '1.5rem',
+                                        </div>
+
+                                        {listing.price !== null && (
+                                            <div style={{
+                                                fontSize: '1.4rem',
+                                                fontWeight: '800',
+                                                color: 'var(--text-main)',
+                                                fontFamily: 'Poppins, sans-serif',
+                                                background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)',
+                                                WebkitBackgroundClip: 'text',
+                                                WebkitTextFillColor: 'transparent',
+                                                textShadow: '0 2px 10px rgba(0, 191, 165, 0.2)'
                                             }}>
-                                                {listing.price}€
-                                            </span>
+                                                {listing.price === 0 ? 'Gratuit' : `${listing.price}€`}
+                                            </div>
                                         )}
                                     </div>
 
                                     {/* Title */}
                                     <h3 style={{
-                                        marginBottom: '8px',
-                                        fontSize: '1.25rem',
+                                        marginBottom: '10px',
+                                        fontSize: '1.2rem',
                                         fontWeight: '700',
-                                        lineHeight: '1.3',
+                                        color: 'var(--text-main)',
+                                        lineHeight: '1.4',
+                                        fontFamily: 'Poppins, sans-serif',
                                     }}>{listing.title}</h3>
 
-                                    {/* Description */}
+                                    {/* Description (Truncated) */}
                                     <p style={{
-                                        marginBottom: '12px',
+                                        marginBottom: '20px',
                                         color: 'var(--text-secondary)',
                                         fontSize: '0.95rem',
-                                        lineHeight: '1.5',
+                                        lineHeight: '1.6',
                                         display: '-webkit-box',
                                         WebkitLineClamp: 2,
                                         WebkitBoxOrient: 'vertical',
                                         overflow: 'hidden',
-                                    }}>{listing.description}</p>
+                                        flex: 1,
+                                    }}>
+                                        {listing.description}
+                                    </p>
 
-                                    {/* Footer */}
+                                    {/* Divider */}
+                                    <div style={{
+                                        height: '1px',
+                                        backgroundColor: 'var(--border)',
+                                        margin: '0 -20px 16px -20px',
+                                        opacity: 0.5
+                                    }} />
+
+                                    {/* Footer: User & Date & Actions */}
                                     <div style={{
                                         display: 'flex',
                                         justifyContent: 'space-between',
                                         alignItems: 'center',
-                                        marginTop: '12px',
-                                        paddingTop: '12px',
-                                        borderTop: '1px solid var(--border)'
+                                        fontSize: '0.85rem'
                                     }}>
-                                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                                            <div style={{ fontWeight: '500' }}>Par {listing.user.name}</div>
-                                            <div>{getTimeAgo(listing.createdAt)}</div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+                                            <div style={{
+                                                width: '28px',
+                                                height: '28px',
+                                                borderRadius: '50%',
+                                                backgroundColor: 'var(--primary)',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                color: 'white',
+                                                fontSize: '0.8rem',
+                                                flexShrink: 0,
+                                            }}>
+                                                {listing.user?.name ? listing.user.name[0].toUpperCase() : <User size={14} />}
+                                            </div>
+                                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                <span style={{ fontWeight: '600', color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                    {listing.user?.name || 'Voisin inconnu'}
+                                                </span>
+                                                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                                                    {getTimeAgo(listing.createdAt)}
+                                                </span>
+                                            </div>
                                         </div>
+
+
                                         {session?.user?.id === listing.userId && (
                                             <div style={{ display: 'flex', gap: '8px' }}>
                                                 <button
@@ -574,16 +625,17 @@ export default function MarketPage() {
                                                         handleEdit(listing);
                                                     }}
                                                     style={{
-                                                        padding: '8px',
-                                                        backgroundColor: 'transparent',
-                                                        border: 'none',
+                                                        padding: '6px',
                                                         color: 'var(--primary)',
+                                                        background: 'rgba(0, 191, 165, 0.1)',
+                                                        borderRadius: '8px',
+                                                        border: 'none',
                                                         cursor: 'pointer',
-                                                        fontSize: '1.2rem',
+                                                        transition: 'all 0.2s'
                                                     }}
-                                                    title="Modifier"
+                                                    className="action-btn"
                                                 >
-                                                    ✏️
+                                                    <Edit2 size={16} />
                                                 </button>
                                                 <button
                                                     onClick={(e) => {
@@ -591,16 +643,17 @@ export default function MarketPage() {
                                                         handleDelete(listing.id);
                                                     }}
                                                     style={{
-                                                        padding: '8px',
-                                                        backgroundColor: 'transparent',
+                                                        padding: '6px',
+                                                        color: '#ff6b6b',
+                                                        background: 'rgba(255, 107, 107, 0.1)',
+                                                        borderRadius: '8px',
                                                         border: 'none',
-                                                        color: 'var(--danger)',
                                                         cursor: 'pointer',
-                                                        fontSize: '1.2rem',
+                                                        transition: 'all 0.2s'
                                                     }}
-                                                    title="Supprimer"
+                                                    className="action-btn"
                                                 >
-                                                    🗑️
+                                                    <Trash2 size={16} />
                                                 </button>
                                             </div>
                                         )}
@@ -608,9 +661,10 @@ export default function MarketPage() {
                                 </div>
                             </div>
                         );
+
                     })
                 )}
-            </div>
+            </div >
 
             {selectedListing && (
                 <ListingModal
@@ -622,6 +676,6 @@ export default function MarketPage() {
                     isOwner={session?.user?.id === selectedListing.userId}
                 />
             )}
-        </div>
+        </div >
     );
 }

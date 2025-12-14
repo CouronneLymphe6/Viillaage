@@ -78,9 +78,12 @@ export default function PhotoCarousel({ photos, title }: PhotoCarouselProps) {
                             minWidth: '100%',
                             height: '100%',
                             scrollSnapAlign: 'start',
-                            backgroundColor: '#f5f5f5',
+                            backgroundColor: '#f1f5f9', // Fond plus élégant
                             overflow: 'hidden',
                             position: 'relative',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
                         }}
                     >
                         <Image
@@ -88,7 +91,7 @@ export default function PhotoCarousel({ photos, title }: PhotoCarouselProps) {
                             alt={`${title} - Photo ${index + 1}`}
                             fill
                             style={{
-                                objectFit: 'cover',
+                                objectFit: 'contain', // Affiche TOUTE l'image sans couper
                                 pointerEvents: 'none',
                             }}
                             loading="lazy"
