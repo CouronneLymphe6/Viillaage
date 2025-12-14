@@ -69,7 +69,7 @@ export async function PATCH(
         }
 
         const body = await request.json();
-        const { title, description, price, category, photos } = body;
+        const { title, description, price, category, photos, contactPhone, contactEmail } = body;
 
         const updated = await prisma.listing.update({
             where: { id },
@@ -79,6 +79,8 @@ export async function PATCH(
                 ...(price !== undefined && { price: price ? parseFloat(price) : null }),
                 ...(category && { category }),
                 ...(photos !== undefined && { photos: JSON.stringify(photos.slice(0, 3)) }), // Store as JSON
+                ...(contactPhone !== undefined && { contactPhone: contactPhone || null }),
+                ...(contactEmail !== undefined && { contactEmail: contactEmail || null }),
             },
         });
 

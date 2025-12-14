@@ -57,7 +57,7 @@ export async function POST(request: Request) {
         }
 
         const body = await request.json();
-        const { title, description, price, category, photos = [] } = body;
+        const { title, description, price, category, photos = [], contactPhone, contactEmail } = body;
 
         if (!title || !description || !category) {
             return new NextResponse("Missing required fields", { status: 400 });
@@ -70,6 +70,8 @@ export async function POST(request: Request) {
                 price: price ? parseFloat(price) : null,
                 category,
                 photos: JSON.stringify(photos.slice(0, 3)), // Store as JSON string
+                contactPhone: contactPhone || null,
+                contactEmail: contactEmail || null,
                 userId: session.user.id,
             },
             include: {
