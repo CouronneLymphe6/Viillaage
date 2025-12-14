@@ -429,12 +429,13 @@ export function PostsTab({ businessId, isOwner }: PostsTabProps) {
                 <PostForm
                     businessId={businessId}
                     post={editingPost}
+                    posts={posts}
+                    setPosts={setPosts}
                     onClose={() => {
                         setShowForm(false);
                         setEditingPost(null);
                     }}
                     onSuccess={() => {
-                        fetchPosts();
                         setShowForm(false);
                         setEditingPost(null);
                     }}
@@ -444,7 +445,14 @@ export function PostsTab({ businessId, isOwner }: PostsTabProps) {
     );
 }
 
-function PostForm({ businessId, post, onClose, onSuccess }: { businessId: string, post: Post | null, onClose: () => void, onSuccess: () => void }) {
+function PostForm({ businessId, post, posts, setPosts, onClose, onSuccess }: {
+    businessId: string,
+    post: Post | null,
+    posts: Post[],
+    setPosts: React.Dispatch<React.SetStateAction<Post[]>>,
+    onClose: () => void,
+    onSuccess: () => void
+}) {
     const [formData, setFormData] = useState({
         content: post?.content || '',
         mediaUrl: post?.mediaUrl || '',
@@ -484,6 +492,40 @@ function PostForm({ businessId, post, onClose, onSuccess }: { businessId: string
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // OPTIMISTIC UI: Add/Update immediately
+        const previousPosts = [...posts];
+
+        if (post) {
+            // Update existing
+            setPosts(posts.map(p =>
+                p.id === post.id
+                    ? {
+                        ...p,
+                        content: formData.content,
+                        mediaUrl: formData.mediaUrl || null,
+                        mediaType: formData.mediaUrl ? 'PHOTO' : null,
+                    }
+                    : p
+            ));
+        } else {
+            // Create new with temp ID
+            const tempPost: Post = {
+                id: 'temp-' + Date.now(),
+                content: formData.content,
+                mediaUrl: formData.mediaUrl || null,
+                mediaType: formData.mediaUrl ? 'PHOTO' : null,
+                createdAt: new Date().toISOString(),
+                likes: [],
+                comments: [],
+                likeCount: 0,
+                commentCount: 0,
+            };
+            setPosts([tempPost, ...posts]);
+        }
+
+        onSuccess(); // Close form immediately
+
         try {
             const url = post ? `/api/pro-posts/${post.id}` : `/api/businesses/${businessId}/posts`;
             const method = post ? 'PUT' : 'POST';
@@ -499,10 +541,23 @@ function PostForm({ businessId, post, onClose, onSuccess }: { businessId: string
             });
 
             if (response.ok) {
-                onSuccess();
+                if (!post) {
+                    // Replace temp with real data
+                    const realPost = await response.json();
+                    setPosts(prev => prev.map(p =>
+                        p.id.startsWith('temp-') ? realPost : p
+                    ));
+                }
+            } else {
+                // Rollback on error
+                setPosts(previousPosts);
+                alert('Erreur lors de l\'enregistrement');
             }
         } catch (error) {
+            // Rollback on error
+            setPosts(previousPosts);
             console.error('Error saving post:', error);
+            alert('Erreur lors de l\'enregistrement');
         }
     };
 

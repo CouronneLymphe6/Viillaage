@@ -70,11 +70,17 @@ export async function PUT(
         const body = await request.json();
         const { content, mediaUrl, mediaType } = body;
 
-        // Vérifier que le post appartient à un business du user
+        // OPTIMIZED: Use select instead of include (faster)
         const post = await prisma.proPost.findUnique({
             where: { id: postId },
-            include: {
-                business: true,
+            select: {
+                id: true,
+                content: true,
+                mediaUrl: true,
+                mediaType: true,
+                business: {
+                    select: { ownerId: true }
+                },
             },
         });
 
@@ -91,7 +97,7 @@ export async function PUT(
         }
 
         // Mettre à jour le post
-        const updatedPost = await prisma.proPost.update({
+        await prisma.proPost.update({
             where: { id: postId },
             data: {
                 content: content || post.content,
@@ -100,7 +106,8 @@ export async function PUT(
             },
         });
 
-        return NextResponse.json(updatedPost);
+        // PERFORMANCE: Return 204 No Content (client already has data via optimistic UI)
+        return new NextResponse(null, { status: 204 });
     } catch (error) {
         console.error("UPDATE_PRO_POST_ERROR", error);
         return new NextResponse("Internal Error", { status: 500 });
