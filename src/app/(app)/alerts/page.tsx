@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import AlertForm from '@/components/AlertForm';
 import { Alert } from '@/types';
 import { Plus, X } from 'lucide-react';
+import Loader from '@/components/Loader';
 
 // Dynamic import to avoid SSR issues with Leaflet
 const Map = dynamic(() => import('@/components/Map'), { ssr: false });
@@ -153,7 +154,7 @@ export default function AlertsPage() {
                     justifyContent: 'center',
                     backgroundColor: 'var(--secondary)',
                 }}>
-                    Chargement de la carte...
+                    <Loader size="large" text="Chargement de la carte..." />
                 </div>
             ) : (
                 <Map

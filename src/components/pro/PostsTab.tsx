@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { MessageCircle, Plus, ThumbsUp, Send, Edit2, Trash2 } from 'lucide-react';
+import Loader from '@/components/Loader';
 import { compressImage, formatFileSize } from '@/lib/imageUtils';
 import Image from 'next/image';
 
@@ -48,7 +49,7 @@ export function PostsTab({ businessId, isOwner }: PostsTabProps) {
     const fetchPosts = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`/api/businesses/${businessId}/posts`);
+            const response = await fetch(`/ api / businesses / ${businessId}/posts`);
             if (response.ok) {
                 const data = await response.json();
                 setPosts(data);
@@ -110,7 +111,7 @@ export function PostsTab({ businessId, isOwner }: PostsTabProps) {
     };
 
     if (loading) {
-        return <p style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>Chargement...</p>;
+        return <div style={{ textAlign: 'center', padding: 'var(--spacing-xl)' }}><Loader text="Chargement des posts..." /></div>;
     }
 
     return (
