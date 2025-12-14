@@ -240,12 +240,13 @@ export function ProjectsTab({ businessId, isOwner }: ProjectsTabProps) {
                 <ProjectForm
                     businessId={businessId}
                     project={editingProject}
+                    projects={projects}
+                    setProjects={setProjects}
                     onClose={() => {
                         setShowForm(false);
                         setEditingProject(null);
                     }}
                     onSuccess={() => {
-                        fetchProjects();
                         setShowForm(false);
                         setEditingProject(null);
                     }}
@@ -255,9 +256,11 @@ export function ProjectsTab({ businessId, isOwner }: ProjectsTabProps) {
     );
 }
 
-function ProjectForm({ businessId, project, onClose, onSuccess }: {
+function ProjectForm({ businessId, project, projects, setProjects, onClose, onSuccess }: {
     businessId: string;
     project: Project | null;
+    projects: Project[];
+    setProjects: React.Dispatch<React.SetStateAction<Project[]>>;
     onClose: () => void;
     onSuccess: () => void;
 }) {
@@ -303,6 +306,31 @@ function ProjectForm({ businessId, project, onClose, onSuccess }: {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // OPTIMISTIC UI: Add/Update immediately
+        const previousProjects = [...projects];
+
+        if (project) {
+            // Update existing
+            setProjects(projects.map(p =>
+                p.id === project.id
+                    ? { ...p, ...formData, startDate: formData.startDate || null, photo: formData.photo || null }
+                    : p
+            ));
+        } else {
+            // Create new with temp ID
+            const tempProject: Project = {
+                id: 'temp-' + Date.now(),
+                ...formData,
+                startDate: formData.startDate || null,
+                photo: formData.photo || null,
+                createdAt: new Date().toISOString(),
+            };
+            setProjects([tempProject, ...projects]);
+        }
+
+        onSuccess(); // Close form immediately
+
         try {
             const url = project
                 ? `/api/businesses/${businessId}/projects/${project.id}`
@@ -320,10 +348,23 @@ function ProjectForm({ businessId, project, onClose, onSuccess }: {
             });
 
             if (response.ok) {
-                onSuccess();
+                if (!project) {
+                    // Replace temp with real data
+                    const realProject = await response.json();
+                    setProjects(prev => prev.map(p =>
+                        p.id.startsWith('temp-') ? realProject : p
+                    ));
+                }
+            } else {
+                // Rollback on error
+                setProjects(previousProjects);
+                alert('Erreur lors de l\'enregistrement');
             }
         } catch (error) {
+            // Rollback on error
+            setProjects(previousProjects);
             console.error('Error saving project:', error);
+            alert('Erreur lors de l\'enregistrement');
         }
     };
 
