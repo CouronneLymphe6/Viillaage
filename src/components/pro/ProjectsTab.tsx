@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Briefcase, Plus, Edit2, Trash2 } from 'lucide-react';
+import { Plus, X, Edit2, Trash2, FolderOpen, Briefcase } from 'lucide-react';
+import Loader from '@/components/Loader';
 import { compressImage, formatFileSize } from '@/lib/imageUtils';
 import Image from 'next/image';
 
@@ -65,7 +66,7 @@ export function ProjectsTab({ businessId, isOwner }: ProjectsTabProps) {
     };
 
     if (loading) {
-        return <p style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>Chargement...</p>;
+        return <div style={{ textAlign: 'center', padding: 'var(--spacing-xl)' }}><Loader text="Chargement des projets..." /></div>;
     }
 
     return (

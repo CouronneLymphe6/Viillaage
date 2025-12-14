@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Calendar, Plus, Edit2, Trash2 } from 'lucide-react';
+import { Plus, X, Edit2, Trash2, Calendar } from 'lucide-react';
+import Loader from '@/components/Loader';
 
 interface AssociationEvent {
     id: string;
@@ -63,7 +64,7 @@ export function EventsTab({ associationId, isOwner }: EventsTabProps) {
     };
 
     if (loading) {
-        return <p style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>Chargement...</p>;
+        return <div style={{ textAlign: 'center', padding: 'var(--spacing-xl)' }}><Loader text="Chargement des événements..." /></div>;
     }
 
     return (

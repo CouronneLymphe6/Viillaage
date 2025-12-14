@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { Package, Plus, Edit2, Trash2 } from 'lucide-react';
+import { Package, Plus, X, Edit2, Trash2 } from 'lucide-react';
+import Loader from '@/components/Loader';
 import { compressImage, formatFileSize } from '@/lib/imageUtils';
 import Image from 'next/image';
 
@@ -75,7 +76,7 @@ export function ProductsTab({ businessId, isOwner }: ProductsTabProps) {
     };
 
     if (loading) {
-        return <p style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>Chargement...</p>;
+        return <div style={{ textAlign: 'center', padding: 'var(--spacing-xl)' }}><Loader text="Chargement des produits..." /></div>;
     }
 
     return (
