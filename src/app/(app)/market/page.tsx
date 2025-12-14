@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { MultiImageUpload, PhotoCarousel, ListingModal } from '@/components/LazyComponents';
-import { MapPin, User, Clock, Tag, Edit2, Trash2, Mail, Phone } from 'lucide-react';
+import { MapPin, User, Clock, Tag, Edit2, Trash2 } from 'lucide-react';
 
 interface Listing {
     id: string;
@@ -12,14 +12,12 @@ interface Listing {
     price?: number | null;
     category: string;
     photos: string[];
+    contactPhone?: string | null;
+    contactEmail?: string | null;
     createdAt: string;
     userId: string;
     user: {
         name: string | null;
-        email?: string | null;
-        profile?: {
-            phone?: string | null;
-        };
     };
 }
 
@@ -33,6 +31,8 @@ export default function MarketPage() {
         price: '',
         category: 'SELL',
         photos: [] as string[],
+        contactPhone: '',
+        contactEmail: '',
     });
 
     const [editingListing, setEditingListing] = useState<Listing | null>(null);
@@ -94,7 +94,7 @@ export default function MarketPage() {
             setListings([tempListing, ...listings]);
         }
 
-        setFormData({ title: '', description: '', price: '', category: 'SELL', photos: [] });
+        setFormData({ title: '', description: '', price: '', category: 'SELL', photos: [], contactPhone: '', contactEmail: '' });
         setShowForm(false);
         setEditingListing(null);
 
@@ -162,6 +162,8 @@ export default function MarketPage() {
             price: listing.price?.toString() || '',
             category: listing.category,
             photos: listing.photos || [],
+            contactPhone: listing.contactPhone || '',
+            contactEmail: listing.contactEmail || '',
         });
         setShowForm(true);
     };
@@ -215,7 +217,7 @@ export default function MarketPage() {
                 <button
                     onClick={() => {
                         setEditingListing(null);
-                        setFormData({ title: '', description: '', price: '', category: 'SELL', photos: [] });
+                        setFormData({ title: '', description: '', price: '', category: 'SELL', photos: [], contactPhone: '', contactEmail: '' });
                         setShowForm(!showForm);
                     }}
                     style={{
@@ -424,16 +426,62 @@ export default function MarketPage() {
                                 }}
                             />
                         )}
+
+                        {/* Contact Information */}
+                        <div style={{
+                            backgroundColor: 'rgba(0, 191, 165, 0.05)',
+                            padding: '16px',
+                            borderRadius: 'var(--radius-sm)',
+                            border: '1px solid rgba(0, 191, 165, 0.2)'
+                        }}>
+                            <h4 style={{
+                                marginBottom: '12px',
+                                fontSize: '0.95rem',
+                                color: 'var(--primary)',
+                                fontWeight: '600'
+                            }}>
+                                📞 Informations de contact (au moins 1 requis)
+                            </h4>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                <input
+                                    type="tel"
+                                    placeholder="Téléphone (ex: 06 12 34 56 78)"
+                                    value={formData.contactPhone}
+                                    onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })}
+                                    style={{
+                                        padding: '10px',
+                                        borderRadius: 'var(--radius-sm)',
+                                        border: '1px solid var(--border)',
+                                        fontSize: '1rem',
+                                    }}
+                                />
+                                <input
+                                    type="email"
+                                    placeholder="Email (ex: contact@exemple.fr)"
+                                    value={formData.contactEmail}
+                                    onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })}
+                                    style={{
+                                        padding: '10px',
+                                        borderRadius: 'var(--radius-sm)',
+                                        border: '1px solid var(--border)',
+                                        fontSize: '1rem',
+                                    }}
+                                />
+                                <p style={{
+                                    fontSize: '0.8rem',
+                                    color: 'var(--text-secondary)',
+                                    margin: 0,
+                                    fontStyle: 'italic'
+                                }}>
+                                    💡 Les acheteurs pourront vous contacter via ces coordonnées
+                                </p>
+                            </div>
+                        </div>
                         <MultiImageUpload
                             onUpload={(urls) => setFormData({ ...formData, photos: urls })}
                             currentImages={formData.photos}
                             maxImages={3}
                         />
-
-                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', padding: '0 4px', marginBottom: '8px' }}>
-                            💡 Astuce : Ajoutez un numéro de téléphone dans <a href="/profile" style={{ color: 'var(--primary)', textDecoration: 'underline' }}>votre profil</a> pour permettre aux acheteurs de vous appeler directement.
-                        </div>
-
                         <button
                             type="submit"
                             style={{
@@ -572,7 +620,7 @@ export default function MarketPage() {
 
                                     {/* Description (Truncated) */}
                                     <p style={{
-                                        marginBottom: '20px',
+                                        marginBottom: '16px',
                                         color: 'var(--text-secondary)',
                                         fontSize: '0.95rem',
                                         lineHeight: '1.6',
@@ -584,6 +632,94 @@ export default function MarketPage() {
                                     }}>
                                         {listing.description}
                                     </p>
+
+                                    {/* Contact Information */}
+                                    {(listing.contactPhone || listing.contactEmail) && (
+                                        <div style={{
+                                            backgroundColor: 'rgba(0, 191, 165, 0.05)',
+                                            padding: '12px',
+                                            borderRadius: '8px',
+                                            marginBottom: '16px',
+                                            border: '1px solid rgba(0, 191, 165, 0.15)'
+                                        }}>
+                                            <div style={{
+                                                fontSize: '0.75rem',
+                                                fontWeight: '600',
+                                                color: 'var(--primary)',
+                                                marginBottom: '8px',
+                                                textTransform: 'uppercase',
+                                                letterSpacing: '0.5px'
+                                            }}>
+                                                📞 Contact
+                                            </div>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                                {listing.contactPhone && (
+                                                    <a
+                                                        href={`tel:${listing.contactPhone}`}
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        style={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: '8px',
+                                                            padding: '6px 10px',
+                                                            backgroundColor: 'white',
+                                                            borderRadius: '6px',
+                                                            textDecoration: 'none',
+                                                            color: 'var(--text-main)',
+                                                            fontSize: '0.85rem',
+                                                            transition: 'all 0.2s',
+                                                            border: '1px solid var(--border)'
+                                                        }}
+                                                        onMouseEnter={(e) => {
+                                                            e.currentTarget.style.backgroundColor = 'var(--primary)';
+                                                            e.currentTarget.style.color = 'white';
+                                                            e.currentTarget.style.borderColor = 'var(--primary)';
+                                                        }}
+                                                        onMouseLeave={(e) => {
+                                                            e.currentTarget.style.backgroundColor = 'white';
+                                                            e.currentTarget.style.color = 'var(--text-main)';
+                                                            e.currentTarget.style.borderColor = 'var(--border)';
+                                                        }}
+                                                    >
+                                                        <span style={{ fontSize: '1rem' }}>📱</span>
+                                                        <span style={{ fontWeight: '500' }}>{listing.contactPhone}</span>
+                                                    </a>
+                                                )}
+                                                {listing.contactEmail && (
+                                                    <a
+                                                        href={`mailto:${listing.contactEmail}`}
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        style={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: '8px',
+                                                            padding: '6px 10px',
+                                                            backgroundColor: 'white',
+                                                            borderRadius: '6px',
+                                                            textDecoration: 'none',
+                                                            color: 'var(--text-main)',
+                                                            fontSize: '0.85rem',
+                                                            transition: 'all 0.2s',
+                                                            border: '1px solid var(--border)'
+                                                        }}
+                                                        onMouseEnter={(e) => {
+                                                            e.currentTarget.style.backgroundColor = 'var(--primary)';
+                                                            e.currentTarget.style.color = 'white';
+                                                            e.currentTarget.style.borderColor = 'var(--primary)';
+                                                        }}
+                                                        onMouseLeave={(e) => {
+                                                            e.currentTarget.style.backgroundColor = 'white';
+                                                            e.currentTarget.style.color = 'var(--text-main)';
+                                                            e.currentTarget.style.borderColor = 'var(--border)';
+                                                        }}
+                                                    >
+                                                        <span style={{ fontSize: '1rem' }}>✉️</span>
+                                                        <span style={{ fontWeight: '500' }}>{listing.contactEmail}</span>
+                                                    </a>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
 
                                     {/* Divider */}
                                     <div style={{
@@ -626,95 +762,46 @@ export default function MarketPage() {
                                         </div>
 
 
-                                        <div style={{ display: 'flex', gap: '8px' }}>
-                                            {session?.user?.id === listing.userId ? (
-                                                <>
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleEdit(listing);
-                                                        }}
-                                                        style={{
-                                                            padding: '6px',
-                                                            color: 'var(--primary)',
-                                                            background: 'rgba(0, 191, 165, 0.1)',
-                                                            borderRadius: '8px',
-                                                            border: 'none',
-                                                            cursor: 'pointer',
-                                                            transition: 'all 0.2s'
-                                                        }}
-                                                        className="action-btn"
-                                                    >
-                                                        <Edit2 size={16} />
-                                                    </button>
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleDelete(listing.id);
-                                                        }}
-                                                        style={{
-                                                            padding: '6px',
-                                                            color: '#ff6b6b',
-                                                            background: 'rgba(255, 107, 107, 0.1)',
-                                                            borderRadius: '8px',
-                                                            border: 'none',
-                                                            cursor: 'pointer',
-                                                            transition: 'all 0.2s'
-                                                        }}
-                                                        className="action-btn"
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    {listing.user.profile?.phone && (
-                                                        <a
-                                                            href={`tel:${listing.user.profile.phone}`}
-                                                            onClick={(e) => e.stopPropagation()}
-                                                            style={{
-                                                                padding: '8px',
-                                                                color: 'white',
-                                                                backgroundColor: '#10b981', // Emerald green
-                                                                borderRadius: '8px',
-                                                                display: 'flex',
-                                                                alignItems: 'center',
-                                                                justifyContent: 'center',
-                                                                textDecoration: 'none',
-                                                                transition: 'transform 0.1s',
-                                                                boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)'
-                                                            }}
-                                                            className="action-btn"
-                                                            title="Appeler"
-                                                        >
-                                                            <Phone size={16} />
-                                                        </a>
-                                                    )}
-                                                    {listing.user.email && (
-                                                        <a
-                                                            href={`mailto:${listing.user.email}?subject=Intérêt pour annonce "${listing.title}"`}
-                                                            onClick={(e) => e.stopPropagation()}
-                                                            style={{
-                                                                padding: '8px',
-                                                                color: 'white',
-                                                                backgroundColor: 'var(--primary)',
-                                                                borderRadius: '8px',
-                                                                display: 'flex',
-                                                                alignItems: 'center',
-                                                                justifyContent: 'center',
-                                                                textDecoration: 'none',
-                                                                transition: 'transform 0.1s',
-                                                                boxShadow: '0 2px 4px rgba(0, 191, 165, 0.2)'
-                                                            }}
-                                                            className="action-btn"
-                                                            title="Envoyer un email"
-                                                        >
-                                                            <Mail size={16} />
-                                                        </a>
-                                                    )}
-                                                </>
-                                            )}
-                                        </div>
+                                        {session?.user?.id === listing.userId && (
+                                            <div style={{ display: 'flex', gap: '8px' }}>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleEdit(listing);
+                                                    }}
+                                                    style={{
+                                                        padding: '6px',
+                                                        color: 'var(--primary)',
+                                                        background: 'rgba(0, 191, 165, 0.1)',
+                                                        borderRadius: '8px',
+                                                        border: 'none',
+                                                        cursor: 'pointer',
+                                                        transition: 'all 0.2s'
+                                                    }}
+                                                    className="action-btn"
+                                                >
+                                                    <Edit2 size={16} />
+                                                </button>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleDelete(listing.id);
+                                                    }}
+                                                    style={{
+                                                        padding: '6px',
+                                                        color: '#ff6b6b',
+                                                        background: 'rgba(255, 107, 107, 0.1)',
+                                                        borderRadius: '8px',
+                                                        border: 'none',
+                                                        cursor: 'pointer',
+                                                        transition: 'all 0.2s'
+                                                    }}
+                                                    className="action-btn"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>

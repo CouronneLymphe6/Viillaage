@@ -174,15 +174,17 @@ model EventRSVP {
 }
 
 model Listing {
-  id          String   @id @default(cuid())
-  title       String
-  description String
-  price       Float?
-  category    String   // "SELL", "GIVE", "EXCHANGE", "LEND"
-  photos      String   @default("[]") // JSON array of up to 3 photo URLs
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt   DateTime @default(now())
+  id           String   @id @default(cuid())
+  title        String
+  description  String
+  price        Float?
+  category     String   // "SELL", "GIVE", "EXCHANGE", "LEND"
+  photos       String   @default("[]") // JSON array of up to 3 photo URLs
+  contactPhone String?  // Numéro de téléphone pour contact direct
+  contactEmail String?  // Email pour contact direct
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
 }
 
 model Business {
