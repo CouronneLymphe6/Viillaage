@@ -339,74 +339,79 @@ export function PostsTab({ businessId, isOwner }: PostsTabProps) {
                                     </div>
                                 </div>
 
-                                {post.comments.length > 0 && (
-                                    <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
-                                        {post.comments.map((comment) => (
-                                            <div key={comment.id} style={{ marginBottom: '12px', display: 'flex', gap: '12px' }}>
-                                                <div style={{
-                                                    width: '32px',
-                                                    height: '32px',
-                                                    borderRadius: '50%',
-                                                    backgroundColor: 'var(--primary)',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    color: 'white',
-                                                    fontWeight: '600',
-                                                    flexShrink: 0,
-                                                }}>
-                                                    {comment.user.name?.[0]?.toUpperCase() || '?'}
+                                {/* Section Commentaires - Toujours visible */}
+                                <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
+                                    {post.comments.length > 0 && (
+                                        <div style={{ marginBottom: '16px' }}>
+                                            {post.comments.map((comment) => (
+                                                <div key={comment.id} style={{ marginBottom: '12px', display: 'flex', gap: '12px' }}>
+                                                    <div style={{
+                                                        width: '32px',
+                                                        height: '32px',
+                                                        borderRadius: '50%',
+                                                        backgroundColor: 'var(--primary)',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        color: 'white',
+                                                        fontWeight: '600',
+                                                        flexShrink: 0,
+                                                    }}>
+                                                        {comment.user.name?.[0]?.toUpperCase() || '?'}
+                                                    </div>
+                                                    <div style={{ flex: 1 }}>
+                                                        <p style={{ fontWeight: '600', fontSize: '0.9rem', marginBottom: '4px' }}>
+                                                            {comment.user.name || 'Utilisateur'}
+                                                        </p>
+                                                        <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                                                            {comment.content}
+                                                        </p>
+                                                        <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                                                            {new Date(comment.createdAt).toLocaleDateString('fr-FR')}
+                                                        </p>
+                                                    </div>
                                                 </div>
-                                                <div style={{ flex: 1 }}>
-                                                    <p style={{ fontWeight: '600', fontSize: '0.9rem', marginBottom: '4px' }}>
-                                                        {comment.user.name || 'Utilisateur'}
-                                                    </p>
-                                                    <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                                                        {comment.content}
-                                                    </p>
-                                                    <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                                                        {new Date(comment.createdAt).toLocaleDateString('fr-FR')}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
+                                            ))}
+                                        </div>
+                                    )}
 
-                                {session && (
-                                    <div style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
+                                    {/* Champ de saisie - Toujours visible */}
+                                    <div style={{ display: 'flex', gap: '8px' }}>
                                         <input
                                             type="text"
-                                            placeholder="Ajouter un commentaire..."
+                                            placeholder={session ? "Ajouter un commentaire..." : "Connectez-vous pour commenter"}
                                             value={newComment[post.id] || ''}
-                                            onChange={(e) => setNewComment({ ...newComment, [post.id]: e.target.value })}
-                                            onKeyPress={(e) => e.key === 'Enter' && addComment(post.id)}
+                                            onChange={(e) => session && setNewComment({ ...newComment, [post.id]: e.target.value })}
+                                            onKeyPress={(e) => session && e.key === 'Enter' && addComment(post.id)}
+                                            disabled={!session}
                                             style={{
                                                 flex: 1,
                                                 padding: '10px 14px',
                                                 border: '2px solid var(--border)',
                                                 borderRadius: 'var(--radius-full)',
-                                                backgroundColor: 'var(--background)',
+                                                backgroundColor: session ? 'var(--background)' : 'var(--secondary)',
                                                 fontSize: '0.9rem',
+                                                cursor: session ? 'text' : 'not-allowed',
+                                                opacity: session ? 1 : 0.6,
                                             }}
                                         />
                                         <button
                                             onClick={() => addComment(post.id)}
-                                            disabled={!newComment[post.id]?.trim()}
+                                            disabled={!session || !newComment[post.id]?.trim()}
                                             style={{
                                                 padding: '10px 16px',
                                                 backgroundColor: 'var(--primary)',
                                                 color: 'white',
                                                 border: 'none',
                                                 borderRadius: 'var(--radius-full)',
-                                                cursor: newComment[post.id]?.trim() ? 'pointer' : 'not-allowed',
-                                                opacity: newComment[post.id]?.trim() ? 1 : 0.5,
+                                                cursor: (session && newComment[post.id]?.trim()) ? 'pointer' : 'not-allowed',
+                                                opacity: (session && newComment[post.id]?.trim()) ? 1 : 0.5,
                                             }}
                                         >
                                             <Send size={18} />
                                         </button>
                                     </div>
-                                )}
+                                </div>
                             </div>
                         );
                     })}
