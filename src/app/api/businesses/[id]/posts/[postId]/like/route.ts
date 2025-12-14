@@ -17,36 +17,26 @@ export async function POST(
 
         const { postId } = await params;
 
-        // Vérifier si l'utilisateur a déjà liké
-        const existingLike = await prisma.proPostLike.findUnique({
+        // OPTIMIZED: Try to delete first (single query)
+        const deleted = await prisma.proPostLike.deleteMany({
             where: {
-                postId_userId: {
-                    postId,
-                    userId: session.user.id,
-                },
+                postId,
+                userId: session.user.id,
             },
         });
 
-        if (existingLike) {
-            // Unliker
-            await prisma.proPostLike.delete({
-                where: {
-                    id: existingLike.id,
-                },
-            });
-
-            return NextResponse.json({ liked: false });
-        } else {
-            // Liker
+        // If nothing was deleted, create the like
+        if (deleted.count === 0) {
             await prisma.proPostLike.create({
                 data: {
                     postId,
                     userId: session.user.id,
                 },
             });
-
-            return NextResponse.json({ liked: true });
+            return new NextResponse(null, { status: 204 }); // Faster than JSON
         }
+
+        return new NextResponse(null, { status: 204 }); // Faster than JSON
     } catch (error) {
         console.error("TOGGLE_LIKE_ERROR", error);
         return new NextResponse("Internal Error", { status: 500 });

@@ -55,23 +55,16 @@ export async function POST(
             return new NextResponse("Content is required", { status: 400 });
         }
 
-        const comment = await prisma.proComment.create({
+        // OPTIMIZED: No need to return data (client has it via optimistic UI)
+        await prisma.proComment.create({
             data: {
                 postId,
                 userId: session.user.id,
                 content,
             },
-            include: {
-                user: {
-                    select: {
-                        name: true,
-                        image: true,
-                    },
-                },
-            },
         });
 
-        return NextResponse.json(comment);
+        return new NextResponse(null, { status: 204 }); // Faster than JSON
     } catch (error) {
         console.error("CREATE_COMMENT_ERROR", error);
         return new NextResponse("Internal Error", { status: 500 });

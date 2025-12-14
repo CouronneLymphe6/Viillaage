@@ -18,11 +18,14 @@ export async function DELETE(
         const params = await props.params;
         const postId = params.id;
 
-        // Vérifier que le post appartient à un business du user
+        // OPTIMIZED: Single query with select (faster than include)
         const post = await prisma.proPost.findUnique({
             where: { id: postId },
-            include: {
-                business: true,
+            select: {
+                id: true,
+                business: {
+                    select: { ownerId: true }
+                }
             },
         });
 
@@ -38,12 +41,12 @@ export async function DELETE(
             return new NextResponse("Forbidden", { status: 403 });
         }
 
-        // Supprimer le post
+        // Supprimer le post (cascade delete comments/likes via schema)
         await prisma.proPost.delete({
             where: { id: postId },
         });
 
-        return NextResponse.json({ success: true });
+        return new NextResponse(null, { status: 204 }); // 204 No Content (faster than JSON)
     } catch (error) {
         console.error("DELETE_PRO_POST_ERROR", error);
         return new NextResponse("Internal Error", { status: 500 });
