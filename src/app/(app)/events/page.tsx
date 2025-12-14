@@ -158,8 +158,8 @@ export default function EventsPage() {
         setEvents(events.map(event => {
             if (event.id !== eventId) return event;
 
-            // Remove existing RSVP from current user
-            const filteredRsvps = event.rsvps.filter(
+            // Remove existing RSVP from current user (safety check for undefined rsvps)
+            const filteredRsvps = (event.rsvps || []).filter(
                 rsvp => rsvp.user.name !== session?.user?.name
             );
 
