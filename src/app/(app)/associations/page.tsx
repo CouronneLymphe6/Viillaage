@@ -57,6 +57,21 @@ export default function AssociationsPage() {
 
     const createAssociation = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // OPTIMISTIC UI: Add immediately
+        const previousAssociations = [...associations];
+        const tempAssociation: Association = {
+            id: 'temp-' + Date.now(),
+            ...formData,
+            ownerId: session?.user?.id || '',
+            owner: {
+                name: session?.user?.name || null,
+            },
+        };
+        setAssociations([tempAssociation, ...associations]);
+        setFormData({ name: '', description: '', category: '', president: '', email: '', phone: '', website: '', photoUrl: '' });
+        setShowForm(false);
+
         try {
             const response = await fetch('/api/associations', {
                 method: 'POST',
@@ -65,18 +80,38 @@ export default function AssociationsPage() {
             });
 
             if (response.ok) {
-                setFormData({ name: '', description: '', category: '', president: '', email: '', phone: '', website: '', photoUrl: '' });
-                setShowForm(false);
-                fetchAssociations();
+                // Replace temp with real data
+                const realAssociation = await response.json();
+                setAssociations(prev => prev.map(a =>
+                    a.id.startsWith('temp-') ? realAssociation : a
+                ));
+            } else {
+                // Rollback on error
+                setAssociations(previousAssociations);
+                alert('Erreur lors de la création');
             }
         } catch (error) {
+            // Rollback on error
+            setAssociations(previousAssociations);
             console.error('Error creating association:', error);
+            alert('Erreur lors de la création');
         }
     };
 
     const updateAssociation = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!editingAssociation) return;
+
+        // OPTIMISTIC UI: Update immediately
+        const previousAssociations = [...associations];
+        setAssociations(associations.map(a =>
+            a.id === editingAssociation.id
+                ? { ...a, ...formData }
+                : a
+        ));
+        setFormData({ name: '', description: '', category: '', president: '', email: '', phone: '', website: '', photoUrl: '' });
+        setEditingAssociation(null);
+        setShowForm(false);
 
         try {
             const response = await fetch(`/api/associations/${editingAssociation.id}`, {
@@ -85,30 +120,41 @@ export default function AssociationsPage() {
                 body: JSON.stringify(formData),
             });
 
-            if (response.ok) {
-                setFormData({ name: '', description: '', category: '', president: '', email: '', phone: '', website: '', photoUrl: '' });
-                setEditingAssociation(null);
-                setShowForm(false);
-                fetchAssociations();
+            if (!response.ok) {
+                // Rollback on error
+                setAssociations(previousAssociations);
+                alert('Erreur lors de la modification');
             }
         } catch (error) {
+            // Rollback on error
+            setAssociations(previousAssociations);
             console.error('Error updating association:', error);
+            alert('Erreur lors de la modification');
         }
     };
 
     const deleteAssociation = async (id: string) => {
         if (!confirm('Êtes-vous sûr de vouloir supprimer cette association ?')) return;
 
+        // OPTIMISTIC UI: Remove immediately
+        const previousAssociations = [...associations];
+        setAssociations(associations.filter(a => a.id !== id));
+
         try {
             const response = await fetch(`/api/associations/${id}`, {
                 method: 'DELETE',
             });
 
-            if (response.ok) {
-                fetchAssociations();
+            if (!response.ok) {
+                // Rollback on error
+                setAssociations(previousAssociations);
+                alert('Erreur lors de la suppression');
             }
         } catch (error) {
+            // Rollback on error
+            setAssociations(previousAssociations);
             console.error('Error deleting association:', error);
+            alert('Erreur lors de la suppression');
         }
     };
 
