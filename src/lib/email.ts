@@ -15,7 +15,7 @@ export async function sendPasswordResetEmail({
 }: SendPasswordResetEmailParams) {
     try {
         const { data, error } = await resend.emails.send({
-            from: 'Viillaage <noreply@viillaage.app>',
+            from: 'Viillaage <noreply@viillaage.com>',
             to: [to],
             subject: 'Réinitialisation de votre mot de passe - Viillaage',
             html: `
