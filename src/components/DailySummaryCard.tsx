@@ -137,7 +137,7 @@ export default function DailySummaryCard() {
                 alignItems: 'center',
                 marginBottom: 'var(--spacing-sm)'
             }}>
-                <h3 style={{ color: 'var(--primary)' }}>🗣️ Les Potins de Beaupuy</h3>
+                <h3 style={{ color: 'var(--primary)' }}>📰 La Gazette de Beaupuy</h3>
                 {data.cached && (
                     <span style={{
                         fontSize: '0.75rem',
