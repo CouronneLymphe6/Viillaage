@@ -1,6 +1,5 @@
-import { defaultCache } from '@serwist/next/worker';
 import type { PrecacheEntry, SerwistGlobalConfig } from 'serwist';
-import { Serwist } from 'serwist';
+import { Serwist, CacheFirst, NetworkFirst, StaleWhileRevalidate } from 'serwist';
 
 // This declares the value of `injectionPoint` to TypeScript.
 // `injectionPoint` is the string that will be replaced by the
@@ -14,12 +13,64 @@ declare global {
 
 declare const self: WorkerGlobalScope;
 
+// PERFORMANCE: Custom caching strategies per requirements
 const serwist = new Serwist({
     precacheEntries: self.__SW_MANIFEST,
     skipWaiting: true,
     clientsClaim: true,
     navigationPreload: true,
-    runtimeCaching: defaultCache,
+    runtimeCaching: [
+        // UI (HTML / CSS / JS): cache-first
+        {
+            matcher: ({ url }) => /\.(js|css|html)$/i.test(url.pathname),
+            handler: new CacheFirst({
+                cacheName: 'static-resources',
+                plugins: [
+                    {
+                        cacheWillUpdate: async ({ response }) => {
+                            return response.status === 200 ? response : null;
+                        },
+                    },
+                ],
+            }),
+        },
+        // Images: stale-while-revalidate
+        {
+            matcher: ({ url }) => /\.(png|jpg|jpeg|svg|gif|webp|ico)$/i.test(url.pathname),
+            handler: new StaleWhileRevalidate({
+                cacheName: 'images',
+                plugins: [
+                    {
+                        cacheWillUpdate: async ({ response }) => {
+                            return response.status === 200 ? response : null;
+                        },
+                    },
+                ],
+            }),
+        },
+        // Données dynamiques (API): network-first
+        {
+            matcher: ({ url }) => url.pathname.startsWith('/api/'),
+            handler: new NetworkFirst({
+                cacheName: 'api-cache',
+                networkTimeoutSeconds: 3,
+                plugins: [
+                    {
+                        cacheWillUpdate: async ({ response }) => {
+                            // Ne jamais cacher les erreurs ou les données IA
+                            if (response.status !== 200) return null;
+                            const url = response.url;
+                            // IA & calculs dynamiques : jamais en cache
+                            if (url.includes('/ai/') || url.includes('/analytics/') || url.includes('/summary')) {
+                                return null;
+                            }
+                            return response;
+                        },
+                    },
+                ],
+            }),
+        },
+    ],
     fallbacks: {
         entries: [
             {
