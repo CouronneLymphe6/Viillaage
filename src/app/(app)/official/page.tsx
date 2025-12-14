@@ -37,6 +37,40 @@ export default function OfficialPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // OPTIMISTIC UI: Add/Update immediately
+        const previousAlerts = [...alerts];
+
+        if (editingAlert) {
+            // Update existing
+            setAlerts(alerts.map(a =>
+                a.id === editingAlert.id
+                    ? { ...a, ...formData }
+                    : a
+            ));
+        } else {
+            // Create new with temp ID
+            const tempAlert: Alert = {
+                id: 'temp-' + Date.now(),
+                ...formData,
+                latitude: 0,
+                longitude: 0,
+                userId: session?.user?.id || '',
+                createdAt: new Date().toISOString(),
+                user: {
+                    id: session?.user?.id || '',
+                    name: session?.user?.name || null,
+                },
+                confirmations: 0,
+                reports: 0,
+            };
+            setAlerts([tempAlert, ...alerts]);
+        }
+
+        setShowForm(false);
+        setEditingAlert(null);
+        setFormData({ type: 'OFFICIAL_INFO', description: '' });
+
         try {
             const url = editingAlert ? `/api/alerts/${editingAlert.id}` : '/api/alerts';
             const method = editingAlert ? 'PATCH' : 'POST';
@@ -52,23 +86,46 @@ export default function OfficialPage() {
             });
 
             if (response.ok) {
-                setShowForm(false);
-                setEditingAlert(null);
-                setFormData({ type: 'OFFICIAL_INFO', description: '' });
-                fetchOfficialAlerts();
+                if (!editingAlert) {
+                    // Replace temp with real data
+                    const realAlert = await response.json();
+                    setAlerts(prev => prev.map(a =>
+                        a.id.startsWith('temp-') ? realAlert : a
+                    ));
+                }
+            } else {
+                // Rollback on error
+                setAlerts(previousAlerts);
+                alert('Erreur lors de l\'enregistrement');
             }
         } catch (error) {
+            // Rollback on error
+            setAlerts(previousAlerts);
             console.error(error);
+            alert('Erreur lors de l\'enregistrement');
         }
     };
 
     const handleDelete = async (id: string) => {
         if (!confirm('Supprimer cette annonce officielle ?')) return;
+
+        // OPTIMISTIC UI: Remove immediately
+        const previousAlerts = [...alerts];
+        setAlerts(alerts.filter(a => a.id !== id));
+
         try {
-            await fetch(`/api/alerts/${id}`, { method: 'DELETE' });
-            fetchOfficialAlerts();
+            const response = await fetch(`/api/alerts/${id}`, { method: 'DELETE' });
+
+            if (!response.ok) {
+                // Rollback on error
+                setAlerts(previousAlerts);
+                alert('Erreur lors de la suppression');
+            }
         } catch (error) {
+            // Rollback on error
+            setAlerts(previousAlerts);
             console.error(error);
+            alert('Erreur lors de la suppression');
         }
     };
 
