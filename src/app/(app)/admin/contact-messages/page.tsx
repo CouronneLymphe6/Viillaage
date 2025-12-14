@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
+import Loader from '@/components/Loader';
 
 interface ContactMessage {
     id: string;
@@ -167,7 +169,7 @@ export default function ContactMessagesPage() {
                     overflow: 'hidden'
                 }}>
                     {loading ? (
-                        <div style={{ padding: 'var(--spacing-xl)', textAlign: 'center' }}>Chargement...</div>
+                        <div style={{ padding: 'var(--spacing-xl)', textAlign: 'center' }}><Loader text="Chargement des messages..." /></div>
                     ) : messages.length === 0 ? (
                         <div style={{ padding: 'var(--spacing-xl)', textAlign: 'center', color: 'var(--text-secondary)' }}>
                             Aucun message

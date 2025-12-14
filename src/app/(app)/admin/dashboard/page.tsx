@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-
+import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import Loader from '@/components/Loader';
 interface Stats {
     users: {
         total: number;
@@ -50,7 +51,7 @@ export default function AdminDashboard() {
     };
 
     if (loading) {
-        return <div>Chargement...</div>;
+        return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}><Loader size="large" text="Chargement du tableau de bord..." /></div>;
     }
 
     return (

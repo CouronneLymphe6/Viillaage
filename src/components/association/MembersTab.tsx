@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { Users, Plus, UserPlus } from 'lucide-react';
+import { UserPlus, X, Trash2, Users } from 'lucide-react';
+import Loader from '@/components/Loader';
 
 interface Member {
     id: string;
@@ -84,7 +85,7 @@ export function MembersTab({ associationId, isOwner }: MembersTabProps) {
     };
 
     if (loading) {
-        return <p style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>Chargement...</p>;
+        return <div style={{ textAlign: 'center', padding: 'var(--spacing-xl)' }}><Loader text="Chargement des membres..." /></div>;
     }
 
     return (

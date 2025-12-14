@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { MessageCircle, Plus, ThumbsUp, Send, Edit2, Trash2 } from 'lucide-react';
+import Loader from '@/components/Loader';
 import { compressImage, formatFileSize } from '@/lib/imageUtils';
 
 interface AssociationPost {
@@ -109,7 +110,7 @@ export function NewsTab({ associationId, isOwner }: NewsTabProps) {
     };
 
     if (loading) {
-        return <p style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>Chargement...</p>;
+        return <div style={{ textAlign: 'center', padding: 'var(--spacing-xl)' }}><Loader text="Chargement des actualités..." /></div>;
     }
 
     return (

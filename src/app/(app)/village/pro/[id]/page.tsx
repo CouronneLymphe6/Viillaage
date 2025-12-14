@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { ArrowLeft, Mail, Globe, Share2, Heart } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { useProBusiness } from '@/hooks/useProBusiness';
+import Loader from '@/components/Loader';
 import { ProductsTab } from '@/components/pro/ProductsTab';
 import { PostsTab } from '@/components/pro/PostsTab';
 import { AgendaTab } from '@/components/pro/AgendaTab';
@@ -26,7 +27,7 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
         return (
             <div style={{ padding: '40px', textAlign: 'center' }}>
                 <div style={{ fontSize: '2rem' }}>⏳</div>
-                <p>Chargement...</p>
+                <Loader size="large" text="Chargement du commerce..." />
             </div>
         );
     }

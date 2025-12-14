@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { ArrowLeft, Mail, Globe, Share2, Heart } from 'lucide-react';
 import { useAssociation } from '@/hooks/useAssociation';
 import { EventsTab } from '@/components/association/EventsTab';
 import { NewsTab } from '@/components/association/NewsTab';
 import { ProjectsTab } from '@/components/association/ProjectsTab';
+import Loader from '@/components/Loader';
 
 export default function AssociationDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
@@ -24,7 +25,7 @@ export default function AssociationDetailPage({ params }: { params: Promise<{ id
     if (loading || !association) {
         return (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-                <p style={{ color: 'var(--text-secondary)' }}>Chargement...</p>
+                <Loader size="large" text="Chargement de l'association..." />
             </div>
         );
     }

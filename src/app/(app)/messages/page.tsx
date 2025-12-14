@@ -3,7 +3,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { Send, Smile, Paperclip, MoreVertical, Edit2, Trash2, X, ArrowLeft } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import Loader from '@/components/Loader';
 
 interface Channel {
     id: string;
@@ -291,7 +293,7 @@ export default function MessagesPage() {
     }, []);
 
     if (loading) {
-        return <div>Chargement...</div>;
+        return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}><Loader text="Chargement des messages..." /></div>;
     }
 
     return (

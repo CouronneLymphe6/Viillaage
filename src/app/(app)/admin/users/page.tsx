@@ -1,6 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import Loader from '@/components/Loader';
 
 interface User {
     id: string;
@@ -36,7 +38,7 @@ export default function UsersPage() {
     };
 
     if (loading) {
-        return <div>Chargement...</div>;
+        return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}><Loader size="large" text="Chargement des utilisateurs..." /></div>;
     }
 
     return (
