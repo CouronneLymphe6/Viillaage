@@ -12,6 +12,7 @@ interface DashboardGridProps {
     proAgendaEvents: any[];
     listings: any[];
     proPosts: any[];
+    associationPosts: any[];
 }
 
 const getOfficialTypeLabel = (type: string): string => {
@@ -44,7 +45,8 @@ export default function DashboardGrid({
     events,
     proAgendaEvents,
     listings,
-    proPosts
+    proPosts,
+    associationPosts
 }: DashboardGridProps) {
     return (
         <div style={{ maxWidth: '1400px', margin: '0 auto', paddingBottom: '60px' }}>
@@ -150,6 +152,7 @@ export default function DashboardGrid({
                 .accent-purple { border-top: 4px solid #8B5CF6; }
                 .accent-emerald { border-top: 4px solid #10B981; }
                 .accent-amber { border-top: 4px solid #F59E0B; }
+                .accent-blue { border-top: 4px solid #3B82F6; }
             `}</style>
 
             <header style={{ marginBottom: '32px', paddingTop: '10px' }}>
@@ -314,6 +317,44 @@ export default function DashboardGrid({
                                             <div style={{ fontWeight: '700', color: '#D97706', fontSize: '1.1rem' }}>{listing.price}€</div>
                                         )}
                                     </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Actu Assos */}
+                <div className="card col-span-1 accent-blue">
+                    <div className="card-header">
+                        <h3>🏛️ Actu Assos</h3>
+                        <Link href="/associations" className="card-link">Voir tout</Link>
+                    </div>
+                    <div className="card-content">
+                        {associationPosts.length === 0 ? (
+                            <div className="empty-state">Aucune actualité d'association.</div>
+                        ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                {associationPosts.map((post: any) => (
+                                    <Link key={post.id} href={`/associations/${post.association.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                                        <div style={{
+                                            padding: '12px',
+                                            backgroundColor: '#F9FAFB',
+                                            borderRadius: '8px',
+                                            transition: 'background 0.2s',
+                                            border: '1px solid #E5E7EB'
+                                        }}>
+                                            <div style={{ fontWeight: '700', fontSize: '0.9rem', color: '#111827', marginBottom: '4px' }}>
+                                                {post.association.name}
+                                            </div>
+                                            <div style={{ fontSize: '0.9rem', color: '#4B5563', lineHeight: '1.5' }}>
+                                                {post.content.length > 80 ? post.content.substring(0, 80) + '...' : post.content}
+                                            </div>
+                                            <div style={{ marginTop: '8px', fontSize: '0.8rem', color: '#6B7280', display: 'flex', gap: '12px' }}>
+                                                <span>👍 {post._count.likes}</span>
+                                                <span>💬 {post._count.comments}</span>
+                                            </div>
+                                        </div>
+                                    </Link>
                                 ))}
                             </div>
                         )}

@@ -17,10 +17,9 @@ export async function GET() {
             return NextResponse.json({ error: 'Village non défini' }, { status: 400 });
         }
 
-        // CRITICAL PWA OPTIMIZATION: Load ONLY essential data on first load
-        // Other data will be lazy-loaded on user interaction
-        const [alerts] = await Promise.all([
-            // Only critical security alerts (reduced from 10 to 5)
+        // Fetch dashboard data in parallel
+        const [alerts, events, proPosts, listings, associationPosts] = await Promise.all([
+            // Security alerts
             prisma.alert.findMany({
                 where: {
                     user: { villageId: userVillageId },
@@ -37,21 +36,64 @@ export async function GET() {
                     user: { select: { name: true } }
                 },
             }),
+
+            // Events (last 3)
+            prisma.event.findMany({
+                where: { organizer: { villageId: userVillageId } },
+                take: 3,
+                orderBy: { date: 'desc' },
+                select: { id: true, title: true, date: true }
+            }),
+
+
+            // Pro Posts (last 3)
+            prisma.proPost.findMany({
+                where: { business: { owner: { villageId: userVillageId } } },
+                take: 3,
+                orderBy: { createdAt: 'desc' },
+                select: {
+                    id: true,
+                    content: true,
+                    business: { select: { id: true, name: true } },
+                    _count: { select: { likes: true, comments: true } }
+                }
+            }),
+
+            // Listings (last 3)
+            prisma.listing.findMany({
+                where: { user: { villageId: userVillageId } },
+                take: 3,
+                orderBy: { createdAt: 'desc' },
+                select: { id: true, title: true, price: true, category: true }
+            }),
+
+            // Association Posts (last 3)
+            prisma.associationPost.findMany({
+                where: { association: { owner: { villageId: userVillageId } } },
+                take: 3,
+                orderBy: { createdAt: 'desc' },
+                select: {
+                    id: true,
+                    content: true,
+                    association: { select: { id: true, name: true } },
+                    _count: { select: { likes: true, comments: true } }
+                }
+            }),
         ]);
 
         // Separate alerts for dashboard
         const securityAlerts = alerts.filter((a: any) => !a.type.startsWith('OFFICIAL_')).slice(0, 3);
         const officialAnnouncements = alerts.filter((a: any) => a.type.startsWith('OFFICIAL_')).slice(0, 2);
 
-        // Return only critical data - rest will be lazy loaded by components
+        // Return dashboard data
         return NextResponse.json({
             securityAlerts,
             officialAnnouncements,
-            // Empty arrays for lazy-loaded data
-            events: [],
-            proAgendaEvents: [],
-            proPosts: [],
-            listings: [],
+            events,
+            proAgendaEvents: [], // Empty - model doesn't exist in schema
+            proPosts,
+            listings,
+            associationPosts,
         }, {
             headers: {
                 // Aggressive caching for PWA performance

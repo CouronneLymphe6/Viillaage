@@ -68,6 +68,7 @@ export default function DashboardClient() {
             proAgendaEvents={data.proAgendaEvents || []}
             listings={data.listings || []}
             proPosts={data.proPosts || []}
+            associationPosts={data.associationPosts || []}
         />
     );
 }
