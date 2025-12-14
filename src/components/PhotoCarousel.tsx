@@ -52,7 +52,6 @@ export default function PhotoCarousel({ photos, title }: PhotoCarouselProps) {
             position: 'relative',
             height: '220px',
             backgroundColor: 'var(--background)',
-            overflow: 'hidden',
             borderRadius: '12px 12px 0 0',
         }}>
             {/* Scrollable container */}
@@ -63,9 +62,12 @@ export default function PhotoCarousel({ photos, title }: PhotoCarouselProps) {
                     display: 'flex',
                     height: '100%',
                     overflowX: 'auto',
+                    overflowY: 'hidden',
                     scrollSnapType: 'x mandatory',
                     scrollbarWidth: 'none',
                     msOverflowStyle: 'none',
+                    WebkitOverflowScrolling: 'touch',
+                    cursor: 'grab',
                 }}
                 className="photo-scroll-container"
             >
@@ -78,6 +80,7 @@ export default function PhotoCarousel({ photos, title }: PhotoCarouselProps) {
                             scrollSnapAlign: 'start',
                             backgroundColor: '#f5f5f5',
                             overflow: 'hidden',
+                            position: 'relative',
                         }}
                     >
                         <Image
@@ -86,6 +89,7 @@ export default function PhotoCarousel({ photos, title }: PhotoCarouselProps) {
                             fill
                             style={{
                                 objectFit: 'cover',
+                                pointerEvents: 'none',
                             }}
                             loading="lazy"
                             sizes="(max-width: 768px) 100vw, 400px"
