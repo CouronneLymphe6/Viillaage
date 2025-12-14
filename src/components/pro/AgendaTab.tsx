@@ -198,12 +198,13 @@ export function AgendaTab({ businessId, isOwner }: AgendaTabProps) {
                 <AgendaForm
                     businessId={businessId}
                     event={editingEvent}
+                    events={events}
+                    setEvents={setEvents}
                     onClose={() => {
                         setShowForm(false);
                         setEditingEvent(null);
                     }}
                     onSuccess={() => {
-                        fetchEvents();
                         setShowForm(false);
                         setEditingEvent(null);
                     }}
@@ -213,9 +214,11 @@ export function AgendaTab({ businessId, isOwner }: AgendaTabProps) {
     );
 }
 
-function AgendaForm({ businessId, event, onClose, onSuccess }: {
+function AgendaForm({ businessId, event, events, setEvents, onClose, onSuccess }: {
     businessId: string;
     event: AgendaEvent | null;
+    events: AgendaEvent[];
+    setEvents: React.Dispatch<React.SetStateAction<AgendaEvent[]>>;
     onClose: () => void;
     onSuccess: () => void;
 }) {
@@ -229,6 +232,28 @@ function AgendaForm({ businessId, event, onClose, onSuccess }: {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // OPTIMISTIC UI: Add/Update immediately
+        const previousEvents = [...events];
+
+        if (event) {
+            // Update existing
+            setEvents(events.map(ev =>
+                ev.id === event.id
+                    ? { ...ev, ...formData }
+                    : ev
+            ));
+        } else {
+            // Create new with temp ID
+            const tempEvent: AgendaEvent = {
+                id: 'temp-' + Date.now(),
+                ...formData,
+            };
+            setEvents([tempEvent, ...events]);
+        }
+
+        onSuccess(); // Close form immediately
+
         try {
             const url = event
                 ? `/api/businesses/${businessId}/agenda/${event.id}`
@@ -242,10 +267,23 @@ function AgendaForm({ businessId, event, onClose, onSuccess }: {
             });
 
             if (response.ok) {
-                onSuccess();
+                if (!event) {
+                    // Replace temp with real data
+                    const realEvent = await response.json();
+                    setEvents(prev => prev.map(ev =>
+                        ev.id.startsWith('temp-') ? realEvent : ev
+                    ));
+                }
+            } else {
+                // Rollback on error
+                setEvents(previousEvents);
+                alert('Erreur lors de l\'enregistrement');
             }
         } catch (error) {
+            // Rollback on error
+            setEvents(previousEvents);
             console.error('Error saving event:', error);
+            alert('Erreur lors de l\'enregistrement');
         }
     };
 
