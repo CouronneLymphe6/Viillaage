@@ -24,6 +24,11 @@ export async function GET() {
                     select: {
                         name: true,
                         email: true,
+                        profile: {
+                            select: {
+                                phone: true
+                            }
+                        }
                     },
                 },
             },
@@ -77,6 +82,11 @@ export async function POST(request: Request) {
                     select: {
                         name: true,
                         email: true,
+                        profile: {
+                            select: {
+                                phone: true
+                            }
+                        }
                     },
                 },
             },

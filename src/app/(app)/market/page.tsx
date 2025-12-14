@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { MultiImageUpload, PhotoCarousel, ListingModal } from '@/components/LazyComponents';
-import { MapPin, User, Clock, Tag, Edit2, Trash2 } from 'lucide-react';
+import { MapPin, User, Clock, Tag, Edit2, Trash2, Mail, Phone } from 'lucide-react';
 
 interface Listing {
     id: string;
@@ -16,6 +16,10 @@ interface Listing {
     userId: string;
     user: {
         name: string | null;
+        email?: string | null;
+        profile?: {
+            phone?: string | null;
+        };
     };
 }
 
@@ -425,6 +429,11 @@ export default function MarketPage() {
                             currentImages={formData.photos}
                             maxImages={3}
                         />
+
+                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', padding: '0 4px', marginBottom: '8px' }}>
+                            💡 Astuce : Ajoutez un numéro de téléphone dans <a href="/profile" style={{ color: 'var(--primary)', textDecoration: 'underline' }}>votre profil</a> pour permettre aux acheteurs de vous appeler directement.
+                        </div>
+
                         <button
                             type="submit"
                             style={{
@@ -617,46 +626,95 @@ export default function MarketPage() {
                                         </div>
 
 
-                                        {session?.user?.id === listing.userId && (
-                                            <div style={{ display: 'flex', gap: '8px' }}>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleEdit(listing);
-                                                    }}
-                                                    style={{
-                                                        padding: '6px',
-                                                        color: 'var(--primary)',
-                                                        background: 'rgba(0, 191, 165, 0.1)',
-                                                        borderRadius: '8px',
-                                                        border: 'none',
-                                                        cursor: 'pointer',
-                                                        transition: 'all 0.2s'
-                                                    }}
-                                                    className="action-btn"
-                                                >
-                                                    <Edit2 size={16} />
-                                                </button>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleDelete(listing.id);
-                                                    }}
-                                                    style={{
-                                                        padding: '6px',
-                                                        color: '#ff6b6b',
-                                                        background: 'rgba(255, 107, 107, 0.1)',
-                                                        borderRadius: '8px',
-                                                        border: 'none',
-                                                        cursor: 'pointer',
-                                                        transition: 'all 0.2s'
-                                                    }}
-                                                    className="action-btn"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            </div>
-                                        )}
+                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                            {session?.user?.id === listing.userId ? (
+                                                <>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleEdit(listing);
+                                                        }}
+                                                        style={{
+                                                            padding: '6px',
+                                                            color: 'var(--primary)',
+                                                            background: 'rgba(0, 191, 165, 0.1)',
+                                                            borderRadius: '8px',
+                                                            border: 'none',
+                                                            cursor: 'pointer',
+                                                            transition: 'all 0.2s'
+                                                        }}
+                                                        className="action-btn"
+                                                    >
+                                                        <Edit2 size={16} />
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleDelete(listing.id);
+                                                        }}
+                                                        style={{
+                                                            padding: '6px',
+                                                            color: '#ff6b6b',
+                                                            background: 'rgba(255, 107, 107, 0.1)',
+                                                            borderRadius: '8px',
+                                                            border: 'none',
+                                                            cursor: 'pointer',
+                                                            transition: 'all 0.2s'
+                                                        }}
+                                                        className="action-btn"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    {listing.user.profile?.phone && (
+                                                        <a
+                                                            href={`tel:${listing.user.profile.phone}`}
+                                                            onClick={(e) => e.stopPropagation()}
+                                                            style={{
+                                                                padding: '8px',
+                                                                color: 'white',
+                                                                backgroundColor: '#10b981', // Emerald green
+                                                                borderRadius: '8px',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                textDecoration: 'none',
+                                                                transition: 'transform 0.1s',
+                                                                boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)'
+                                                            }}
+                                                            className="action-btn"
+                                                            title="Appeler"
+                                                        >
+                                                            <Phone size={16} />
+                                                        </a>
+                                                    )}
+                                                    {listing.user.email && (
+                                                        <a
+                                                            href={`mailto:${listing.user.email}?subject=Intérêt pour annonce "${listing.title}"`}
+                                                            onClick={(e) => e.stopPropagation()}
+                                                            style={{
+                                                                padding: '8px',
+                                                                color: 'white',
+                                                                backgroundColor: 'var(--primary)',
+                                                                borderRadius: '8px',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                textDecoration: 'none',
+                                                                transition: 'transform 0.1s',
+                                                                boxShadow: '0 2px 4px rgba(0, 191, 165, 0.2)'
+                                                            }}
+                                                            className="action-btn"
+                                                            title="Envoyer un email"
+                                                        >
+                                                            <Mail size={16} />
+                                                        </a>
+                                                    )}
+                                                </>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
