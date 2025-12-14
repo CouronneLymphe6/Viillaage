@@ -55,6 +55,35 @@ export default function EventsPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // OPTIMISTIC UI: Add/Update immediately
+        const previousEvents = [...events];
+
+        if (editingEvent) {
+            // Update existing
+            setEvents(events.map(ev =>
+                ev.id === editingEvent.id
+                    ? { ...ev, ...formData, date: formData.date }
+                    : ev
+            ));
+        } else {
+            // Create new with temp ID
+            const tempEvent: Event = {
+                id: 'temp-' + Date.now(),
+                ...formData,
+                organizerId: session?.user?.id || '',
+                organizer: {
+                    name: session?.user?.name || null,
+                },
+                rsvps: [],
+            };
+            setEvents([tempEvent, ...events]);
+        }
+
+        setFormData({ title: '', description: '', date: '', location: '', photoUrl: '' });
+        setShowForm(false);
+        setEditingEvent(null);
+
         try {
             const url = editingEvent ? `/api/events/${editingEvent.id}` : '/api/events';
             const method = editingEvent ? 'PATCH' : 'POST';
@@ -66,13 +95,23 @@ export default function EventsPage() {
             });
 
             if (response.ok) {
-                setFormData({ title: '', description: '', date: '', location: '', photoUrl: '' });
-                setShowForm(false);
-                setEditingEvent(null);
-                fetchEvents();
+                if (!editingEvent) {
+                    // Replace temp with real data
+                    const realEvent = await response.json();
+                    setEvents(prev => prev.map(ev =>
+                        ev.id.startsWith('temp-') ? realEvent : ev
+                    ));
+                }
+            } else {
+                // Rollback on error
+                setEvents(previousEvents);
+                alert('Erreur lors de l\'enregistrement');
             }
         } catch (error) {
+            // Rollback on error
+            setEvents(previousEvents);
             console.error('Error saving event:', error);
+            alert('Erreur lors de l\'enregistrement');
         }
     };
 
@@ -113,6 +152,32 @@ export default function EventsPage() {
     };
 
     const handleRSVP = async (eventId: string, status: string) => {
+        // OPTIMISTIC UI: Update RSVP immediately
+        const previousEvents = [...events];
+
+        setEvents(events.map(event => {
+            if (event.id !== eventId) return event;
+
+            // Remove existing RSVP from current user
+            const filteredRsvps = event.rsvps.filter(
+                rsvp => rsvp.user.name !== session?.user?.name
+            );
+
+            // Add new RSVP
+            return {
+                ...event,
+                rsvps: [
+                    ...filteredRsvps,
+                    {
+                        status,
+                        user: {
+                            name: session?.user?.name || null,
+                        },
+                    },
+                ],
+            };
+        }));
+
         try {
             const response = await fetch('/api/rsvp', {
                 method: 'POST',
@@ -120,11 +185,16 @@ export default function EventsPage() {
                 body: JSON.stringify({ eventId, status }),
             });
 
-            if (response.ok) {
-                fetchEvents();
+            if (!response.ok) {
+                // Rollback on error
+                setEvents(previousEvents);
+                alert('Erreur lors de la confirmation');
             }
         } catch (error) {
+            // Rollback on error
+            setEvents(previousEvents);
             console.error('Error RSVP:', error);
+            alert('Erreur lors de la confirmation');
         }
     };
 
