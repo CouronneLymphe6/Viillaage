@@ -25,8 +25,7 @@ export default function ProDetailPage({ params }: { params: Promise<{ id: string
 
     if (loading) {
         return (
-            <div style={{ padding: '40px', textAlign: 'center' }}>
-                <div style={{ fontSize: '2rem' }}>⏳</div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
                 <Loader size="large" text="Chargement du commerce..." />
             </div>
         );
