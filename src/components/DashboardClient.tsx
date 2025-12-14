@@ -69,6 +69,7 @@ export default function DashboardClient() {
             listings={data.listings || []}
             proPosts={data.proPosts || []}
             associationPosts={data.associationPosts || []}
+            userCount={data.userCount || 0}
         />
     );
 }

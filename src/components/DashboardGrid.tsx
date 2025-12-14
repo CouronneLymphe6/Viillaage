@@ -13,6 +13,7 @@ interface DashboardGridProps {
     listings: any[];
     proPosts: any[];
     associationPosts: any[];
+    userCount: number;
 }
 
 const getOfficialTypeLabel = (type: string): string => {
@@ -46,8 +47,22 @@ export default function DashboardGrid({
     proAgendaEvents,
     listings,
     proPosts,
-    associationPosts
+    associationPosts,
+    userCount
 }: DashboardGridProps) {
+    const handleInvite = () => {
+        const shareText = `Rejoignez-moi sur Viillaage, l'application de notre village ! 🏘️\n\n${typeof window !== 'undefined' ? window.location.origin : ''}`;
+
+        if (typeof navigator !== 'undefined' && navigator.share) {
+            navigator.share({
+                title: 'Viillaage - Notre village connecté',
+                text: shareText,
+            }).catch(() => { });
+        } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
+            navigator.clipboard.writeText(shareText);
+            alert('Lien copié ! Partagez-le avec vos voisins 📋');
+        }
+    };
     return (
         <div style={{ maxWidth: '1400px', margin: '0 auto', paddingBottom: '60px' }}>
             <style jsx global>{`
@@ -173,6 +188,61 @@ export default function DashboardGrid({
 
                 <div className="col-span-1">
                     <WeatherCard />
+                </div>
+
+                {/* Community Stats Card */}
+                <div className="card col-span-2 span-2-md" style={{
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    border: 'none'
+                }}>
+                    <div className="card-content" style={{
+                        color: 'white',
+                        textAlign: 'center',
+                        padding: '32px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}>
+                        <div style={{ fontSize: '3.5rem', fontWeight: '800', marginBottom: '8px', lineHeight: 1 }}>
+                            {userCount}
+                        </div>
+                        <div style={{ fontSize: '1.3rem', marginBottom: '6px', opacity: 0.95, fontWeight: '600' }}>
+                            Habitants inscrits
+                        </div>
+                        <div style={{ fontSize: '0.95rem', marginBottom: '24px', opacity: 0.85, maxWidth: '300px' }}>
+                            Ensemble, faisons grandir notre communauté !
+                        </div>
+                        <button
+                            onClick={handleInvite}
+                            style={{
+                                padding: '14px 32px',
+                                backgroundColor: 'white',
+                                color: '#667eea',
+                                border: 'none',
+                                borderRadius: '10px',
+                                fontSize: '1.05rem',
+                                fontWeight: '700',
+                                cursor: 'pointer',
+                                boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+                                transition: 'all 0.2s',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = 'translateY(-2px)';
+                                e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.25)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.2)';
+                            }}
+                        >
+                            <span style={{ fontSize: '1.2rem' }}>📨</span>
+                            Inviter vos voisins
+                        </button>
+                    </div>
                 </div>
 
                 {/* 2. SECTION URGENT */}

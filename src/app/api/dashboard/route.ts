@@ -18,7 +18,7 @@ export async function GET() {
         }
 
         // Fetch dashboard data in parallel
-        const [alerts, events, proPosts, listings, associationPosts] = await Promise.all([
+        const [alerts, events, proPosts, listings, associationPosts, userCount] = await Promise.all([
             // Security alerts
             prisma.alert.findMany({
                 where: {
@@ -79,6 +79,11 @@ export async function GET() {
                     _count: { select: { likes: true, comments: true } }
                 }
             }),
+
+            // User count in village
+            prisma.user.count({
+                where: { villageId: userVillageId }
+            }),
         ]);
 
         // Separate alerts for dashboard
@@ -94,6 +99,7 @@ export async function GET() {
             proPosts,
             listings,
             associationPosts,
+            userCount,
         }, {
             headers: {
                 // Aggressive caching for PWA performance
