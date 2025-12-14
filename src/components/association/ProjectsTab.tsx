@@ -56,15 +56,25 @@ export function ProjectsTab({ associationId, isOwner }: ProjectsTabProps) {
 
     const handleDelete = async (projectId: string) => {
         if (!confirm('Voulez-vous vraiment supprimer ce projet ?')) return;
+
+        // OPTIMISTIC UI: Remove immediately
+        const previousProjects = [...projects];
+        setProjects(projects.filter(p => p.id !== projectId));
+
         try {
             const response = await fetch(`/api/associations/${associationId}/projects/${projectId}`, {
                 method: 'DELETE',
             });
-            if (response.ok) {
-                fetchProjects();
+            if (!response.ok) {
+                // Rollback on error
+                setProjects(previousProjects);
+                alert('Erreur lors de la suppression');
             }
         } catch (error) {
+            // Rollback on error
+            setProjects(previousProjects);
             console.error('Error deleting project:', error);
+            alert('Erreur lors de la suppression');
         }
     };
 
@@ -246,12 +256,13 @@ export function ProjectsTab({ associationId, isOwner }: ProjectsTabProps) {
                 <ProjectForm
                     associationId={associationId}
                     project={editingProject}
+                    projects={projects}
+                    setProjects={setProjects}
                     onClose={() => {
                         setShowForm(false);
                         setEditingProject(null);
                     }}
                     onSuccess={() => {
-                        fetchProjects();
                         setShowForm(false);
                         setEditingProject(null);
                     }}
@@ -261,7 +272,14 @@ export function ProjectsTab({ associationId, isOwner }: ProjectsTabProps) {
     );
 }
 
-function ProjectForm({ associationId, project, onClose, onSuccess }: { associationId: string, project: AssociationProject | null, onClose: () => void, onSuccess: () => void }) {
+function ProjectForm({ associationId, project, projects, setProjects, onClose, onSuccess }: {
+    associationId: string,
+    project: AssociationProject | null,
+    projects: AssociationProject[],
+    setProjects: React.Dispatch<React.SetStateAction<AssociationProject[]>>,
+    onClose: () => void,
+    onSuccess: () => void
+}) {
     const [formData, setFormData] = useState({
         title: project?.title || '',
         description: project?.description || '',
@@ -304,6 +322,35 @@ function ProjectForm({ associationId, project, onClose, onSuccess }: { associati
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // OPTIMISTIC UI: Add/Update immediately
+        const previousProjects = [...projects];
+
+        const projectData = {
+            ...formData,
+            startDate: formData.startDate || null,
+            photo: formData.photo || null,
+        };
+
+        if (project) {
+            // Update existing
+            setProjects(projects.map(p =>
+                p.id === project.id
+                    ? { ...p, ...projectData, createdAt: p.createdAt }
+                    : p
+            ));
+        } else {
+            // Create new with temp ID
+            const tempProject: AssociationProject = {
+                id: 'temp-' + Date.now(),
+                ...projectData,
+                createdAt: new Date().toISOString(),
+            };
+            setProjects([tempProject, ...projects]);
+        }
+
+        onSuccess(); // Close form immediately
+
         try {
             const url = project
                 ? `/api/associations/${associationId}/projects/${project.id}`
@@ -313,18 +360,27 @@ function ProjectForm({ associationId, project, onClose, onSuccess }: { associati
             const response = await fetch(url, {
                 method,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    ...formData,
-                    startDate: formData.startDate || null,
-                    photo: formData.photo || null,
-                }),
+                body: JSON.stringify(projectData),
             });
 
             if (response.ok) {
-                onSuccess();
+                if (!project) {
+                    // Replace temp with real data
+                    const realProject = await response.json();
+                    setProjects(prev => prev.map(p =>
+                        p.id.startsWith('temp-') ? realProject : p
+                    ));
+                }
+            } else {
+                // Rollback on error
+                setProjects(previousProjects);
+                alert('Erreur lors de l\'enregistrement');
             }
         } catch (error) {
+            // Rollback on error
+            setProjects(previousProjects);
             console.error('Error saving project:', error);
+            alert('Erreur lors de l\'enregistrement');
         }
     };
 

@@ -61,46 +61,97 @@ export function NewsTab({ associationId, isOwner }: NewsTabProps) {
     };
 
     const toggleLike = async (postId: string) => {
+        // OPTIMISTIC UI: Toggle like immediately
+        const previousPosts = [...posts];
+        setPosts(posts.map(p => {
+            if (p.id !== postId) return p;
+            const isLiked = p.likes.some(like => like.userId === session?.user?.id);
+            return {
+                ...p,
+                likes: isLiked
+                    ? p.likes.filter(like => like.userId !== session?.user?.id)
+                    : [...p.likes, { userId: session?.user?.id || '' }],
+                likeCount: isLiked ? p.likeCount - 1 : p.likeCount + 1,
+            };
+        }));
+
         try {
             const response = await fetch(`/api/associations/${associationId}/posts/${postId}/like`, {
                 method: 'POST',
             });
-            if (response.ok) {
-                fetchPosts();
+            if (!response.ok) {
+                // Rollback on error
+                setPosts(previousPosts);
             }
         } catch (error) {
+            // Rollback on error
+            setPosts(previousPosts);
             console.error('Error toggling like:', error);
         }
     };
 
     const addComment = async (postId: string) => {
         if (!newComment[postId]?.trim()) return;
+
+        // OPTIMISTIC UI: Add comment immediately
+        const previousPosts = [...posts];
+        const tempComment: Comment = {
+            id: 'temp-' + Date.now(),
+            content: newComment[postId],
+            createdAt: new Date().toISOString(),
+            user: {
+                name: session?.user?.name || null,
+                image: session?.user?.image || null,
+            },
+        };
+
+        setPosts(posts.map(p =>
+            p.id === postId
+                ? { ...p, comments: [...p.comments, tempComment], commentCount: p.commentCount + 1 }
+                : p
+        ));
+        setNewComment({ ...newComment, [postId]: '' });
+
         try {
             const response = await fetch(`/api/associations/${associationId}/posts/${postId}/comments`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ content: newComment[postId] }),
             });
-            if (response.ok) {
-                setNewComment({ ...newComment, [postId]: '' });
-                fetchPosts();
+            if (!response.ok) {
+                // Rollback on error
+                setPosts(previousPosts);
+                setNewComment({ ...newComment, [postId]: newComment[postId] });
             }
         } catch (error) {
+            // Rollback on error
+            setPosts(previousPosts);
+            setNewComment({ ...newComment, [postId]: newComment[postId] });
             console.error('Error adding comment:', error);
         }
     };
 
     const handleDelete = async (postId: string) => {
         if (!confirm('Voulez-vous vraiment supprimer cette publication ?')) return;
+
+        // OPTIMISTIC UI: Remove immediately
+        const previousPosts = [...posts];
+        setPosts(posts.filter(p => p.id !== postId));
+
         try {
             const response = await fetch(`/api/associations/${associationId}/posts/${postId}`, {
                 method: 'DELETE',
             });
-            if (response.ok) {
-                fetchPosts();
+            if (!response.ok) {
+                // Rollback on error
+                setPosts(previousPosts);
+                alert('Erreur lors de la suppression');
             }
         } catch (error) {
+            // Rollback on error
+            setPosts(previousPosts);
             console.error('Error deleting post:', error);
+            alert('Erreur lors de la suppression');
         }
     };
 
@@ -358,12 +409,13 @@ export function NewsTab({ associationId, isOwner }: NewsTabProps) {
                 <PostForm
                     associationId={associationId}
                     post={editingPost}
+                    posts={posts}
+                    setPosts={setPosts}
                     onClose={() => {
                         setShowForm(false);
                         setEditingPost(null);
                     }}
                     onSuccess={() => {
-                        fetchPosts();
                         setShowForm(false);
                         setEditingPost(null);
                     }}
@@ -373,7 +425,14 @@ export function NewsTab({ associationId, isOwner }: NewsTabProps) {
     );
 }
 
-function PostForm({ associationId, post, onClose, onSuccess }: { associationId: string, post: AssociationPost | null, onClose: () => void, onSuccess: () => void }) {
+function PostForm({ associationId, post, posts, setPosts, onClose, onSuccess }: {
+    associationId: string,
+    post: AssociationPost | null,
+    posts: AssociationPost[],
+    setPosts: React.Dispatch<React.SetStateAction<AssociationPost[]>>,
+    onClose: () => void,
+    onSuccess: () => void
+}) {
     const [formData, setFormData] = useState({
         content: post?.content || '',
         mediaUrl: post?.mediaUrl || '',
@@ -413,6 +472,40 @@ function PostForm({ associationId, post, onClose, onSuccess }: { associationId: 
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // OPTIMISTIC UI: Add/Update immediately
+        const previousPosts = [...posts];
+
+        if (post) {
+            // Update existing
+            setPosts(posts.map(p =>
+                p.id === post.id
+                    ? {
+                        ...p,
+                        content: formData.content,
+                        mediaUrl: formData.mediaUrl || null,
+                        mediaType: formData.mediaUrl ? 'PHOTO' : null,
+                    }
+                    : p
+            ));
+        } else {
+            // Create new with temp ID
+            const tempPost: AssociationPost = {
+                id: 'temp-' + Date.now(),
+                content: formData.content,
+                mediaUrl: formData.mediaUrl || null,
+                mediaType: formData.mediaUrl ? 'PHOTO' : null,
+                createdAt: new Date().toISOString(),
+                likes: [],
+                comments: [],
+                likeCount: 0,
+                commentCount: 0,
+            };
+            setPosts([tempPost, ...posts]);
+        }
+
+        onSuccess(); // Close form immediately
+
         try {
             const url = post ? `/api/associations/${associationId}/posts/${post.id}` : `/api/associations/${associationId}/posts`;
             const method = post ? 'PATCH' : 'POST';
@@ -428,10 +521,23 @@ function PostForm({ associationId, post, onClose, onSuccess }: { associationId: 
             });
 
             if (response.ok) {
-                onSuccess();
+                if (!post) {
+                    // Replace temp with real data
+                    const realPost = await response.json();
+                    setPosts(prev => prev.map(p =>
+                        p.id.startsWith('temp-') ? realPost : p
+                    ));
+                }
+            } else {
+                // Rollback on error
+                setPosts(previousPosts);
+                alert('Erreur lors de l\'enregistrement');
             }
         } catch (error) {
+            // Rollback on error
+            setPosts(previousPosts);
             console.error('Error saving post:', error);
+            alert('Erreur lors de l\'enregistrement');
         }
     };
 

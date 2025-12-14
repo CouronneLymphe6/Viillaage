@@ -46,15 +46,25 @@ export function EventsTab({ associationId, isOwner }: EventsTabProps) {
 
     const handleDelete = async (eventId: string) => {
         if (!confirm('Voulez-vous vraiment supprimer cet événement ?')) return;
+
+        // OPTIMISTIC UI: Remove immediately
+        const previousEvents = [...events];
+        setEvents(events.filter(e => e.id !== eventId));
+
         try {
             const response = await fetch(`/api/associations/${associationId}/events/${eventId}`, {
                 method: 'DELETE',
             });
-            if (response.ok) {
-                fetchEvents();
+            if (!response.ok) {
+                // Rollback on error
+                setEvents(previousEvents);
+                alert('Erreur lors de la suppression');
             }
         } catch (error) {
+            // Rollback on error
+            setEvents(previousEvents);
             console.error('Error deleting event:', error);
+            alert('Erreur lors de la suppression');
         }
     };
 
@@ -194,12 +204,13 @@ export function EventsTab({ associationId, isOwner }: EventsTabProps) {
                 <EventForm
                     associationId={associationId}
                     event={editingEvent}
+                    events={events}
+                    setEvents={setEvents}
                     onClose={() => {
                         setShowForm(false);
                         setEditingEvent(null);
                     }}
                     onSuccess={() => {
-                        fetchEvents();
                         setShowForm(false);
                         setEditingEvent(null);
                     }}
@@ -209,7 +220,14 @@ export function EventsTab({ associationId, isOwner }: EventsTabProps) {
     );
 }
 
-function EventForm({ associationId, event, onClose, onSuccess }: { associationId: string, event: AssociationEvent | null, onClose: () => void, onSuccess: () => void }) {
+function EventForm({ associationId, event, events, setEvents, onClose, onSuccess }: {
+    associationId: string,
+    event: AssociationEvent | null,
+    events: AssociationEvent[],
+    setEvents: React.Dispatch<React.SetStateAction<AssociationEvent[]>>,
+    onClose: () => void,
+    onSuccess: () => void
+}) {
     const [formData, setFormData] = useState({
         title: event?.title || '',
         description: event?.description || '',
@@ -221,6 +239,28 @@ function EventForm({ associationId, event, onClose, onSuccess }: { associationId
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // OPTIMISTIC UI: Add/Update immediately
+        const previousEvents = [...events];
+
+        if (event) {
+            // Update existing
+            setEvents(events.map(ev =>
+                ev.id === event.id
+                    ? { ...ev, ...formData }
+                    : ev
+            ));
+        } else {
+            // Create new with temp ID
+            const tempEvent: AssociationEvent = {
+                id: 'temp-' + Date.now(),
+                ...formData,
+            };
+            setEvents([tempEvent, ...events]);
+        }
+
+        onSuccess(); // Close form immediately
+
         try {
             const url = event
                 ? `/api/associations/${associationId}/events/${event.id}`
@@ -234,10 +274,23 @@ function EventForm({ associationId, event, onClose, onSuccess }: { associationId
             });
 
             if (response.ok) {
-                onSuccess();
+                if (!event) {
+                    // Replace temp with real data
+                    const realEvent = await response.json();
+                    setEvents(prev => prev.map(ev =>
+                        ev.id.startsWith('temp-') ? realEvent : ev
+                    ));
+                }
+            } else {
+                // Rollback on error
+                setEvents(previousEvents);
+                alert('Erreur lors de l\'enregistrement');
             }
         } catch (error) {
+            // Rollback on error
+            setEvents(previousEvents);
             console.error('Error saving event:', error);
+            alert('Erreur lors de l\'enregistrement');
         }
     };
 

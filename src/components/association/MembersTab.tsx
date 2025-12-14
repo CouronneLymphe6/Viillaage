@@ -61,16 +61,55 @@ export function MembersTab({ associationId, isOwner }: MembersTabProps) {
     };
 
     const toggleMembership = async () => {
+        // OPTIMISTIC UI: Toggle immediately
+        const previousIsMember = isMember;
+        const previousMembers = [...members];
+
+        setIsMember(!isMember);
+
+        // Optimistically update members list (add/remove current user)
+        if (!isMember && session?.user) {
+            // Joining - add temp member
+            const tempMember: Member = {
+                id: 'temp-' + Date.now(),
+                role: 'MEMBER',
+                user: {
+                    name: session.user.name ?? null,
+                    email: session.user.email ?? null,
+                    image: session.user.image ?? null,
+                },
+                joinedAt: new Date().toISOString(),
+            };
+            setMembers([...members, tempMember]);
+        } else {
+            // Leaving - remove current user
+            setMembers(members.filter(m => m.user.email !== session?.user?.email));
+        }
+
         try {
             const response = await fetch(`/api/associations/${associationId}/members`, {
-                method: isMember ? 'DELETE' : 'POST',
+                method: previousIsMember ? 'DELETE' : 'POST',
             });
+
             if (response.ok) {
-                setIsMember(!isMember);
-                fetchMembers();
+                // Refresh to get real data
+                const membersResponse = await fetch(`/api/associations/${associationId}/members`);
+                if (membersResponse.ok) {
+                    const data = await membersResponse.json();
+                    setMembers(data);
+                }
+            } else {
+                // Rollback on error
+                setIsMember(previousIsMember);
+                setMembers(previousMembers);
+                alert('Erreur lors de l\'opération');
             }
         } catch (error) {
+            // Rollback on error
+            setIsMember(previousIsMember);
+            setMembers(previousMembers);
             console.error('Error toggling membership:', error);
+            alert('Erreur lors de l\'opération');
         }
     };
 
