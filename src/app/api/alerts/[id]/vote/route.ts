@@ -96,7 +96,7 @@ export async function POST(
             return updatedAlert;
         });
 
-        return NextResponse.json(result);
+        return new NextResponse(null, { status: 204 }); // Faster than JSON (client has data via optimistic UI)
 
     } catch (error: any) {
         console.error("VOTE_ALERT_ERROR", error);

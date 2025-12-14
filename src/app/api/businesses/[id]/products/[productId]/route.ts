@@ -19,37 +19,30 @@ export async function PATCH(
         const body = await request.json();
         const { name, description, price, photos, stock, isAvailable, tags } = body;
 
-        // Vérifier que le produit existe et appartient au business de l'utilisateur
+        // OPTIMIZED: Use select instead of include (faster)
         const product = await prisma.proProduct.findUnique({
             where: { id: productId },
-            include: { business: true },
-        });
-
-        // DEBUG: Log pour identifier le problème
-        console.log('🔍 PATCH Product Debug:', {
-            productId,
-            productFound: !!product,
-            businessFound: !!product?.business,
-            productOwnerId: product?.business?.ownerId,
-            sessionUserId: session.user.id,
-            match: product?.business?.ownerId === session.user.id
+            select: {
+                id: true,
+                name: true,
+                description: true,
+                price: true,
+                photos: true,
+                stock: true,
+                isAvailable: true,
+                tags: true,
+                business: {
+                    select: { ownerId: true }
+                }
+            },
         });
 
         if (!product) {
             return new NextResponse("Product not found", { status: 404 });
         }
 
-        if (!product.business) {
-            console.error('❌ Product has no associated business!', { productId });
-            return new NextResponse("Product has no business association", { status: 500 });
-        }
-
         if (product.business.ownerId !== session.user.id) {
-            console.error('❌ Ownership mismatch:', {
-                ownerId: product.business.ownerId,
-                userId: session.user.id
-            });
-            return new NextResponse("Forbidden - You don't own this business", { status: 403 });
+            return new NextResponse("Forbidden", { status: 403 });
         }
 
         // Mettre à jour le produit
@@ -87,37 +80,23 @@ export async function DELETE(
 
         const { productId } = await params;
 
-        // Vérifier que le produit existe et appartient au business de l'utilisateur
+        // OPTIMIZED: Use select instead of include (faster)
         const product = await prisma.proProduct.findUnique({
             where: { id: productId },
-            include: { business: true },
-        });
-
-        // DEBUG: Log pour identifier le problème
-        console.log('🔍 DELETE Product Debug:', {
-            productId,
-            productFound: !!product,
-            businessFound: !!product?.business,
-            productOwnerId: product?.business?.ownerId,
-            sessionUserId: session.user.id,
-            match: product?.business?.ownerId === session.user.id
+            select: {
+                id: true,
+                business: {
+                    select: { ownerId: true }
+                }
+            },
         });
 
         if (!product) {
             return new NextResponse("Product not found", { status: 404 });
         }
 
-        if (!product.business) {
-            console.error('❌ Product has no associated business!', { productId });
-            return new NextResponse("Product has no business association", { status: 500 });
-        }
-
         if (product.business.ownerId !== session.user.id) {
-            console.error('❌ Ownership mismatch:', {
-                ownerId: product.business.ownerId,
-                userId: session.user.id
-            });
-            return new NextResponse("Forbidden - You don't own this business", { status: 403 });
+            return new NextResponse("Forbidden", { status: 403 });
         }
 
         // Supprimer le produit
