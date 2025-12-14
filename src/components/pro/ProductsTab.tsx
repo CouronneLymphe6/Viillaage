@@ -226,12 +226,13 @@ export function ProductsTab({ businessId, isOwner }: ProductsTabProps) {
                 <ProductForm
                     businessId={businessId}
                     product={editingProduct}
+                    products={products}
+                    setProducts={setProducts}
                     onClose={() => {
                         setShowForm(false);
                         setEditingProduct(null);
                     }}
                     onSuccess={() => {
-                        fetchProducts();
                         setShowForm(false);
                         setEditingProduct(null);
                     }}
@@ -242,9 +243,11 @@ export function ProductsTab({ businessId, isOwner }: ProductsTabProps) {
 }
 
 // Formulaire modal pour ajouter/modifier un produit
-function ProductForm({ businessId, product, onClose, onSuccess }: {
+function ProductForm({ businessId, product, products, setProducts, onClose, onSuccess }: {
     businessId: string;
     product: Product | null;
+    products: Product[];
+    setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
     onClose: () => void;
     onSuccess: () => void;
 }) {
@@ -291,9 +294,35 @@ function ProductForm({ businessId, product, onClose, onSuccess }: {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // OPTIMISTIC UI: Add/Update immediately
+        const previousProducts = [...products];
+
         try {
             const photos = formData.photos ? JSON.stringify([formData.photos]) : '[]';
             const tags = formData.tags ? JSON.stringify(formData.tags.split(',').map((t: string) => t.trim())) : '[]';
+
+            if (product) {
+                // Update existing
+                setProducts(products.map(p =>
+                    p.id === product.id
+                        ? { ...p, ...formData, price: formData.price ? parseFloat(formData.price) : null, photos, tags }
+                        : p
+                ));
+            } else {
+                // Create new with temp ID
+                const tempProduct: Product = {
+                    id: 'temp-' + Date.now(),
+                    ...formData,
+                    price: formData.price ? parseFloat(formData.price) : null,
+                    photos,
+                    tags,
+                    isAvailable: true,
+                };
+                setProducts([tempProduct, ...products]);
+            }
+
+            onSuccess(); // Close form immediately
 
             const url = product
                 ? `/api/businesses/${businessId}/products/${product.id}`
@@ -313,10 +342,23 @@ function ProductForm({ businessId, product, onClose, onSuccess }: {
             });
 
             if (response.ok) {
-                onSuccess();
+                if (!product) {
+                    // Replace temp with real data
+                    const realProduct = await response.json();
+                    setProducts(prev => prev.map(p =>
+                        p.id.startsWith('temp-') ? realProduct : p
+                    ));
+                }
+            } else {
+                // Rollback on error
+                setProducts(previousProducts);
+                alert('Erreur lors de l\'enregistrement');
             }
         } catch (error) {
+            // Rollback on error
+            setProducts(previousProducts);
             console.error('Error saving product:', error);
+            alert('Erreur lors de l\'enregistrement');
         }
     };
 
