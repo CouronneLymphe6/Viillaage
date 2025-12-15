@@ -59,7 +59,7 @@ export default function DailySummaryCard() {
                 boxShadow: 'var(--shadow-sm)',
             }}>
                 <h3 style={{ color: 'var(--primary)', marginBottom: 'var(--spacing-sm)' }}>
-                    🗣️ Les Potins de Beaupuy
+                    📰 La Gazette de Beaupuy
                 </h3>
                 <div style={{
                     display: 'flex',
@@ -96,7 +96,7 @@ export default function DailySummaryCard() {
                 boxShadow: 'var(--shadow-sm)',
             }}>
                 <h3 style={{ color: 'var(--primary)', marginBottom: 'var(--spacing-sm)' }}>
-                    🗣️ Les Potins de Beaupuy
+                    📰 La Gazette de Beaupuy
                 </h3>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
                     ⚠️ {error}
