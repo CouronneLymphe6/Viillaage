@@ -90,7 +90,7 @@ export default function Contact() {
                             maxWidth: '600px',
                             margin: '0 auto'
                         }}>
-                            Fondateur de Viillaage, je travaille chaque soir et weekend pour améliorer votre expérience locale.
+                            Fondateur de Viillaage, je travaille pour améliorer votre expérience locale.
                         </p>
                     </div>
                 </div>
@@ -125,31 +125,61 @@ export default function Contact() {
                     Je suis à votre écoute pour toute question, suggestion ou problème technique.
                 </p>
 
-                {/* Availability */}
-                <div style={{
-                    padding: 'var(--spacing-md)',
-                    backgroundColor: '#fff3e0',
-                    borderLeft: '4px solid #ff9800',
-                    borderRadius: 'var(--radius-md)',
-                    marginBottom: 'var(--spacing-lg)'
-                }}>
-                    <p style={{
-                        margin: 0,
-                        color: '#e65100',
-                        fontSize: '0.95rem',
-                        lineHeight: '1.6'
-                    }}>
-                        <strong>🕐 Disponibilité :</strong> Je travaille sur vos problèmes et suggestions tous les soirs et weekends de <strong>22h à minuit</strong> (dans la mesure du possible). N'hésitez pas à me contacter, je vous répondrai dès que possible !
-                    </p>
-                </div>
-
                 {/* Contact Methods */}
                 <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                    display: 'flex',
+                    flexDirection: 'column',
                     gap: 'var(--spacing-lg)',
                     marginBottom: 'var(--spacing-lg)'
                 }}>
+                    {/* Primary: Messagerie Channel */}
+                    <div style={{
+                        padding: 'var(--spacing-lg)',
+                        backgroundColor: '#e8f5e9',
+                        borderRadius: 'var(--radius-md)',
+                        border: '2px solid #4caf50',
+                        transition: 'transform 0.2s, box-shadow 0.2s'
+                    }}
+                        onMouseOver={(e) => {
+                            e.currentTarget.style.transform = 'translateY(-2px)';
+                            e.currentTarget.style.boxShadow = 'var(--shadow-md)';
+                        }}
+                        onMouseOut={(e) => {
+                            e.currentTarget.style.transform = 'translateY(0)';
+                            e.currentTarget.style.boxShadow = 'none';
+                        }}
+                    >
+                        <div style={{
+                            fontSize: '2rem',
+                            marginBottom: 'var(--spacing-sm)'
+                        }}>💬</div>
+                        <h3 style={{
+                            color: 'var(--text-main)',
+                            fontSize: '1.2rem',
+                            marginBottom: 'var(--spacing-xs)',
+                            fontWeight: '600'
+                        }}>Canal "Retour Utilisateur" (Recommandé)</h3>
+                        <p style={{
+                            fontSize: '0.95rem',
+                            color: 'var(--text-secondary)',
+                            marginBottom: 'var(--spacing-sm)',
+                            lineHeight: '1.6'
+                        }}>
+                            Rendez-vous dans <strong>Messagerie → Canal "Retour Utilisateur"</strong> pour partager vos suggestions,
+                            signaler des bugs ou poser vos questions. C'est le moyen le plus rapide et direct !
+                        </p>
+                        <div style={{
+                            padding: 'var(--spacing-sm)',
+                            backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                            borderRadius: 'var(--radius-sm)',
+                            fontSize: '0.85rem',
+                            color: '#2e7d32',
+                            fontWeight: '500'
+                        }}>
+                            ⭐ Méthode privilégiée pour un échange rapide
+                        </div>
+                    </div>
+
                     {/* Email */}
                     <div style={{
                         padding: 'var(--spacing-md)',
@@ -193,54 +223,7 @@ export default function Contact() {
                             marginTop: 'var(--spacing-xs)',
                             margin: '8px 0 0 0'
                         }}>
-                            Privilégié pour les questions détaillées
-                        </p>
-                    </div>
-
-                    {/* Phone */}
-                    <div style={{
-                        padding: 'var(--spacing-md)',
-                        backgroundColor: 'var(--background)',
-                        borderRadius: 'var(--radius-md)',
-                        border: '1px solid var(--border)',
-                        transition: 'transform 0.2s, box-shadow 0.2s'
-                    }}
-                        onMouseOver={(e) => {
-                            e.currentTarget.style.transform = 'translateY(-2px)';
-                            e.currentTarget.style.boxShadow = 'var(--shadow-md)';
-                        }}
-                        onMouseOut={(e) => {
-                            e.currentTarget.style.transform = 'translateY(0)';
-                            e.currentTarget.style.boxShadow = 'none';
-                        }}
-                    >
-                        <div style={{
-                            fontSize: '2rem',
-                            marginBottom: 'var(--spacing-sm)'
-                        }}>📱</div>
-                        <h3 style={{
-                            color: 'var(--text-main)',
-                            fontSize: '1.1rem',
-                            marginBottom: 'var(--spacing-xs)'
-                        }}>Téléphone</h3>
-                        <a
-                            href="tel:+33622975478"
-                            style={{
-                                color: 'var(--primary)',
-                                textDecoration: 'none',
-                                fontSize: '0.95rem',
-                                fontWeight: '500'
-                            }}
-                        >
-                            06 22 97 54 78
-                        </a>
-                        <p style={{
-                            fontSize: '0.85rem',
-                            color: 'var(--text-secondary)',
-                            marginTop: 'var(--spacing-xs)',
-                            margin: '8px 0 0 0'
-                        }}>
-                            Pour les urgences techniques
+                            Pour les questions détaillées ou officielles
                         </p>
                     </div>
                 </div>
@@ -248,7 +231,7 @@ export default function Contact() {
                 {/* Message */}
                 <div style={{
                     padding: 'var(--spacing-md)',
-                    backgroundColor: '#e8f5e9',
+                    backgroundColor: '#fff3e0',
                     borderRadius: 'var(--radius-md)',
                     textAlign: 'center'
                 }}>
@@ -278,7 +261,7 @@ export default function Contact() {
                     fontSize: '1.3rem',
                     marginBottom: 'var(--spacing-md)'
                 }}>
-                    💡 Conseils pour me contacter
+                    💡 Comment me contacter ?
                 </h2>
 
                 <ul style={{
@@ -287,10 +270,9 @@ export default function Contact() {
                     paddingLeft: 'var(--spacing-lg)',
                     margin: 0
                 }}>
-                    <li><strong>Email</strong> : Idéal pour les questions détaillées, suggestions de fonctionnalités, ou rapports de bugs</li>
-                    <li><strong>Téléphone</strong> : Réservé aux urgences techniques (application inaccessible, problème critique)</li>
-                    <li><strong>Réponse</strong> : Je m'engage à répondre sous 24-48h maximum</li>
-                    <li><strong>Horaires</strong> : Je travaille principalement le soir (22h-minuit) et les weekends</li>
+                    <li><strong>Canal "Retour Utilisateur"</strong> (dans Messagerie) : À privilégier pour toutes vos suggestions, bugs et questions</li>
+                    <li><strong>Email</strong> : Pour les demandes détaillées, partenariats ou questions officielles</li>
+                    <li><strong>Réponse</strong> : Je m'engage à vous répondre dès que possible</li>
                 </ul>
             </div>
         </div>
