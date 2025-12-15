@@ -4,7 +4,18 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { notifyVillageUsers } from "@/lib/notificationHelper";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/security/rate-limiter";
-import DOMPurify from 'isomorphic-dompurify';
+
+// Simple HTML escape function for XSS protection
+function escapeHtml(text: string): string {
+    const map: Record<string, string> = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, (m) => map[m]);
+}
 
 export async function GET() {
     try {
@@ -83,20 +94,9 @@ export async function POST(request: NextRequest) {
             return new NextResponse("Description trop longue (max 2000 caractères)", { status: 400 });
         }
 
-        // SECURITY: Sanitize user input
-        const sanitizedTitle = DOMPurify.sanitize(title, {
-            ALLOWED_TAGS: [],
-            KEEP_CONTENT: true,
-            RETURN_DOM: false,
-            RETURN_DOM_FRAGMENT: false
-        });
-        const sanitizedDescription = DOMPurify.sanitize(description, {
-            ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'br', 'p'],
-            ALLOWED_ATTR: [],
-            KEEP_CONTENT: true,
-            RETURN_DOM: false,
-            RETURN_DOM_FRAGMENT: false
-        });
+        // SECURITY: Sanitize user input - escape HTML
+        const sanitizedTitle = escapeHtml(title);
+        const sanitizedDescription = escapeHtml(description);
 
         const listing = await prisma.listing.create({
             data: {

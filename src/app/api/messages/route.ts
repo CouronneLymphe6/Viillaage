@@ -4,7 +4,18 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { notifyVillageUsers } from "@/lib/notificationHelper";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/security/rate-limiter";
-import DOMPurify from 'isomorphic-dompurify';
+
+// Simple HTML escape function for XSS protection
+function escapeHtml(text: string): string {
+    const map: Record<string, string> = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, (m) => map[m]);
+}
 
 export async function GET(request: Request) {
     try {
@@ -88,15 +99,8 @@ export async function POST(request: NextRequest) {
             return new NextResponse("Message trop long (max 5000 caractères)", { status: 400 });
         }
 
-        // SECURITY: XSS protection - sanitize content
-        // Note: DOMPurify in Node.js needs special config to preserve plain text
-        const sanitizedContent = DOMPurify.sanitize(content, {
-            ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'br', 'p'],
-            ALLOWED_ATTR: ['href'],
-            KEEP_CONTENT: true,  // Preserve text content
-            RETURN_DOM: false,
-            RETURN_DOM_FRAGMENT: false
-        });
+        // SECURITY: XSS protection - escape HTML entities
+        const sanitizedContent = escapeHtml(content);
 
         const message = await prisma.message.create({
             data: {
