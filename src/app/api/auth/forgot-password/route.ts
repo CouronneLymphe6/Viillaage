@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
         });
 
         // Send email with reset link
-        const resetLink = `${process.env.NEXTAUTH_URL || 'https://viillaage.vercel.app'}/reset-password/${token}`;
+        const resetLink = `${process.env.NEXTAUTH_URL || 'https://viillaage.com'}/reset-password/${token}`;
 
         // Try to send email if RESEND_API_KEY is configured
         if (process.env.RESEND_API_KEY) {

@@ -26,10 +26,12 @@ model User {
   role              String      @default("USER")
   villageId         String?
   village           Village?    @relation(fields: [villageId], references: [id])
-  acceptedCGU       Boolean     @default(false)
-  acceptedPrivacy   Boolean     @default(false)
-  cguAcceptedAt     DateTime?
-  privacyAcceptedAt DateTime?
+  acceptedCGU          Boolean     @default(false)
+  acceptedPrivacy      Boolean     @default(false)
+  acceptedConstitution Boolean     @default(false)
+  cguAcceptedAt        DateTime?
+  privacyAcceptedAt    DateTime?
+  constitutionAcceptedAt DateTime?
   createdAt         DateTime    @default(now())
   updatedAt         DateTime    @updatedAt
   profile           Profile?

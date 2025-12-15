@@ -23,6 +23,7 @@ export default function RegisterPage() {
         villageId: '',
         acceptCGU: false,
         acceptPrivacy: false,
+        acceptConstitution: false,
     });
     const [error, setError] = useState('');
     const [passwordStrength, setPasswordStrength] = useState(validatePassword(''));
@@ -70,6 +71,11 @@ export default function RegisterPage() {
             return;
         }
 
+        if (!data.acceptConstitution) {
+            setError('Vous devez accepter la Constitution de Viillaage.');
+            return;
+        }
+
         const response = await fetch('/api/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -80,6 +86,7 @@ export default function RegisterPage() {
                 villageId: data.villageId,
                 acceptCGU: data.acceptCGU,
                 acceptPrivacy: data.acceptPrivacy,
+                acceptConstitution: data.acceptConstitution,
             }),
         });
 
@@ -282,6 +289,25 @@ export default function RegisterPage() {
                         J'accepte la{' '}
                         <a href="/privacy" target="_blank" style={{ color: 'var(--primary)', textDecoration: 'underline' }}>
                             Politique de confidentialité
+                        </a>{' '}
+                        <span style={{ color: 'red' }}>*</span>
+                    </label>
+                </div>
+
+                {/* Constitution */}
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                    <input
+                        type="checkbox"
+                        id="constitution"
+                        checked={data.acceptConstitution}
+                        onChange={(e) => setData({ ...data, acceptConstitution: e.target.checked })}
+                        required
+                        style={{ marginTop: '3px' }}
+                    />
+                    <label htmlFor="constitution" style={{ fontSize: '0.875rem', lineHeight: '1.5' }}>
+                        J'accepte la{' '}
+                        <a href="/constitution" target="_blank" style={{ color: 'var(--primary)', textDecoration: 'underline' }}>
+                            Constitution de Viillaage
                         </a>{' '}
                         <span style={{ color: 'red' }}>*</span>
                     </label>

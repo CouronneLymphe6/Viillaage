@@ -49,16 +49,16 @@ export async function POST(request: NextRequest) {
         }
 
         const { email, name, password, villageId } = validation.data;
-        const { acceptCGU, acceptPrivacy } = body;
+        const { acceptCGU, acceptPrivacy, acceptConstitution } = body;
 
         // Sanitize text inputs
         const sanitizedName = sanitizeText(name);
         const sanitizedEmail = email.toLowerCase().trim();
 
-        // Validation de l'acceptation des CGU et Privacy
-        if (!acceptCGU || !acceptPrivacy) {
+        // Validation de l'acceptation des CGU, Privacy et Constitution
+        if (!acceptCGU || !acceptPrivacy || !acceptConstitution) {
             return NextResponse.json(
-                { error: "Vous devez accepter les CGU et la Politique de confidentialité" },
+                { error: "Vous devez accepter les CGU, la Politique de confidentialité et la Constitution de Viillaage" },
                 { status: 400 }
             );
         }
@@ -109,8 +109,10 @@ export async function POST(request: NextRequest) {
                 villageId: villageId || null,
                 acceptedCGU: true,
                 acceptedPrivacy: true,
+                acceptedConstitution: true,
                 cguAcceptedAt: new Date(),
                 privacyAcceptedAt: new Date(),
+                constitutionAcceptedAt: new Date(),
             },
             select: {
                 id: true,

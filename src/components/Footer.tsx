@@ -100,6 +100,19 @@ export default function Footer() {
                                     Politique de Confidentialité (RGPD)
                                 </Link>
                             </li>
+                            <li>
+                                <Link href="/constitution" style={{
+                                    color: '#cbd5e0',
+                                    textDecoration: 'none',
+                                    fontSize: '0.9rem',
+                                    transition: 'color 0.2s',
+                                }}
+                                    onMouseEnter={e => e.currentTarget.style.color = 'var(--primary)'}
+                                    onMouseLeave={e => e.currentTarget.style.color = '#cbd5e0'}
+                                >
+                                    Constitution de Viillaage
+                                </Link>
+                            </li>
                         </ul>
                     </div>
 
