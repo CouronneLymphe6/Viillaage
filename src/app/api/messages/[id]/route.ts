@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+// API route for individual message operations (DELETE, PATCH)
+
 export async function DELETE(
     request: Request,
     { params }: { params: Promise<{ id: string }> }
