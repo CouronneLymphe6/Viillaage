@@ -49,18 +49,20 @@ export async function POST(request: NextRequest) {
         // Try to send email if RESEND_API_KEY is configured
         if (process.env.RESEND_API_KEY) {
             const { sendPasswordResetEmail } = await import('@/lib/email');
-            await sendPasswordResetEmail({
-                to: user.email,
-                resetLink,
-                userName: user.name || undefined,
-            });
-        } else {
-            // Fallback: log to console for development
-            console.log(`Password reset link for ${email}: ${resetLink}`);
+            try {
+                await sendPasswordResetEmail({
+                    to: email,
+                    resetLink,
+                    userName: user.name || undefined
+                });
+            } catch (emailError) {
+                // Email failed but token is saved - user can still reset via direct link
+                // Don't expose this to the user
+            }
         }
 
         return NextResponse.json({
-            message: "Si cet email existe, un lien de réinitialisation a été envoyé.",
+            message: "Si un compte existe avec cet email, un lien de réinitialisation a été envoyé."
         });
     } catch (error) {
         console.error("FORGOT_PASSWORD_ERROR:", error);

@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import { logger } from './logger';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -110,14 +111,14 @@ export async function sendPasswordResetEmail({
         });
 
         if (error) {
-            console.error('Error sending password reset email:', error);
+            logger.error('Error sending password reset email:', error);
             return { success: false, error };
         }
 
-        console.log('Password reset email sent:', data);
+        logger.info('Password reset email sent successfully');
         return { success: true, data };
     } catch (error) {
-        console.error('Failed to send password reset email:', error);
+        logger.error('Failed to send password reset email:', error);
         return { success: false, error };
     }
 }

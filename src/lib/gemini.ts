@@ -3,6 +3,8 @@
  * Gère les appels à l'API Google Gemini pour la génération de contenu
  */
 
+import { logger } from './logger';
+
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const GEMINI_MODEL = 'gemini-flash-lite-latest'; // Version LITE = plus économique
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
@@ -24,7 +26,6 @@ export async function generateContent(
     maxRetries: number = 3
 ): Promise<GeminiResponse> {
     if (!GEMINI_API_KEY) {
-        console.error('❌ GEMINI_API_KEY non définie dans .env');
         return {
             text: '',
             success: false,
@@ -63,7 +64,7 @@ export async function generateContent(
             if (!response.ok) {
                 const errorData = await response.text();
                 lastError = `API Error ${response.status}: ${errorData}`;
-                console.error(`❌ Tentative ${attempt}/${maxRetries} échouée:`, lastError);
+                logger.error(`Gemini API attempt ${attempt}/${maxRetries} failed:`, lastError);
 
                 // Attendre avant de réessayer (backoff exponentiel)
                 if (attempt < maxRetries) {
@@ -82,7 +83,7 @@ export async function generateContent(
 
             if (!data.candidates || data.candidates.length === 0) {
                 lastError = 'Aucune réponse générée par l\'IA';
-                console.error(`❌ Tentative ${attempt}/${maxRetries}:`, lastError);
+                logger.error(`Gemini no response attempt ${attempt}/${maxRetries}:`, lastError);
 
                 if (attempt < maxRetries) {
                     await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
@@ -104,7 +105,7 @@ export async function generateContent(
             };
         } catch (error) {
             lastError = error instanceof Error ? error.message : 'Erreur inconnue';
-            console.error(`❌ Tentative ${attempt}/${maxRetries} échouée:`, lastError);
+            logger.error(`Gemini attempt ${attempt}/${maxRetries} failed:`, lastError);
 
             if (attempt < maxRetries) {
                 await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
@@ -253,7 +254,7 @@ ${stats.listingCategories.length > 0 ? `Catégories : ${stats.listingCategories.
             text: cleanJson // Fallback
         };
     } catch (error) {
-        console.error("Erreur parsing Gemini:", error);
+        logger.error("Erreur parsing Gemini:", error);
         // Fallback: retourner le texte brut mais essayer de nettoyer un peu
         return {
             success: true,

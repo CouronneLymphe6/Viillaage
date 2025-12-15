@@ -21,6 +21,13 @@ const nextConfig: NextConfig = {
   // SECURITY: Disable source maps in production
   productionBrowserSourceMaps: false,
 
+  // SECURITY: Remove console statements in production
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error', 'warn']  // Keep errors and warnings for monitoring
+    } : false
+  },
+
   images: {
     remotePatterns: [
       {

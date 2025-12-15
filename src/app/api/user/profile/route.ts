@@ -10,7 +10,6 @@ export async function PATCH(request: Request) {
 
     try {
         const body = await request.json();
-        console.log('Profile update request body:', body);
         const { name, image, villageName, zipCode } = body;
 
         const user = await prisma.user.update({
