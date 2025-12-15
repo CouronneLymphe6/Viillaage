@@ -90,7 +90,7 @@ export default function Contact() {
                             maxWidth: '600px',
                             margin: '0 auto'
                         }}>
-                            Fondateur de Viillaage, je travaille pour améliorer votre expérience locale.
+                            Je travaille pour améliorer votre expérience locale.
                         </p>
                     </div>
                 </div>
