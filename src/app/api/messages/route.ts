@@ -89,9 +89,13 @@ export async function POST(request: NextRequest) {
         }
 
         // SECURITY: XSS protection - sanitize content
+        // Note: DOMPurify in Node.js needs special config to preserve plain text
         const sanitizedContent = DOMPurify.sanitize(content, {
             ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'br', 'p'],
-            ALLOWED_ATTR: ['href']
+            ALLOWED_ATTR: ['href'],
+            KEEP_CONTENT: true,  // Preserve text content
+            RETURN_DOM: false,
+            RETURN_DOM_FRAGMENT: false
         });
 
         const message = await prisma.message.create({

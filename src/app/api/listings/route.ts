@@ -84,10 +84,18 @@ export async function POST(request: NextRequest) {
         }
 
         // SECURITY: Sanitize user input
-        const sanitizedTitle = DOMPurify.sanitize(title, { ALLOWED_TAGS: [] });
+        const sanitizedTitle = DOMPurify.sanitize(title, {
+            ALLOWED_TAGS: [],
+            KEEP_CONTENT: true,
+            RETURN_DOM: false,
+            RETURN_DOM_FRAGMENT: false
+        });
         const sanitizedDescription = DOMPurify.sanitize(description, {
             ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'br', 'p'],
-            ALLOWED_ATTR: []
+            ALLOWED_ATTR: [],
+            KEEP_CONTENT: true,
+            RETURN_DOM: false,
+            RETURN_DOM_FRAGMENT: false
         });
 
         const listing = await prisma.listing.create({
