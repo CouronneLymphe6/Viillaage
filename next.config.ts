@@ -18,6 +18,9 @@ const withSerwist = withSerwistInit({
 
 
 const nextConfig: NextConfig = {
+  // SECURITY: Disable source maps in production
+  productionBrowserSourceMaps: false,
+
   images: {
     remotePatterns: [
       {
