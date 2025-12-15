@@ -172,66 +172,99 @@ export default function MessagesPage() {
         const messageContent = newMessage;
         const tempId = `temp-${Date.now()}`;
 
-        // Optimistic UI: Add message immediately
-        const optimisticMessage: Message = {
-            id: tempId,
-            content: messageContent,
-            createdAt: new Date().toISOString(),
-            userId: session.user.id!,
-            user: {
-                name: session.user.name || null,
-                email: session.user.email || null,
-                image: session.user.image || null,
-            },
-            reactions: [],
-            replyTo: replyingTo ? {
-                id: replyingTo.id,
-                content: replyingTo.content,
-                user: replyingTo.user,
-            } : null,
-        };
+        if (editingMessage) {
+            // Optimistic UI for editing: Update message immediately
+            const previousMessages = [...messages];
+            setMessages(prev => prev.map(msg =>
+                msg.id === editingMessage.id
+                    ? { ...msg, content: messageContent }
+                    : msg
+            ));
+            setNewMessage('');
+            setEditingMessage(null);
 
-        if (!editingMessage) {
+            try {
+                const response = await fetch(`/api/messages/${editingMessage.id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content: messageContent }),
+                });
+
+                if (response.ok) {
+                    const serverMessage = await response.json();
+                    // Update with server response
+                    setMessages(prev => prev.map(msg =>
+                        msg.id === editingMessage.id ? serverMessage : msg
+                    ));
+                } else {
+                    // Restore previous state on error
+                    setMessages(previousMessages);
+                    setNewMessage(messageContent);
+                    setEditingMessage(editingMessage);
+                    alert('Erreur lors de la modification du message');
+                }
+            } catch (error) {
+                console.error('Error editing message:', error);
+                // Restore previous state on error
+                setMessages(previousMessages);
+                setNewMessage(messageContent);
+                setEditingMessage(editingMessage);
+                alert('Erreur lors de la modification du message');
+            }
+        } else {
+            // Optimistic UI for new message: Add message immediately
+            const optimisticMessage: Message = {
+                id: tempId,
+                content: messageContent,
+                createdAt: new Date().toISOString(),
+                userId: session.user.id!,
+                user: {
+                    name: session.user.name || null,
+                    email: session.user.email || null,
+                    image: session.user.image || null,
+                },
+                reactions: [],
+                replyTo: replyingTo ? {
+                    id: replyingTo.id,
+                    content: replyingTo.content,
+                    user: replyingTo.user,
+                } : null,
+            };
+
             setMessages(prev => [...prev, optimisticMessage]);
-        }
+            setNewMessage('');
+            setReplyingTo(null);
 
-        setNewMessage('');
-        setReplyingTo(null);
+            try {
+                const response = await fetch('/api/messages', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        content: messageContent,
+                        channelId: selectedChannel.id,
+                        replyToId: replyingTo?.id
+                    }),
+                });
 
-        try {
-            const url = editingMessage ? `/api/messages/${editingMessage.id}` : '/api/messages';
-            const method = editingMessage ? 'PATCH' : 'POST';
-            const body = editingMessage
-                ? { content: messageContent }
-                : {
-                    content: messageContent,
-                    channelId: selectedChannel.id,
-                    replyToId: replyingTo?.id
-                };
-
-            const response = await fetch(url, {
-                method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body),
-            });
-
-            if (response.ok) {
-                const serverMessage = await response.json();
-                // Replace optimistic message with server response
-                setMessages(prev => prev.map(msg =>
-                    msg.id === tempId ? serverMessage : msg
-                ));
-                setEditingMessage(null);
-            } else {
+                if (response.ok) {
+                    const serverMessage = await response.json();
+                    // Replace optimistic message with server response
+                    setMessages(prev => prev.map(msg =>
+                        msg.id === tempId ? serverMessage : msg
+                    ));
+                } else {
+                    // Remove optimistic message on error
+                    setMessages(prev => prev.filter(msg => msg.id !== tempId));
+                    setNewMessage(messageContent);
+                    alert('Erreur lors de l\'envoi du message');
+                }
+            } catch (error) {
+                console.error('Error sending message:', error);
                 // Remove optimistic message on error
                 setMessages(prev => prev.filter(msg => msg.id !== tempId));
-                setNewMessage(messageContent); // Restore message
+                setNewMessage(messageContent);
+                alert('Erreur lors de l\'envoi du message');
             }
-        } catch (error) {
-            console.error('Error sending message:', error);
-            // Remove optimistic message on error
-            setMessages(prev => prev.filter(msg => msg.id !== tempId));
-            setNewMessage(messageContent); // Restore message
         }
     };
 
@@ -239,16 +272,26 @@ export default function MessagesPage() {
         if (!confirm('Supprimer ce message ?')) return;
         if (!selectedChannel) return;
 
+        // Optimistic UI: Remove message immediately
+        const previousMessages = [...messages];
+        setMessages(prev => prev.filter(msg => msg.id !== id));
+        setActiveMenuId(null);
+
         try {
             const response = await fetch(`/api/messages/${id}`, {
                 method: 'DELETE',
             });
 
-            if (response.ok) {
-                fetchMessages(selectedChannel.id);
+            if (!response.ok) {
+                // Restore message on error
+                setMessages(previousMessages);
+                alert('Erreur lors de la suppression du message');
             }
         } catch (error) {
             console.error('Error deleting message:', error);
+            // Restore message on error
+            setMessages(previousMessages);
+            alert('Erreur lors de la suppression du message');
         }
     };
 
