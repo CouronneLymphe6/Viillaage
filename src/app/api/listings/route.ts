@@ -1,8 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { notifyVillageUsers } from "@/lib/notificationHelper";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/security/rate-limiter";
+import DOMPurify from 'isomorphic-dompurify';
 
 export async function GET() {
     try {
@@ -48,12 +50,22 @@ export async function GET() {
     }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
 
         if (!session?.user?.id) {
             return new NextResponse("Unauthorized", { status: 401 });
+        }
+
+        // SECURITY: Rate limiting
+        const rateLimitResponse = await checkRateLimit(
+            request,
+            RATE_LIMITS.CREATE_LISTING,
+            session.user.id
+        );
+        if (rateLimitResponse) {
+            return rateLimitResponse;
         }
 
         const body = await request.json();
@@ -63,10 +75,25 @@ export async function POST(request: Request) {
             return new NextResponse("Missing required fields", { status: 400 });
         }
 
+        // SECURITY: Input validation
+        if (title.length > 200) {
+            return new NextResponse("Titre trop long (max 200 caractères)", { status: 400 });
+        }
+        if (description.length > 2000) {
+            return new NextResponse("Description trop longue (max 2000 caractères)", { status: 400 });
+        }
+
+        // SECURITY: Sanitize user input
+        const sanitizedTitle = DOMPurify.sanitize(title, { ALLOWED_TAGS: [] });
+        const sanitizedDescription = DOMPurify.sanitize(description, {
+            ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'br', 'p'],
+            ALLOWED_ATTR: []
+        });
+
         const listing = await prisma.listing.create({
             data: {
-                title,
-                description,
+                title: sanitizedTitle,
+                description: sanitizedDescription,
                 price: price ? parseFloat(price) : null,
                 category,
                 photos: JSON.stringify(photos.slice(0, 3)), // Store as JSON string

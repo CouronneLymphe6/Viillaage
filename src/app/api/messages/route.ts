@@ -1,8 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { notifyVillageUsers } from "@/lib/notificationHelper";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/security/rate-limiter";
+import DOMPurify from 'isomorphic-dompurify';
 
 export async function GET(request: Request) {
     try {
@@ -56,12 +58,22 @@ export async function GET(request: Request) {
     }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
 
         if (!session?.user?.id) {
             return new NextResponse("Unauthorized", { status: 401 });
+        }
+
+        // SECURITY: Rate limiting
+        const rateLimitResponse = await checkRateLimit(
+            request,
+            RATE_LIMITS.CREATE_MESSAGE,
+            session.user.id
+        );
+        if (rateLimitResponse) {
+            return rateLimitResponse;
         }
 
         const body = await request.json();
@@ -71,9 +83,20 @@ export async function POST(request: Request) {
             return new NextResponse("Missing required fields", { status: 400 });
         }
 
+        // SECURITY: Input validation
+        if (content.length > 5000) {
+            return new NextResponse("Message trop long (max 5000 caractères)", { status: 400 });
+        }
+
+        // SECURITY: XSS protection - sanitize content
+        const sanitizedContent = DOMPurify.sanitize(content, {
+            ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'br', 'p'],
+            ALLOWED_ATTR: ['href']
+        });
+
         const message = await prisma.message.create({
             data: {
-                content,
+                content: sanitizedContent,
                 channelId,
                 userId: session.user.id,
                 replyToId,
