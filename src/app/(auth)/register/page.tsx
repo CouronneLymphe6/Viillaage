@@ -119,6 +119,7 @@ export default function RegisterPage() {
                         value={data.name}
                         onChange={(e) => setData({ ...data, name: e.target.value })}
                         required
+                        autoComplete="name"
                         style={{
                             width: '100%',
                             padding: '12px',
@@ -141,6 +142,7 @@ export default function RegisterPage() {
                         value={data.email}
                         onChange={(e) => setData({ ...data, email: e.target.value })}
                         required
+                        autoComplete="email"
                         style={{
                             width: '100%',
                             padding: '12px',
@@ -191,6 +193,7 @@ export default function RegisterPage() {
                         value={data.password}
                         onChange={(e) => setData({ ...data, password: e.target.value })}
                         required
+                        autoComplete="new-password"
                         style={{
                             width: '100%',
                             padding: '12px',
@@ -240,6 +243,7 @@ export default function RegisterPage() {
                         value={data.confirmPassword}
                         onChange={(e) => setData({ ...data, confirmPassword: e.target.value })}
                         required
+                        autoComplete="new-password"
                         style={{
                             width: '100%',
                             padding: '12px',

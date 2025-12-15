@@ -36,6 +36,7 @@ export default function LoginPage() {
                     value={data.email}
                     onChange={(e) => setData({ ...data, email: e.target.value })}
                     required
+                    autoComplete="email"
                     style={{
                         padding: '12px',
                         borderRadius: 'var(--radius-sm)',
@@ -49,6 +50,7 @@ export default function LoginPage() {
                     value={data.password}
                     onChange={(e) => setData({ ...data, password: e.target.value })}
                     required
+                    autoComplete="current-password"
                     style={{
                         padding: '12px',
                         borderRadius: 'var(--radius-sm)',
