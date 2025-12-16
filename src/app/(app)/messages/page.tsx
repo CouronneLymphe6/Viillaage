@@ -56,16 +56,20 @@ const getInitials = (name: string | null, email: string | null): string => {
     return '??';
 };
 
-// Generate a consistent gradient color based on name
+// Generate a consistent gradient color based on name (using Viillaage teal palette)
 const getAvatarGradient = (name: string | null, email: string | null): string => {
     const str = name || email || 'default';
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
         hash = str.charCodeAt(i) + ((hash << 5) - hash);
     }
-    const hue1 = Math.abs(hash % 360);
-    const hue2 = (hue1 + 40) % 360;
-    return `linear-gradient(135deg, hsl(${hue1}, 70%, 50%), hsl(${hue2}, 70%, 45%))`;
+    // Use teal-based hues (160-200 range) to stay within Viillaage color family
+    const baseHue = 170; // Teal base
+    const hueVariation = (Math.abs(hash) % 40) - 20; // -20 to +20 variation
+    const hue1 = baseHue + hueVariation;
+    const hue2 = hue1 + 15;
+    const saturation = 65 + (Math.abs(hash) % 20); // 65-85%
+    return `linear-gradient(135deg, hsl(${hue1}, ${saturation}%, 45%), hsl(${hue2}, ${saturation}%, 38%))`;
 };
 
 const UserAvatar = ({ user, size = 32 }: { user: Message['user'], size?: number }) => {
@@ -482,14 +486,14 @@ export default function MessagesPage() {
                                     width: '36px',
                                     height: '36px',
                                     borderRadius: '10px',
-                                    background: 'linear-gradient(135deg, #3cb371 0%, #2e8b57 100%)',
+                                    background: 'linear-gradient(135deg, #00BFA5 0%, #008F7A 100%)',
                                     color: 'white',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     fontSize: '1rem',
                                     fontWeight: 'bold',
-                                    boxShadow: '0 2px 6px rgba(46, 139, 87, 0.25)',
+                                    boxShadow: '0 2px 6px rgba(0, 191, 165, 0.3)',
                                 }}>
                                     #
                                 </div>
@@ -562,13 +566,13 @@ export default function MessagesPage() {
                                                         borderTopRightRadius: isOwnMessage && !message.showAvatar ? '4px' : '18px',
                                                         borderBottomLeftRadius: !isOwnMessage ? '4px' : '18px',
                                                         borderBottomRightRadius: isOwnMessage ? '4px' : '18px',
-                                                        // Gradient for own messages, white for others
+                                                        // Gradient for own messages using Viillaage teal
                                                         background: isOwnMessage
-                                                            ? 'linear-gradient(135deg, #3cb371 0%, #2e8b57 100%)'
+                                                            ? 'linear-gradient(135deg, #00BFA5 0%, #008F7A 100%)'
                                                             : 'white',
                                                         color: isOwnMessage ? 'white' : 'var(--text-main)',
                                                         boxShadow: isOwnMessage
-                                                            ? '0 2px 8px rgba(46, 139, 87, 0.3)'
+                                                            ? '0 2px 8px rgba(0, 191, 165, 0.35)'
                                                             : '0 1px 3px rgba(0,0,0,0.08)',
                                                         position: 'relative',
                                                         fontSize: '0.9rem',
@@ -1044,7 +1048,7 @@ export default function MessagesPage() {
                                             borderRadius: '50%',
                                             border: 'none',
                                             background: newMessage.trim()
-                                                ? 'linear-gradient(135deg, #3cb371 0%, #2e8b57 100%)'
+                                                ? 'linear-gradient(135deg, #00BFA5 0%, #008F7A 100%)'
                                                 : '#e4e6eb',
                                             color: newMessage.trim() ? 'white' : '#bcc0c4',
                                             cursor: newMessage.trim() ? 'pointer' : 'default',
@@ -1052,18 +1056,18 @@ export default function MessagesPage() {
                                             alignItems: 'center',
                                             justifyContent: 'center',
                                             transition: 'all 0.2s ease',
-                                            boxShadow: newMessage.trim() ? '0 4px 12px rgba(46, 139, 87, 0.35)' : 'none',
+                                            boxShadow: newMessage.trim() ? '0 4px 12px rgba(0, 191, 165, 0.4)' : 'none',
                                             transform: 'scale(1)',
                                         }}
                                         onMouseEnter={(e) => {
                                             if (newMessage.trim()) {
                                                 e.currentTarget.style.transform = 'scale(1.05)';
-                                                e.currentTarget.style.boxShadow = '0 6px 16px rgba(46, 139, 87, 0.4)';
+                                                e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 191, 165, 0.5)';
                                             }
                                         }}
                                         onMouseLeave={(e) => {
                                             e.currentTarget.style.transform = 'scale(1)';
-                                            e.currentTarget.style.boxShadow = newMessage.trim() ? '0 4px 12px rgba(46, 139, 87, 0.35)' : 'none';
+                                            e.currentTarget.style.boxShadow = newMessage.trim() ? '0 4px 12px rgba(0, 191, 165, 0.4)' : 'none';
                                         }}
                                     >
                                         <Send size={18} />
