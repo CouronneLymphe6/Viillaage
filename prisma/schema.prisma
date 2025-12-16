@@ -45,6 +45,7 @@ model User {
   associations      Association[]
   reactions         Reaction[]
   notifications     Notification[]
+  notificationPreference NotificationPreference?
   
   // Pro relations
   proFollowing      ProFollower[]
@@ -60,6 +61,23 @@ model User {
   
   pushSubscriptions     PushSubscription[]
   passwordResetTokens   PasswordResetToken[]
+}
+
+// User notification preferences - opt-in/opt-out for each notification type
+model NotificationPreference {
+  id             String  @id @default(cuid())
+  userId         String  @unique
+  user           User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Notification types toggles (true = enabled, false = disabled)
+  enableAlerts   Boolean @default(true)   // Alerts and security
+  enableMarket   Boolean @default(true)   // Marketplace listings
+  enableBusiness Boolean @default(true)   // New businesses
+  enableMessages Boolean @default(true)   // Message replies and mentions
+  enablePush     Boolean @default(false)  // Push notifications (opt-in)
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
 
@@ -354,6 +372,10 @@ model Notification {
   userId      String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
+
+  // Performance indexes
+  @@index([userId, isRead])  // Fast COUNT queries for unread notifications
+  @@index([createdAt(sort: Desc)])  // Fast sorting by date
 }
 
 // ========================================

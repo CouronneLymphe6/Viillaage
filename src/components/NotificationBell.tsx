@@ -71,6 +71,10 @@ export default function NotificationBell() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ notificationId }),
             });
+            // PHASE 2: Auto-cleanup - Delete read notifications immediately
+            await fetch('/api/notifications/cleanup', {
+                method: 'DELETE',
+            });
             fetchNotifications();
         } catch (error) {
             console.error('Error marking notification as read:', error);
@@ -83,6 +87,10 @@ export default function NotificationBell() {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ markAllAsRead: true }),
+            });
+            // PHASE 2: Auto-cleanup - Delete all read notifications immediately
+            await fetch('/api/notifications/cleanup', {
+                method: 'DELETE',
             });
             fetchNotifications();
         } catch (error) {

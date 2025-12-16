@@ -34,7 +34,8 @@ export async function GET() {
     }
 }
 
-// PATCH /api/notifications - Mark notification(s) as read
+// PATCH /api/notifications - Mark notification(s) as read AND DELETE them
+// Per user request: notifications are deleted after being read
 export async function PATCH(request: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
@@ -47,31 +48,28 @@ export async function PATCH(request: NextRequest) {
         const { notificationId, markAllAsRead } = body;
 
         if (markAllAsRead) {
-            // Mark all user notifications as read
-            await prisma.notification.updateMany({
+            // Delete all user notifications (they've been "read" by viewing the list)
+            const result = await prisma.notification.deleteMany({
                 where: {
                     userId: session.user.id,
-                    isRead: false,
-                },
-                data: {
-                    isRead: true,
                 },
             });
 
-            return NextResponse.json({ success: true, message: 'All notifications marked as read' });
+            return NextResponse.json({
+                success: true,
+                message: 'All notifications cleared',
+                deletedCount: result.count
+            });
         } else if (notificationId) {
-            // Mark specific notification as read
-            const notification = await prisma.notification.update({
+            // Delete specific notification after clicking on it
+            await prisma.notification.delete({
                 where: {
                     id: notificationId,
                     userId: session.user.id, // Ensure user owns the notification
                 },
-                data: {
-                    isRead: true,
-                },
             });
 
-            return NextResponse.json(notification);
+            return NextResponse.json({ success: true, deleted: notificationId });
         } else {
             return new NextResponse("Missing notificationId or markAllAsRead", { status: 400 });
         }

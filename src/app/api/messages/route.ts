@@ -140,7 +140,45 @@ export async function POST(request: NextRequest) {
         });
 
         if (user?.villageId && channel) {
-            // 1. If it's a reply, notify the original author
+            // 1. Check for @mentions in the message content
+            // Format: @FirstnameLastname or @Firstname
+            const mentionRegex = /@(\w+(?:\s\w+)?)/g;
+            const mentions = content.match(mentionRegex);
+
+            if (mentions && mentions.length > 0) {
+                // Find users matching the mentions in this village
+                const mentionNames = mentions.map((m: string) => m.substring(1).toLowerCase()); // Remove @ and lowercase
+
+                const mentionedUsers = await prisma.user.findMany({
+                    where: {
+                        villageId: user.villageId,
+                        id: { not: session.user.id }, // Don't notify yourself
+                        name: {
+                            in: mentionNames.map((name: string) =>
+                                // Match users whose name starts with the mention
+                                name.charAt(0).toUpperCase() + name.slice(1)
+                            ),
+                            mode: 'insensitive',
+                        },
+                    },
+                    select: { id: true, name: true },
+                });
+
+                // Create notifications for mentioned users
+                if (mentionedUsers.length > 0) {
+                    await prisma.notification.createMany({
+                        data: mentionedUsers.map(mentionedUser => ({
+                            userId: mentionedUser.id,
+                            type: 'MESSAGE',
+                            title: `📣 ${user.name || 'Quelqu\'un'} vous a mentionné`,
+                            message: `${content.substring(0, 50)}${content.length > 50 ? '...' : ''}`,
+                            link: `/messages?channelId=${channelId}`,
+                        })),
+                    });
+                }
+            }
+
+            // 2. Notify when someone replies directly to a message
             if (replyToId) {
                 const originalMessage = await prisma.message.findUnique({
                     where: { id: replyToId },
@@ -159,19 +197,8 @@ export async function POST(request: NextRequest) {
                     });
                 }
             }
-            // 2. Otherwise, notify village users (general activity)
-            // Note: In a real app, we would only notify subscribed users. 
-            // For now, we notify everyone to fulfill "Nouveau message de X sur groupe X"
-            else {
-                await notifyVillageUsers({
-                    villageId: user.villageId,
-                    excludeUserId: session.user.id,
-                    type: 'MESSAGE',
-                    title: `💬 Nouveau message dans ${channel.name}`,
-                    message: `${user.name || 'Un voisin'}: ${content.substring(0, 50)}${content.length > 50 ? '...' : ''}`,
-                    link: `/messages?channelId=${channelId}`,
-                });
-            }
+            // NOTE: General messages no longer trigger notifications
+            // Users are only notified when mentioned (@username) or replied to
         }
 
         return NextResponse.json(message);
