@@ -56,6 +56,18 @@ const getInitials = (name: string | null, email: string | null): string => {
     return '??';
 };
 
+// Generate a consistent gradient color based on name
+const getAvatarGradient = (name: string | null, email: string | null): string => {
+    const str = name || email || 'default';
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const hue1 = Math.abs(hash % 360);
+    const hue2 = (hue1 + 40) % 360;
+    return `linear-gradient(135deg, hsl(${hue1}, 70%, 50%), hsl(${hue2}, 70%, 45%))`;
+};
+
 const UserAvatar = ({ user, size = 32 }: { user: Message['user'], size?: number }) => {
     if (user.image) {
         return (
@@ -68,6 +80,7 @@ const UserAvatar = ({ user, size = 32 }: { user: Message['user'], size?: number 
                     borderRadius: '50%',
                     objectFit: 'cover',
                     flexShrink: 0,
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                 }}
                 loading="lazy"
             />
@@ -78,14 +91,16 @@ const UserAvatar = ({ user, size = 32 }: { user: Message['user'], size?: number 
             width: `${size}px`,
             height: `${size}px`,
             borderRadius: '50%',
-            backgroundColor: 'var(--primary)',
+            background: getAvatarGradient(user.name, user.email),
             color: 'white',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: `${size * 0.4}px`,
+            fontSize: `${size * 0.38}px`,
             fontWeight: '600',
             flexShrink: 0,
+            boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+            textShadow: '0 1px 2px rgba(0,0,0,0.2)',
         }}>
             {getInitials(user.name, user.email)}
         </div>
@@ -348,48 +363,90 @@ export default function MessagesPage() {
                 <div
                     className={`channels-sidebar ${showMobileChat ? 'mobile-hidden' : ''}`}
                     style={{
-                        backgroundColor: '#f5f7f9',
+                        backgroundColor: '#f8fafc',
                         borderRight: '1px solid var(--border)',
                         overflowY: 'auto',
-                        padding: 'var(--spacing-sm)',
+                        padding: '0',
                     }}>
-                    <h3 style={{ padding: 'var(--spacing-sm)', marginBottom: 'var(--spacing-xs)', fontSize: '0.9rem', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: '600' }}>Canaux</h3>
-                    {channels.map((channel) => (
-                        <div
-                            key={channel.id}
-                            onClick={() => {
-                                setSelectedChannel(channel);
-                                setShowMobileChat(true);
-                            }}
-                            style={{
-                                padding: '10px 12px',
-                                borderRadius: '8px',
-                                backgroundColor: selectedChannel?.id === channel.id ? 'white' : 'transparent',
-                                color: selectedChannel?.id === channel.id ? 'var(--primary)' : 'var(--text-main)',
-                                cursor: 'pointer',
-                                marginBottom: '4px',
-                                transition: 'all 0.2s ease',
-                                boxShadow: selectedChannel?.id === channel.id ? '0 2px 4px rgba(0,0,0,0.05)' : 'none',
-                                fontWeight: selectedChannel?.id === channel.id ? '600' : 'normal',
-                            }}
-                        >
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <span style={{ opacity: 0.6 }}>#</span>
-                                <span>{channel.name}</span>
-                            </div>
-                        </div>
-                    ))}
+                    <h3 style={{
+                        padding: '20px 20px 12px',
+                        margin: 0,
+                        fontSize: '0.75rem',
+                        color: 'var(--text-secondary)',
+                        textTransform: 'uppercase',
+                        fontWeight: '700',
+                        letterSpacing: '0.5px',
+                    }}>Canaux</h3>
+                    <div style={{ padding: '0 8px' }}>
+                        {channels.map((channel) => {
+                            const isActive = selectedChannel?.id === channel.id;
+                            return (
+                                <div
+                                    key={channel.id}
+                                    onClick={() => {
+                                        setSelectedChannel(channel);
+                                        setShowMobileChat(true);
+                                    }}
+                                    className="channel-item"
+                                    style={{
+                                        padding: '10px 12px',
+                                        borderRadius: '8px',
+                                        backgroundColor: isActive ? 'white' : 'transparent',
+                                        color: isActive ? 'var(--text-main)' : 'var(--text-secondary)',
+                                        cursor: 'pointer',
+                                        marginBottom: '2px',
+                                        transition: 'all 0.15s ease',
+                                        boxShadow: isActive ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
+                                        fontWeight: isActive ? '600' : '500',
+                                        position: 'relative',
+                                        overflow: 'hidden',
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        if (!isActive) {
+                                            e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.6)';
+                                        }
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        if (!isActive) {
+                                            e.currentTarget.style.backgroundColor = 'transparent';
+                                        }
+                                    }}
+                                >
+                                    {/* Active indicator bar */}
+                                    {isActive && (
+                                        <div style={{
+                                            position: 'absolute',
+                                            left: 0,
+                                            top: '50%',
+                                            transform: 'translateY(-50%)',
+                                            width: '3px',
+                                            height: '60%',
+                                            backgroundColor: 'var(--primary)',
+                                            borderRadius: '0 4px 4px 0',
+                                        }} />
+                                    )}
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', paddingLeft: isActive ? '8px' : '0' }}>
+                                        <span style={{
+                                            fontSize: '1.1rem',
+                                            opacity: isActive ? 1 : 0.5,
+                                            color: isActive ? 'var(--primary)' : 'inherit',
+                                        }}>#</span>
+                                        <span style={{ fontSize: '0.9rem' }}>{channel.name}</span>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
                 </div>
 
                 {/* Messages Area */}
                 <div
                     className={`chat-area ${!showMobileChat ? 'mobile-hidden' : ''}`}
                     style={{
-                        backgroundColor: '#ffffff',
+                        backgroundColor: '#fafbfc',
                         display: 'flex',
                         flexDirection: 'column',
-                        backgroundImage: 'url("https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png")',
-                        backgroundBlendMode: 'soft-light',
+                        background: 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)',
                         height: '100%',
                         overflow: 'hidden',
                     }}>
@@ -397,13 +454,13 @@ export default function MessagesPage() {
                         <>
                             {/* Channel Header */}
                             <div style={{
-                                padding: '16px 24px',
-                                borderBottom: '1px solid var(--border)',
+                                padding: '12px 20px',
+                                borderBottom: '1px solid rgba(0,0,0,0.06)',
                                 backgroundColor: 'white',
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '12px',
-                                boxShadow: '0 1px 2px rgba(0,0,0,0.02)',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
                                 zIndex: 10,
                             }}>
                                 <button
@@ -411,7 +468,7 @@ export default function MessagesPage() {
                                     onClick={() => setShowMobileChat(false)}
                                     style={{
                                         display: 'none',
-                                        marginRight: '8px',
+                                        marginRight: '4px',
                                         background: 'none',
                                         border: 'none',
                                         cursor: 'pointer',
@@ -419,26 +476,27 @@ export default function MessagesPage() {
                                         color: 'var(--text-secondary)'
                                     }}
                                 >
-                                    <ArrowLeft size={24} />
+                                    <ArrowLeft size={22} />
                                 </button>
                                 <div style={{
-                                    width: '40px',
-                                    height: '40px',
-                                    borderRadius: '12px',
-                                    backgroundColor: 'var(--primary-light)',
-                                    color: 'var(--primary)',
+                                    width: '36px',
+                                    height: '36px',
+                                    borderRadius: '10px',
+                                    background: 'linear-gradient(135deg, #3cb371 0%, #2e8b57 100%)',
+                                    color: 'white',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    fontSize: '1.2rem',
+                                    fontSize: '1rem',
                                     fontWeight: 'bold',
+                                    boxShadow: '0 2px 6px rgba(46, 139, 87, 0.25)',
                                 }}>
                                     #
                                 </div>
                                 <div>
-                                    <h2 style={{ margin: 0, fontSize: '1.1rem' }}>{selectedChannel.name}</h2>
+                                    <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: '600' }}>{selectedChannel.name}</h2>
                                     {selectedChannel.description && (
-                                        <p style={{ margin: '2px 0 0 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                                        <p style={{ margin: '1px 0 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                                             {selectedChannel.description}
                                         </p>
                                     )}
@@ -498,18 +556,24 @@ export default function MessagesPage() {
                                                 <div
                                                     className="message-bubble"
                                                     style={{
-                                                        padding: '6px 10px',
-                                                        // borderRadius removed to avoid shorthand conflict
-                                                        borderTopLeftRadius: !isOwnMessage && !message.showAvatar ? '2px' : '12px',
-                                                        borderTopRightRadius: isOwnMessage && !message.showAvatar ? '2px' : '12px',
-                                                        borderBottomLeftRadius: !isOwnMessage ? '2px' : '12px',
-                                                        borderBottomRightRadius: isOwnMessage ? '2px' : '12px',
-                                                        backgroundColor: isOwnMessage ? 'var(--primary)' : '#f0f2f5',
+                                                        padding: '10px 14px',
+                                                        // Dynamic border radius for message grouping
+                                                        borderTopLeftRadius: !isOwnMessage && !message.showAvatar ? '4px' : '18px',
+                                                        borderTopRightRadius: isOwnMessage && !message.showAvatar ? '4px' : '18px',
+                                                        borderBottomLeftRadius: !isOwnMessage ? '4px' : '18px',
+                                                        borderBottomRightRadius: isOwnMessage ? '4px' : '18px',
+                                                        // Gradient for own messages, white for others
+                                                        background: isOwnMessage
+                                                            ? 'linear-gradient(135deg, #3cb371 0%, #2e8b57 100%)'
+                                                            : 'white',
                                                         color: isOwnMessage ? 'white' : 'var(--text-main)',
-                                                        boxShadow: '0 0.5px 1px rgba(0,0,0,0.1)',
+                                                        boxShadow: isOwnMessage
+                                                            ? '0 2px 8px rgba(46, 139, 87, 0.3)'
+                                                            : '0 1px 3px rgba(0,0,0,0.08)',
                                                         position: 'relative',
-                                                        fontSize: '0.85rem',
-                                                        maxWidth: '85%',
+                                                        fontSize: '0.9rem',
+                                                        lineHeight: '1.45',
+                                                        maxWidth: '75%',
                                                     }}
                                                 >
                                                     {/* Reply preview */}
@@ -975,21 +1039,34 @@ export default function MessagesPage() {
                                         disabled={!newMessage.trim()}
                                         style={{
                                             flexShrink: 0,
-                                            width: '40px',
-                                            height: '40px',
+                                            width: '44px',
+                                            height: '44px',
                                             borderRadius: '50%',
                                             border: 'none',
-                                            backgroundColor: newMessage.trim() ? 'var(--primary)' : '#e4e6eb',
+                                            background: newMessage.trim()
+                                                ? 'linear-gradient(135deg, #3cb371 0%, #2e8b57 100%)'
+                                                : '#e4e6eb',
                                             color: newMessage.trim() ? 'white' : '#bcc0c4',
                                             cursor: newMessage.trim() ? 'pointer' : 'default',
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
-                                            transition: 'all 0.2s',
-                                            boxShadow: newMessage.trim() ? '0 2px 4px rgba(0,0,0,0.1)' : 'none',
+                                            transition: 'all 0.2s ease',
+                                            boxShadow: newMessage.trim() ? '0 4px 12px rgba(46, 139, 87, 0.35)' : 'none',
+                                            transform: 'scale(1)',
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            if (newMessage.trim()) {
+                                                e.currentTarget.style.transform = 'scale(1.05)';
+                                                e.currentTarget.style.boxShadow = '0 6px 16px rgba(46, 139, 87, 0.4)';
+                                            }
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.transform = 'scale(1)';
+                                            e.currentTarget.style.boxShadow = newMessage.trim() ? '0 4px 12px rgba(46, 139, 87, 0.35)' : 'none';
                                         }}
                                     >
-                                        <Send size={16} />
+                                        <Send size={18} />
                                     </button>
                                 </form>
                             </div>
