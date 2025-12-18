@@ -190,42 +190,44 @@ export default function OfficialPage() {
                     </h1>
                     <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem' }}>Informations de la Mairie</p>
                 </div>
-                <button
-                    className="official-button"
-                    onClick={() => {
-                        setEditingAlert(null);
-                        setFormData({ type: 'OFFICIAL_INFO', description: '' });
-                        setShowForm(!showForm);
-                    }}
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        padding: '14px 28px',
-                        backgroundColor: 'var(--primary)',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: 'var(--radius-full)',
-                        fontSize: '1rem',
-                        fontWeight: '700',
-                        cursor: 'pointer',
-                        boxShadow: '0 4px 12px rgba(0, 191, 165, 0.3)',
-                        transition: 'all 0.3s',
-                    }}
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'translateY(-2px)';
-                        e.currentTarget.style.backgroundColor = 'var(--primary-dark)';
-                        e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 191, 165, 0.4)';
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.backgroundColor = 'var(--primary)';
-                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 191, 165, 0.3)';
-                    }}
-                >
-                    <Plus size={20} />
-                    {showForm ? 'Annuler' : 'Nouvelle annonce'}
-                </button>
+                {session?.user?.role === 'ADMIN' && (
+                    <button
+                        className="official-button"
+                        onClick={() => {
+                            setEditingAlert(null);
+                            setFormData({ type: 'OFFICIAL_INFO', description: '' });
+                            setShowForm(!showForm);
+                        }}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            padding: '14px 28px',
+                            backgroundColor: 'var(--primary)',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: 'var(--radius-full)',
+                            fontSize: '1rem',
+                            fontWeight: '700',
+                            cursor: 'pointer',
+                            boxShadow: '0 4px 12px rgba(0, 191, 165, 0.3)',
+                            transition: 'all 0.3s',
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = 'translateY(-2px)';
+                            e.currentTarget.style.backgroundColor = 'var(--primary-dark)';
+                            e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 191, 165, 0.4)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = 'translateY(0)';
+                            e.currentTarget.style.backgroundColor = 'var(--primary)';
+                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 191, 165, 0.3)';
+                        }}
+                    >
+                        <Plus size={20} />
+                        {showForm ? 'Annuler' : 'Nouvelle annonce'}
+                    </button>
+                )}
             </header>
 
             {/* Form Modal avec thème Village */}
