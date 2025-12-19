@@ -674,7 +674,7 @@ export default function MarketPage() {
                                         </div>
 
 
-                                        {session?.user?.id === listing.userId && (
+                                        {(session?.user?.id === listing.userId || session?.user?.role === 'ADMIN') && (
                                             <div style={{ display: 'flex', gap: '8px' }}>
                                                 <button
                                                     onClick={(e) => {
@@ -730,7 +730,7 @@ export default function MarketPage() {
                     onClose={() => setSelectedListing(null)}
                     onEdit={() => handleEdit(selectedListing)}
                     onDelete={() => handleDelete(selectedListing.id)}
-                    isOwner={session?.user?.id === selectedListing.userId}
+                    isOwner={session?.user?.id === selectedListing.userId || session?.user?.role === 'ADMIN'}
                 />
             )}
         </div >

@@ -279,7 +279,7 @@ export default function VillagePage() {
                 {filteredBusinesses.map((business) => {
                     const photosArray = JSON.parse(business.photos || "[]");
                     const photoUrl = photosArray[0];
-                    const isOwner = session?.user?.id === business.ownerId;
+                    const isOwner = session?.user?.id === business.ownerId || session?.user?.role === 'ADMIN';
 
                     return (
                         <div
