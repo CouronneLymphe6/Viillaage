@@ -238,7 +238,7 @@ export default function Map({ alerts, center, onVote, onDelete, onEdit, onMapCli
                                     </div>
                                 )}
 
-                                {session?.user?.id === alert.userId && onEdit && onDelete && (
+                                {(session?.user?.id === alert.userId || session?.user?.role === 'ADMIN') && onEdit && onDelete && (
                                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #e5e7eb' }}>
                                         <button
                                             onClick={() => onEdit(alert)}
