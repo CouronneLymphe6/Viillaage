@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { Plus, X, Edit2, Trash2, FolderOpen, Briefcase } from 'lucide-react';
 import Loader from '@/components/Loader';
 import { compressImage, formatFileSize } from '@/lib/imageUtils';
@@ -21,6 +22,7 @@ interface ProjectsTabProps {
 }
 
 export function ProjectsTab({ associationId, isOwner }: ProjectsTabProps) {
+    const { data: session } = useSession();
     const [projects, setProjects] = useState<AssociationProject[]>([]);
     const [loading, setLoading] = useState(false);
     const [showForm, setShowForm] = useState(false);
@@ -91,7 +93,7 @@ export function ProjectsTab({ associationId, isOwner }: ProjectsTabProps) {
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2 style={{ margin: 0 }}>Projets</h2>
-                {isOwner && (
+                {(isOwner || session?.user?.role === 'ADMIN') && (
                     <button
                         onClick={() => {
                             setEditingProject(null);
@@ -161,7 +163,7 @@ export function ProjectsTab({ associationId, isOwner }: ProjectsTabProps) {
                                         boxShadow: 'var(--shadow-sm)',
                                         position: 'relative',
                                     }}>
-                                        {isOwner && (
+                                        {(isOwner || session?.user?.role === 'ADMIN') && (
                                             <div style={{
                                                 position: 'absolute',
                                                 top: '12px',

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { Plus, X, Edit2, Trash2, Calendar } from 'lucide-react';
 import Loader from '@/components/Loader';
 
@@ -20,6 +21,7 @@ interface EventsTabProps {
 }
 
 export function EventsTab({ associationId, isOwner }: EventsTabProps) {
+    const { data: session } = useSession();
     const [events, setEvents] = useState<AssociationEvent[]>([]);
     const [loading, setLoading] = useState(false);
     const [showForm, setShowForm] = useState(false);
@@ -81,7 +83,7 @@ export function EventsTab({ associationId, isOwner }: EventsTabProps) {
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2 style={{ margin: 0 }}>Événements</h2>
-                {isOwner && (
+                {(isOwner || session?.user?.role === 'ADMIN') && (
                     <button
                         onClick={() => {
                             setEditingEvent(null);
@@ -128,7 +130,7 @@ export function EventsTab({ associationId, isOwner }: EventsTabProps) {
                                 borderLeft: '4px solid var(--primary)',
                                 position: 'relative',
                             }}>
-                                {isOwner && (
+                                {(isOwner || session?.user?.role === 'ADMIN') && (
                                     <div style={{
                                         position: 'absolute',
                                         top: '12px',

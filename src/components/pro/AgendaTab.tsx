@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { Plus, X, Edit2, Trash2, Calendar } from 'lucide-react';
 import Loader from '@/components/Loader';
 
@@ -19,6 +20,7 @@ interface AgendaTabProps {
 }
 
 export function AgendaTab({ businessId, isOwner }: AgendaTabProps) {
+    const { data: session } = useSession();
     const [events, setEvents] = useState<AgendaEvent[]>([]);
     const [loading, setLoading] = useState(false);
     const [showForm, setShowForm] = useState(false);
@@ -80,7 +82,7 @@ export function AgendaTab({ businessId, isOwner }: AgendaTabProps) {
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2 style={{ margin: 0 }}>Agenda</h2>
-                {isOwner && (
+                {(isOwner || session?.user?.role === 'ADMIN') && (
                     <button
                         onClick={() => {
                             setEditingEvent(null);
@@ -127,7 +129,7 @@ export function AgendaTab({ businessId, isOwner }: AgendaTabProps) {
                                 borderLeft: '4px solid var(--primary)',
                                 position: 'relative',
                             }}>
-                                {isOwner && (
+                                {(isOwner || session?.user?.role === 'ADMIN') && (
                                     <div style={{
                                         position: 'absolute',
                                         top: '12px',

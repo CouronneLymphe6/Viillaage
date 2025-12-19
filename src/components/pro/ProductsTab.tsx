@@ -23,6 +23,7 @@ interface ProductsTabProps {
 }
 
 export function ProductsTab({ businessId, isOwner }: ProductsTabProps) {
+    const { data: session } = useSession();
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(false);
     const [showForm, setShowForm] = useState(false);
@@ -83,7 +84,7 @@ export function ProductsTab({ businessId, isOwner }: ProductsTabProps) {
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2 style={{ margin: 0 }}>Produits & Services</h2>
-                {isOwner && (
+                {(isOwner || session?.user?.role === 'ADMIN') && (
                     <button
                         onClick={() => {
                             setEditingProduct(null);
@@ -129,7 +130,7 @@ export function ProductsTab({ businessId, isOwner }: ProductsTabProps) {
                                 boxShadow: 'var(--shadow-sm)',
                                 position: 'relative',
                             }}>
-                                {isOwner && (
+                                {(isOwner || session?.user?.role === 'ADMIN') && (
                                     <div style={{
                                         position: 'absolute',
                                         top: '8px',

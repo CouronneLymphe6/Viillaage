@@ -168,7 +168,7 @@ export function NewsTab({ associationId, isOwner }: NewsTabProps) {
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2 style={{ margin: 0 }}>Actualités</h2>
-                {isOwner && (
+                {(isOwner || session?.user?.role === 'ADMIN') && (
                     <button
                         onClick={() => {
                             setEditingPost(null);
@@ -213,7 +213,7 @@ export function NewsTab({ associationId, isOwner }: NewsTabProps) {
                                 boxShadow: 'var(--shadow-sm)',
                                 position: 'relative',
                             }}>
-                                {isOwner && (
+                                {(isOwner || session?.user?.role === 'ADMIN') && (
                                     <div style={{
                                         position: 'absolute',
                                         top: '12px',
