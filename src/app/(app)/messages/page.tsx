@@ -729,7 +729,7 @@ export default function MessagesPage() {
                                                                 animation: 'fadeIn 0.1s ease',
                                                                 border: '1px solid var(--border)',
                                                             }}>
-                                                            {isOwnMessage ? (
+                                                            {(isOwnMessage || session?.user?.role === 'ADMIN') ? (
                                                                 <>
                                                                     <button
                                                                         onClick={(e) => {
