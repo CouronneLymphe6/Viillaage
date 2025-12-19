@@ -36,8 +36,10 @@ export async function DELETE(
             );
         }
 
-        // Vérifier ownership
-        if (post.business.ownerId !== session.user.id) {
+        // Vérifier ownership ou admin
+        const isAdmin = (session.user as any).role === 'ADMIN';
+
+        if (post.business.ownerId !== session.user.id && !isAdmin) {
             return new NextResponse("Forbidden", { status: 403 });
         }
 
@@ -91,8 +93,10 @@ export async function PUT(
             );
         }
 
-        // Vérifier ownership
-        if (post.business.ownerId !== session.user.id) {
+        // Vérifier ownership ou admin
+        const isAdmin = (session.user as any).role === 'ADMIN';
+
+        if (post.business.ownerId !== session.user.id && !isAdmin) {
             return new NextResponse("Forbidden", { status: 403 });
         }
 

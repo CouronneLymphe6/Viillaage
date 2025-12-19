@@ -59,7 +59,9 @@ export async function PATCH(
             return new NextResponse("Association not found", { status: 404 });
         }
 
-        if (existingAssociation.ownerId !== session.user.id) {
+        const isAdmin = (session.user as any).role === 'ADMIN';
+
+        if (existingAssociation.ownerId !== session.user.id && !isAdmin) {
             return new NextResponse("Forbidden", { status: 403 });
         }
 
@@ -115,7 +117,9 @@ export async function DELETE(
             return new NextResponse("Association not found", { status: 404 });
         }
 
-        if (existingAssociation.ownerId !== session.user.id) {
+        const isAdmin = (session.user as any).role === 'ADMIN';
+
+        if (existingAssociation.ownerId !== session.user.id && !isAdmin) {
             return new NextResponse("Forbidden", { status: 403 });
         }
 

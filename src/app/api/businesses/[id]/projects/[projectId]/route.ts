@@ -23,7 +23,9 @@ export async function PATCH(
             include: { business: true },
         });
 
-        if (!project || project.business.ownerId !== session.user.id) {
+        const isAdmin = (session.user as any).role === 'ADMIN';
+
+        if (!project || (project.business.ownerId !== session.user.id && !isAdmin)) {
             return new NextResponse("Forbidden", { status: 403 });
         }
 
@@ -65,7 +67,9 @@ export async function DELETE(
             include: { business: true },
         });
 
-        if (!project || project.business.ownerId !== session.user.id) {
+        const isAdmin = (session.user as any).role === 'ADMIN';
+
+        if (!project || (project.business.ownerId !== session.user.id && !isAdmin)) {
             return new NextResponse("Forbidden", { status: 403 });
         }
 

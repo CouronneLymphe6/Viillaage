@@ -23,7 +23,9 @@ export async function PATCH(
             include: { association: true },
         });
 
-        if (!post || post.association.ownerId !== session.user.id) {
+        const isAdmin = (session.user as any).role === 'ADMIN';
+
+        if (!post || (post.association.ownerId !== session.user.id && !isAdmin)) {
             return new NextResponse("Forbidden", { status: 403 });
         }
 
@@ -63,7 +65,9 @@ export async function DELETE(
             include: { association: true },
         });
 
-        if (!post || post.association.ownerId !== session.user.id) {
+        const isAdmin = (session.user as any).role === 'ADMIN';
+
+        if (!post || (post.association.ownerId !== session.user.id && !isAdmin)) {
             return new NextResponse("Forbidden", { status: 403 });
         }
 
