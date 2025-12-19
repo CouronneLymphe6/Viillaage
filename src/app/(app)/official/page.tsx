@@ -439,7 +439,7 @@ export default function OfficialPage() {
                         alerts.map((alert, index) => {
                             const pinColor = PIN_COLORS[index % PIN_COLORS.length];
                             const rotation = (index % 2 === 0 ? 1 : -1) * (Math.random() * 2 + 1);
-                            const isOwner = session?.user?.id === alert.userId;
+                            const isOwner = session?.user?.id === alert.userId || session?.user?.role === 'ADMIN';
 
                             return (
                                 <div

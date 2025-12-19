@@ -221,7 +221,7 @@ export function PostsTab({ businessId, isOwner }: PostsTabProps) {
                                 boxShadow: 'var(--shadow-sm)',
                                 position: 'relative',
                             }}>
-                                {isOwner && (
+                                {(isOwner || session?.user?.role === 'ADMIN') && (
                                     <div style={{
                                         position: 'absolute',
                                         top: '12px',
