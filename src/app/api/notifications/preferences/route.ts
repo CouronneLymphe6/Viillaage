@@ -26,7 +26,7 @@ export async function GET() {
                     enableMarket: true,
                     enableBusiness: true,
                     enableMessages: true,
-                    enablePush: false,
+                    enablePush: true,
                 },
             });
         }
@@ -66,7 +66,7 @@ export async function PATCH(request: NextRequest) {
                 enableMarket: enableMarket ?? true,
                 enableBusiness: enableBusiness ?? true,
                 enableMessages: enableMessages ?? true,
-                enablePush: enablePush ?? false,
+                enablePush: enablePush ?? true,
             },
         });
 

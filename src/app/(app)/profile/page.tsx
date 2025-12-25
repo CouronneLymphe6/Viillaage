@@ -29,7 +29,7 @@ export default function ProfilePage() {
         enableMarket: true,
         enableBusiness: true,
         enableMessages: true,
-        enablePush: false,
+        enablePush: true,
     });
     const [savingPrefs, setSavingPrefs] = useState(false);
 
@@ -52,7 +52,7 @@ export default function ProfilePage() {
                             enableMarket: data.enableMarket ?? true,
                             enableBusiness: data.enableBusiness ?? true,
                             enableMessages: data.enableMessages ?? true,
-                            enablePush: data.enablePush ?? false,
+                            enablePush: data.enablePush ?? true,
                         });
                     }
                 })
@@ -350,6 +350,12 @@ export default function ProfilePage() {
                     onChange={() => handleNotifPrefChange('enableMessages')}
                     label="💬 Messagerie"
                     description="Réponses et mentions (@votrenom)"
+                />
+                <ToggleSwitch
+                    enabled={notifPrefs.enablePush}
+                    onChange={() => handleNotifPrefChange('enablePush')}
+                    label="📱 Notifications Push"
+                    description="Recevoir des notifications sur votre appareil (même quand l'app est fermée)"
                 />
             </div>
         </div>

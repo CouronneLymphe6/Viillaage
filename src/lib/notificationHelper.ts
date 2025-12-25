@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { sendPushNotification } from '@/lib/pushNotifications';
 
 interface CreateNotificationParams {
     userId: string;
@@ -46,6 +47,18 @@ export async function createNotification(params: CreateNotificationParams) {
                 link: params.link,
             },
         });
+
+        // Send push notification asynchronously (fire-and-forget)
+        // This won't block the main process and won't affect performance
+        sendPushNotification(params.userId, {
+            title: params.title,
+            body: params.message,
+            url: params.link,
+        }).catch(error => {
+            // Log error but don't fail the notification creation
+            console.error('Failed to send push notification:', error);
+        });
+
         return notification;
     } catch (error) {
         console.error('Error creating notification:', error);
