@@ -207,7 +207,7 @@ export default function Contact() {
                             marginBottom: 'var(--spacing-xs)'
                         }}>Email</h3>
                         <a
-                            href="mailto:spreadtales@gmail.com"
+                            href="mailto:bruno.alessi@viillaage.com"
                             style={{
                                 color: 'var(--primary)',
                                 textDecoration: 'none',
@@ -215,7 +215,7 @@ export default function Contact() {
                                 fontWeight: '500'
                             }}
                         >
-                            spreadtales@gmail.com
+                            bruno.alessi@viillaage.com
                         </a>
                         <p style={{
                             fontSize: '0.85rem',
