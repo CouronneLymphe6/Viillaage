@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { Plus, Edit2, Trash2, X } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, FileText } from 'lucide-react';
 import { Alert } from '@/types';
+import FileUpload from '@/components/FileUpload';
+import Image from 'next/image';
 
 // Couleurs de punaises harmonisées avec le thème Village
 const PIN_COLORS = ['#00BFA5', '#008F7A', '#00897B', '#00695C', '#004D40', '#26A69A'];
@@ -16,6 +18,7 @@ export default function OfficialPage() {
     const [formData, setFormData] = useState({
         type: 'OFFICIAL_INFO',
         description: '',
+        photoUrl: '',
     });
 
     const fetchOfficialAlerts = async () => {
@@ -69,7 +72,7 @@ export default function OfficialPage() {
 
         setShowForm(false);
         setEditingAlert(null);
-        setFormData({ type: 'OFFICIAL_INFO', description: '' });
+        setFormData({ type: 'OFFICIAL_INFO', description: '', photoUrl: '' });
 
         try {
             const url = editingAlert ? `/api/alerts/${editingAlert.id}` : '/api/alerts';
@@ -134,6 +137,7 @@ export default function OfficialPage() {
         setFormData({
             type: alert.type,
             description: alert.description,
+            photoUrl: alert.photoUrl || '',
         });
         setShowForm(true);
     };
@@ -195,7 +199,7 @@ export default function OfficialPage() {
                         className="official-button"
                         onClick={() => {
                             setEditingAlert(null);
-                            setFormData({ type: 'OFFICIAL_INFO', description: '' });
+                            setFormData({ type: 'OFFICIAL_INFO', description: '', photoUrl: '' });
                             setShowForm(!showForm);
                         }}
                         style={{
@@ -355,6 +359,12 @@ export default function OfficialPage() {
                                     onBlur={(e) => e.currentTarget.style.borderColor = 'var(--border)'}
                                 />
                             </div>
+
+                            <FileUpload
+                                onUpload={(url) => setFormData({ ...formData, photoUrl: url })}
+                                currentFile={formData.photoUrl ? { url: formData.photoUrl, type: 'IMAGE' } : null}
+                                label="Pièce jointe (photo ou PDF)"
+                            />
 
                             <button
                                 type="submit"
@@ -569,6 +579,61 @@ export default function OfficialPage() {
                                         }}>
                                             {alert.description}
                                         </p>
+
+                                        {/* Attachment Display */}
+                                        {alert.photoUrl && (
+                                            <div style={{ marginTop: '16px' }}>
+                                                {alert.photoUrl.toLowerCase().endsWith('.pdf') ? (
+                                                    <a
+                                                        href={alert.photoUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        style={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: '10px',
+                                                            padding: '12px 16px',
+                                                            backgroundColor: 'var(--background)',
+                                                            border: '2px solid var(--primary)',
+                                                            borderRadius: 'var(--radius-md)',
+                                                            textDecoration: 'none',
+                                                            color: 'var(--primary)',
+                                                            fontWeight: '600',
+                                                            transition: 'all 0.2s',
+                                                        }}
+                                                        onMouseEnter={(e) => {
+                                                            e.currentTarget.style.backgroundColor = 'var(--primary)';
+                                                            e.currentTarget.style.color = 'white';
+                                                        }}
+                                                        onMouseLeave={(e) => {
+                                                            e.currentTarget.style.backgroundColor = 'var(--background)';
+                                                            e.currentTarget.style.color = 'var(--primary)';
+                                                        }}
+                                                    >
+                                                        <FileText size={20} />
+                                                        📄 Voir le document PDF
+                                                    </a>
+                                                ) : (
+                                                    <Image
+                                                        src={alert.photoUrl}
+                                                        alt="Pièce jointe"
+                                                        width={400}
+                                                        height={250}
+                                                        style={{
+                                                            width: '100%',
+                                                            height: 'auto',
+                                                            maxHeight: '250px',
+                                                            borderRadius: 'var(--radius-sm)',
+                                                            border: '2px solid var(--border)',
+                                                            objectFit: 'cover',
+                                                            cursor: 'pointer'
+                                                        }}
+                                                        onClick={() => window.open(alert.photoUrl!, '_blank')}
+                                                        loading="lazy"
+                                                    />
+                                                )}
+                                            </div>
+                                        )}
 
                                         {/* Date */}
                                         <div style={{
