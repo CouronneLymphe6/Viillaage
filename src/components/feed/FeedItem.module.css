@@ -1,15 +1,31 @@
 .feedItem {
     background: white;
-    border-radius: 12px;
+    border-radius: 16px;
     margin-bottom: 16px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-    transition: box-shadow 0.2s ease;
+    padding: 0;
+    border-left: 5px solid var(--primary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
     overflow: hidden;
-    border: 1px solid #e0e0e0;
 }
 
 .feedItem:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+/* Badge de catégorie en haut */
+.categoryBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: white;
+    margin: 16px 16px 12px 16px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 /* Header avec avatar et infos auteur */
@@ -17,7 +33,7 @@
     display: flex;
     align-items: flex-start;
     gap: 12px;
-    padding: 16px 16px 12px 16px;
+    padding: 0 16px 12px 16px;
 }
 
 .avatar {
@@ -26,15 +42,17 @@
 }
 
 .avatarImg {
-    width: 48px;
-    height: 48px;
+    width: 52px;
+    height: 52px;
     border-radius: 50%;
     object-fit: cover;
+    border: 3px solid white;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .avatarPlaceholder {
-    width: 48px;
-    height: 48px;
+    width: 52px;
+    height: 52px;
     border-radius: 50%;
     background: linear-gradient(135deg, #00BFA5, #00897B);
     display: flex;
@@ -42,7 +60,9 @@
     justify-content: center;
     color: white;
     font-weight: 700;
-    font-size: 1.2rem;
+    font-size: 1.3rem;
+    border: 3px solid white;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .authorInfo {
@@ -51,13 +71,13 @@
 }
 
 .authorName {
-    font-weight: 600;
-    font-size: 0.95rem;
+    font-weight: 700;
+    font-size: 1.05rem;
     color: #000000;
-    margin-bottom: 2px;
+    margin-bottom: 4px;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
 }
 
 .adminBadge {
@@ -65,54 +85,39 @@
     align-items: center;
     gap: 3px;
     color: #00BFA5;
-    font-size: 0.75rem;
+    font-size: 0.85rem;
     font-weight: 600;
 }
 
 .timestamp {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     color: #666666;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.categoryBadge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    background: rgba(0, 191, 165, 0.1);
-    color: #00BFA5;
 }
 
 /* Contenu du post */
 .content {
-    padding: 0 16px 12px 16px;
+    padding: 0 16px 16px 16px;
 }
 
 .title {
-    font-size: 1.1rem;
-    font-weight: 600;
+    font-size: 1.2rem;
+    font-weight: 700;
     color: #000000;
     margin-bottom: 8px;
-    line-height: 1.4;
+    line-height: 1.3;
 }
 
 .text {
-    font-size: 0.95rem;
-    line-height: 1.5;
-    color: #000000;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #333333;
     white-space: pre-wrap;
     word-break: break-word;
 }
 
 .mediaContainer {
-    margin-top: 12px;
-    border-radius: 0;
+    margin-top: 16px;
+    border-radius: 12px;
     overflow: hidden;
     background: #f5f5f5;
 }
@@ -129,19 +134,22 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 12px 16px;
-    margin-top: 12px;
-    background: #f5f5f5;
-    border-radius: 8px;
+    padding: 14px 18px;
+    margin-top: 16px;
+    background: rgba(0, 191, 165, 0.1);
+    border-radius: 12px;
     color: #00BFA5;
     text-decoration: none;
     font-weight: 600;
-    font-size: 0.9rem;
-    transition: background 0.2s ease;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    border: 2px solid #00BFA5;
 }
 
 .pdfLink:hover {
-    background: #e0e0e0;
+    background: #00BFA5;
+    color: white;
+    transform: translateX(4px);
 }
 
 .price {
@@ -149,60 +157,59 @@
     align-items: center;
     gap: 4px;
     margin-top: 12px;
-    padding: 6px 12px;
-    background: #f0f9f4;
-    color: #00897B;
-    border-radius: 6px;
-    font-size: 0.95rem;
-    font-weight: 600;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+    color: white;
+    border-radius: 20px;
+    font-size: 1rem;
+    font-weight: 700;
+    box-shadow: 0 3px 8px rgba(243, 156, 18, 0.3);
 }
 
-/* Event Card - Style LinkedIn */
+/* Event Card - Style Viillaage */
 .eventCard {
     display: flex;
-    gap: 12px;
-    padding: 12px;
-    margin-top: 12px;
-    background: #f8f9fa;
-    border-radius: 8px;
-    border: 1px solid #e0e0e0;
+    gap: 16px;
+    padding: 16px;
+    margin-top: 16px;
+    background: linear-gradient(135deg, rgba(52, 152, 219, 0.08), rgba(41, 128, 185, 0.08));
+    border-radius: 12px;
+    border: 2px solid #3498db;
 }
 
 .eventDate {
     flex-shrink: 0;
-    width: 60px;
-    height: 60px;
-    background: white;
-    border-radius: 8px;
+    width: 70px;
+    height: 70px;
+    background: #3498db;
+    border-radius: 12px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    border: 2px solid #00BFA5;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    color: white;
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
 }
 
 .eventDay {
-    font-size: 1.6rem;
+    font-size: 2rem;
     font-weight: 700;
     line-height: 1;
-    color: #000000;
 }
 
 .eventMonth {
-    font-size: 0.7rem;
-    font-weight: 600;
+    font-size: 0.75rem;
+    font-weight: 700;
     margin-top: 2px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: #00BFA5;
 }
 
 .eventYear {
-    font-size: 0.65rem;
+    font-size: 0.7rem;
     font-weight: 500;
     margin-top: 2px;
-    color: #666666;
+    opacity: 0.9;
 }
 
 .eventDetails {
@@ -210,12 +217,12 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 4px;
+    gap: 6px;
 }
 
 .eventTitle {
-    font-weight: 600;
-    font-size: 1rem;
+    font-weight: 700;
+    font-size: 1.1rem;
     color: #000000;
     line-height: 1.3;
 }
@@ -223,57 +230,53 @@
 .eventLocation {
     display: flex;
     align-items: center;
-    gap: 4px;
-    font-size: 0.85rem;
+    gap: 6px;
+    font-size: 0.9rem;
     color: #666666;
 }
 
-/* Metrics - Style LinkedIn */
+/* Metrics - Style Viillaage avec cœurs rouges */
 .metrics {
     display: flex;
     align-items: center;
-    gap: 4px;
-    padding: 8px 16px;
-    border-top: 1px solid #e0e0e0;
+    gap: 16px;
+    padding: 12px 16px;
+    border-top: 1px solid #f0f0f0;
 }
 
 .metricBtn {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 6px;
-    flex: 1;
-    padding: 10px 8px;
+    gap: 8px;
+    padding: 0;
     background: none;
     border: none;
-    border-radius: 6px;
     color: #666666;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
 }
 
 .metricBtn:hover {
-    background: #f5f5f5;
     color: #000000;
+    transform: scale(1.05);
 }
 
 .metricBtn.liked {
     color: #e74c3c;
 }
 
-.metricBtn.liked:hover {
-    background: rgba(231, 76, 60, 0.1);
+.metricBtn.liked svg {
+    fill: #e74c3c;
 }
 
 .participants {
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 10px 8px;
     color: #666666;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     font-weight: 600;
 }
 
@@ -281,62 +284,66 @@
 @media (max-width: 768px) {
     .feedItem {
         margin-bottom: 12px;
-        border-radius: 0;
-        border-left: none;
-        border-right: none;
+        border-radius: 12px;
+        border-left-width: 4px;
+    }
+
+    .categoryBadge {
+        margin: 12px 12px 8px 12px;
+        padding: 6px 12px;
+        font-size: 0.8rem;
     }
 
     .header {
-        padding: 12px 12px 8px 12px;
+        padding: 0 12px 8px 12px;
     }
 
     .content {
-        padding: 0 12px 8px 12px;
+        padding: 0 12px 12px 12px;
     }
 
     .avatarImg,
     .avatarPlaceholder {
-        width: 40px;
-        height: 40px;
+        width: 44px;
+        height: 44px;
     }
 
     .authorName {
-        font-size: 0.9rem;
+        font-size: 0.95rem;
     }
 
     .timestamp {
-        font-size: 0.75rem;
+        font-size: 0.8rem;
     }
 
     .title {
-        font-size: 1rem;
+        font-size: 1.05rem;
     }
 
     .text {
-        font-size: 0.9rem;
+        font-size: 0.95rem;
     }
 
     .eventCard {
-        gap: 10px;
-        padding: 10px;
+        gap: 12px;
+        padding: 12px;
     }
 
     .eventDate {
-        width: 50px;
-        height: 50px;
+        width: 60px;
+        height: 60px;
     }
 
     .eventDay {
-        font-size: 1.4rem;
+        font-size: 1.6rem;
     }
 
     .metrics {
-        padding: 6px 12px;
-        gap: 2px;
+        padding: 10px 12px;
+        gap: 12px;
     }
 
     .metricBtn {
-        padding: 8px 6px;
-        font-size: 0.85rem;
+        font-size: 0.9rem;
     }
 }
