@@ -1,20 +1,19 @@
 .feedPage {
-    max-width: 800px;
+    max-width: 680px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 0;
     min-height: 100vh;
+    background: #f5f5f5;
 }
 
 .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 24px;
-    padding: 24px;
-    background: linear-gradient(135deg, #FFFFFF 0%, #F5F7FA 100%);
-    border-radius: var(--radius-lg);
-    border: 3px solid var(--primary);
-    box-shadow: var(--shadow-md);
+    padding: 20px 16px;
+    background: white;
+    border-bottom: 1px solid #e0e0e0;
+    margin-bottom: 0;
 }
 
 .headerContent {
@@ -22,46 +21,46 @@
 }
 
 .title {
-    font-size: 2.2rem;
+    font-size: 1.6rem;
     font-weight: 700;
-    color: var(--accent);
+    color: #000000;
     margin-bottom: 4px;
-    font-family: 'Poppins', sans-serif;
 }
 
 .subtitle {
-    font-size: 1rem;
-    color: var(--text-secondary);
+    font-size: 0.9rem;
+    color: #666666;
 }
 
 .newPostBtn {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 12px 24px;
-    background: var(--primary);
+    gap: 6px;
+    padding: 10px 20px;
+    background: #00BFA5;
     color: white;
     border: none;
-    border-radius: var(--radius-full);
-    font-size: 1rem;
-    font-weight: 700;
+    border-radius: 20px;
+    font-size: 0.95rem;
+    font-weight: 600;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0, 191, 165, 0.3);
-    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 191, 165, 0.2);
+    transition: all 0.2s ease;
 }
 
 .newPostBtn:hover {
-    background: var(--primary-dark);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0, 191, 165, 0.4);
+    background: #00897B;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 191, 165, 0.3);
 }
 
 .feedContainer {
-    margin-top: 24px;
+    margin-top: 0;
 }
 
 .feedList {
-    /* Feed items will stack naturally */
+    background: #f5f5f5;
+    padding: 16px 0;
 }
 
 .loadingContainer {
@@ -70,12 +69,15 @@
     align-items: center;
     justify-content: center;
     padding: 60px 20px;
-    color: var(--text-secondary);
+    color: #666666;
+    background: white;
+    margin: 16px;
+    border-radius: 12px;
 }
 
 .spinner {
     animation: spin 1s linear infinite;
-    color: var(--primary);
+    color: #00BFA5;
     margin-bottom: 16px;
 }
 
@@ -91,72 +93,74 @@
 
 .emptyState {
     text-align: center;
-    padding: 80px 20px;
+    padding: 60px 20px;
     background: white;
-    border-radius: var(--radius-lg);
-    border: 2px dashed var(--border);
+    border-radius: 12px;
+    margin: 16px;
+    border: 1px solid #e0e0e0;
 }
 
 .emptyIcon {
-    font-size: 4rem;
+    font-size: 3.5rem;
     margin-bottom: 16px;
+    opacity: 0.5;
 }
 
 .emptyState h3 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--accent);
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #000000;
     margin-bottom: 8px;
 }
 
 .emptyState p {
-    font-size: 1rem;
-    color: var(--text-secondary);
+    font-size: 0.95rem;
+    color: #666666;
     margin-bottom: 24px;
 }
 
 .emptyBtn {
-    padding: 12px 32px;
-    background: var(--primary);
+    padding: 10px 28px;
+    background: #00BFA5;
     color: white;
     border: none;
-    border-radius: var(--radius-full);
-    font-size: 1rem;
-    font-weight: 700;
+    border-radius: 20px;
+    font-size: 0.95rem;
+    font-weight: 600;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0, 191, 165, 0.3);
-    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 191, 165, 0.2);
+    transition: all 0.2s ease;
 }
 
 .emptyBtn:hover {
-    background: var(--primary-dark);
-    transform: translateY(-2px);
+    background: #00897B;
+    transform: translateY(-1px);
 }
 
 .loadMoreContainer {
     display: flex;
     justify-content: center;
-    margin-top: 32px;
-    margin-bottom: 32px;
+    margin: 24px 16px;
 }
 
 .loadMoreBtn {
-    padding: 14px 40px;
+    padding: 12px 32px;
     background: white;
-    color: var(--primary);
-    border: 2px solid var(--primary);
-    border-radius: var(--radius-full);
-    font-size: 1rem;
-    font-weight: 700;
+    color: #00BFA5;
+    border: 1px solid #00BFA5;
+    border-radius: 20px;
+    font-size: 0.95rem;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .loadMoreBtn:hover {
-    background: var(--primary);
+    background: #00BFA5;
     color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 191, 165, 0.3);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 191, 165, 0.3);
 }
 
 .loadingMore {
@@ -171,7 +175,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(38, 50, 56, 0.7);
+    background: rgba(0, 0, 0, 0.5);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -182,49 +186,53 @@
 .modal {
     background: white;
     padding: 32px;
-    border-radius: var(--radius-lg);
+    border-radius: 16px;
     max-width: 600px;
     width: 90%;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    border: 2px solid var(--primary);
 }
 
 .modal h2 {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
     font-weight: 700;
-    color: var(--accent);
+    color: #000000;
     margin-bottom: 16px;
 }
 
 .modal button {
     margin-top: 20px;
     padding: 12px 24px;
-    background: var(--primary);
+    background: #00BFA5;
     color: white;
     border: none;
-    border-radius: var(--radius-md);
-    font-weight: 700;
+    border-radius: 8px;
+    font-weight: 600;
     cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.modal button:hover {
+    background: #00897B;
 }
 
 @media (max-width: 768px) {
     .feedPage {
-        padding: 16px;
+        padding: 0;
     }
 
     .header {
         flex-direction: column;
         align-items: flex-start;
-        gap: 16px;
-        padding: 20px;
+        gap: 12px;
+        padding: 16px;
     }
 
     .title {
-        font-size: 1.8rem;
+        font-size: 1.4rem;
     }
 
     .subtitle {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
     }
 
     .newPostBtn {
@@ -232,8 +240,13 @@
         justify-content: center;
     }
 
+    .feedList {
+        padding: 12px 0;
+    }
+
     .emptyState {
-        padding: 60px 20px;
+        padding: 50px 20px;
+        margin: 12px;
     }
 
     .emptyIcon {
@@ -241,6 +254,6 @@
     }
 
     .emptyState h3 {
-        font-size: 1.3rem;
+        font-size: 1.2rem;
     }
 }

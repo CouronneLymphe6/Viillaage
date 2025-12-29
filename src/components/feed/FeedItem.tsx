@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Heart, MessageCircle, Users, MapPin, Calendar, FileText } from 'lucide-react';
+import { Heart, MessageCircle, Users, MapPin, FileText } from 'lucide-react';
 import styles from './FeedItem.module.css';
 import { FeedItem as FeedItemType } from '@/lib/feed/types';
 import { formatDistanceToNow } from 'date-fns';
@@ -13,18 +13,6 @@ interface FeedItemProps {
     onLike: (itemId: string, itemType: string) => void;
     onComment: (itemId: string, itemType: string) => void;
 }
-
-// Mapping des catégories vers les couleurs de bordure
-const categoryColors: Record<string, string> = {
-    ALERT: '#e74c3c',
-    PRO_POST: '#9b59b6',
-    ASSOCIATION_POST: '#e91e63',
-    EVENT: '#3498db',
-    LISTING: '#f39c12',
-    OFFICIAL: '#00BFA5',
-    FEED_POST: '#95a5a6',
-    ASSOCIATION_EVENT: '#3498db',
-};
 
 // Mapping des catégories vers les labels
 const categoryLabels: Record<string, string> = {
@@ -41,7 +29,6 @@ const categoryLabels: Record<string, string> = {
 export default function FeedItem({ item, onLike, onComment }: FeedItemProps) {
     const [showComments, setShowComments] = useState(false);
 
-    const borderColor = categoryColors[item.type] || '#95a5a6';
     const categoryLabel = categoryLabels[item.type] || 'Post';
 
     const timeAgo = formatDistanceToNow(new Date(item.createdAt), {
@@ -64,14 +51,16 @@ export default function FeedItem({ item, onLike, onComment }: FeedItemProps) {
     const isEvent = item.type === 'EVENT' || item.type === 'ASSOCIATION_EVENT';
     const eventDate = item.metadata?.eventDate ? new Date(item.metadata.eventDate) : null;
 
-    return (
-        <article className={styles.feedItem} style={{ borderLeftColor: borderColor }}>
-            {/* Category Badge */}
-            <div className={styles.categoryBadge} style={{ backgroundColor: borderColor }}>
-                {categoryLabel}
-            </div>
+    // Nom de l'auteur avec contexte (business ou association)
+    const authorDisplayName = item.author.type === 'BUSINESS' && item.author.subline
+        ? item.author.name
+        : item.author.type === 'ASSOCIATION' && item.author.name
+            ? item.author.name
+            : item.author.name;
 
-            {/* Author Info */}
+    return (
+        <article className={styles.feedItem}>
+            {/* Header avec avatar et infos auteur */}
             <div className={styles.header}>
                 <div className={styles.avatar}>
                     {item.author.image ? (
@@ -90,16 +79,23 @@ export default function FeedItem({ item, onLike, onComment }: FeedItemProps) {
                 </div>
                 <div className={styles.authorInfo}>
                     <div className={styles.authorName}>
-                        {item.author.name}
-                        {item.author.type === 'USER' && item.author.subline?.includes('Admin') && (
-                            <span className={styles.adminBadge}>✓ Admin</span>
+                        {authorDisplayName}
+                    </div>
+                    <div className={styles.timestamp}>
+                        {timeAgo}
+                        {item.type !== 'FEED_POST' && (
+                            <>
+                                <span>•</span>
+                                <span className={styles.categoryBadge}>
+                                    {categoryLabel}
+                                </span>
+                            </>
                         )}
                     </div>
-                    <div className={styles.timestamp}>{timeAgo}</div>
                 </div>
             </div>
 
-            {/* Content */}
+            {/* Contenu */}
             <div className={styles.content}>
                 {item.content.title && (
                     <h3 className={styles.title}>{item.content.title}</h3>
@@ -128,22 +124,31 @@ export default function FeedItem({ item, onLike, onComment }: FeedItemProps) {
                     </div>
                 )}
 
-                {/* Media */}
-                {item.content.mediaUrl && item.content.mediaType === 'PHOTO' && (
-                    <div className={styles.mediaContainer}>
-                        <Image
-                            src={item.content.mediaUrl}
-                            alt="Post media"
-                            width={600}
-                            height={400}
-                            className={styles.media}
-                            loading="lazy"
-                        />
+                {/* Listing Price */}
+                {item.type === 'LISTING' && item.metadata?.price !== undefined && (
+                    <div className={styles.price}>
+                        {item.metadata.price === 0 ? 'Gratuit' : `${item.metadata.price}€`}
                     </div>
                 )}
+            </div>
 
-                {/* PDF Attachment */}
-                {item.content.mediaUrl && item.content.mediaUrl.toLowerCase().endsWith('.pdf') && (
+            {/* Media */}
+            {item.content.mediaUrl && item.content.mediaType === 'PHOTO' && (
+                <div className={styles.mediaContainer}>
+                    <Image
+                        src={item.content.mediaUrl}
+                        alt="Post media"
+                        width={600}
+                        height={400}
+                        className={styles.media}
+                        loading="lazy"
+                    />
+                </div>
+            )}
+
+            {/* PDF Attachment */}
+            {item.content.mediaUrl && item.content.mediaUrl.toLowerCase().endsWith('.pdf') && (
+                <div className={styles.content}>
                     <a
                         href={item.content.mediaUrl}
                         target="_blank"
@@ -153,35 +158,28 @@ export default function FeedItem({ item, onLike, onComment }: FeedItemProps) {
                         <FileText size={20} />
                         <span>Voir le document PDF</span>
                     </a>
-                )}
+                </div>
+            )}
 
-                {/* Listing Price */}
-                {item.type === 'LISTING' && item.metadata?.price && (
-                    <div className={styles.price}>
-                        {item.metadata.price === 0 ? 'Gratuit' : `${item.metadata.price}€`}
-                    </div>
-                )}
-            </div>
-
-            {/* Metrics */}
+            {/* Metrics - Style LinkedIn */}
             <div className={styles.metrics}>
                 <button
                     className={`${styles.metricBtn} ${item.metrics?.isLiked ? styles.liked : ''}`}
                     onClick={handleLike}
                 >
-                    <Heart size={20} fill={item.metrics?.isLiked ? '#e74c3c' : 'none'} />
+                    <Heart size={20} fill={item.metrics?.isLiked ? 'currentColor' : 'none'} />
                     <span>{item.metrics?.likes || 0}</span>
                 </button>
 
                 <button className={styles.metricBtn} onClick={handleCommentClick}>
                     <MessageCircle size={20} />
-                    <span>{item.metrics?.comments || 0} commentaire{(item.metrics?.comments || 0) > 1 ? 's' : ''}</span>
+                    <span>{item.metrics?.comments || 0}</span>
                 </button>
 
                 {isEvent && item.metrics?.likes !== undefined && (
                     <div className={styles.participants}>
-                        <Users size={20} />
-                        <span>{item.metrics.likes} participant{item.metrics.likes > 1 ? 's' : ''}</span>
+                        <Users size={18} />
+                        <span>{item.metrics.likes}</span>
                     </div>
                 )}
             </div>
