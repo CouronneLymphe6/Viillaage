@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { Plus, Loader2 } from 'lucide-react';
-import FeedFilters, { FeedCategory } from '@/components/feed/FeedFilters';
 import FeedItem from '@/components/feed/FeedItem';
 import NewPostSelector from '@/components/feed/NewPostSelector';
 import { FeedItem as FeedItemType } from '@/lib/feed/types';
@@ -11,7 +10,6 @@ import styles from './Feed.module.css';
 
 export default function FeedPage() {
     const { data: session } = useSession();
-    const [activeCategory, setActiveCategory] = useState<FeedCategory>('ALL');
     const [feedItems, setFeedItems] = useState<FeedItemType[]>([]);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
@@ -19,10 +17,10 @@ export default function FeedPage() {
     const [showNewPostModal, setShowNewPostModal] = useState(false);
 
     // Charger le feed
-    const loadFeed = async (pageNum: number = 1, category: FeedCategory = 'ALL') => {
+    const loadFeed = async (pageNum: number = 1) => {
         try {
             setLoading(true);
-            const response = await fetch(`/api/feed?page=${pageNum}&limit=20&category=${category}`);
+            const response = await fetch(`/api/feed?page=${pageNum}&limit=20`);
             if (response.ok) {
                 const data = await response.json();
                 if (pageNum === 1) {
@@ -40,13 +38,9 @@ export default function FeedPage() {
     };
 
     useEffect(() => {
-        loadFeed(1, activeCategory);
+        loadFeed(1);
         setPage(1);
-    }, [activeCategory]);
-
-    const handleCategoryChange = (category: FeedCategory) => {
-        setActiveCategory(category);
-    };
+    }, []);
 
     const handleLike = async (itemId: string, itemType: string) => {
         try {
@@ -84,10 +78,11 @@ export default function FeedPage() {
         console.log('Comment on:', itemId, itemType);
     };
 
+
     const handleLoadMore = () => {
         const nextPage = page + 1;
         setPage(nextPage);
-        loadFeed(nextPage, activeCategory);
+        loadFeed(nextPage);
     };
 
     return (
@@ -106,12 +101,6 @@ export default function FeedPage() {
                     <span>Nouveau post</span>
                 </button>
             </div>
-
-            {/* Filters */}
-            <FeedFilters
-                activeCategory={activeCategory}
-                onCategoryChange={handleCategoryChange}
-            />
 
             {/* Feed Content */}
             <div className={styles.feedContainer}>
@@ -168,7 +157,7 @@ export default function FeedPage() {
                 <NewPostSelector
                     onClose={() => setShowNewPostModal(false)}
                     onPostCreated={() => {
-                        loadFeed(1, activeCategory);
+                        loadFeed(1);
                         setPage(1);
                     }}
                 />
