@@ -163,15 +163,15 @@ export default function FeedPage() {
                 )}
             </div>
 
-            {/* Modal Nouveau Post - À implémenter */}
+            {/* Modal Nouveau Post */}
             {showNewPostModal && (
-                <div className={styles.modalOverlay} onClick={() => setShowNewPostModal(false)}>
-                    <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-                        <h2>Nouveau post</h2>
-                        <p>Fonctionnalité à venir...</p>
-                        <button onClick={() => setShowNewPostModal(false)}>Fermer</button>
-                    </div>
-                </div>
+                <NewPostModal
+                    onClose={() => setShowNewPostModal(false)}
+                    onPostCreated={() => {
+                        loadFeed(1, activeCategory);
+                        setPage(1);
+                    }}
+                />
             )}
         </div>
     );
