@@ -5,6 +5,8 @@ import { FeedItem } from '@/lib/feed/types';
 import Image from 'next/image';
 import { Heart, MessageSquare, Share2, ShieldAlert, Euro, Calendar, Megaphone } from 'lucide-react';
 import { CommentSection } from './CommentSection';
+import { toast } from '@/components/Toast';
+
 
 interface FeedCardProps {
     item: FeedItem;
@@ -45,6 +47,7 @@ export function FeedCard({ item, onLike, onComment }: FeedCardProps) {
             if (onLike) onLike(item.id, item.type);
         } catch (error) {
             console.error(error);
+            toast('Impossible d\'aimer cette publication. Veuillez réessayer.', 'error');
             // Revert on error
             setIsLiked(previousLiked);
             setLikeCount(previousCount);

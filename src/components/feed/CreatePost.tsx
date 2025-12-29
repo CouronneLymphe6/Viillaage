@@ -6,6 +6,8 @@ import Image from 'next/image';
 import { Image as ImageIcon, Send } from 'lucide-react';
 import ImageUpload from '@/components/ImageUpload';
 import { useRouter } from 'next/navigation';
+import { toast } from '@/components/Toast';
+
 
 export default function CreatePost() {
     const { data: session } = useSession();
@@ -38,14 +40,12 @@ export default function CreatePost() {
             setImageUrl(null);
             setShowImageUpload(false);
 
-            // Refresh the page or feed list
-            // A cleaner way is using optimistic UI or invalidating queries if using react-query.
-            // For now, simple router refresh.
+            // Refresh the page to show the new post
             router.refresh();
-            window.location.reload(); // Force reload to fetch new content definitely
+            toast('Publication créée avec succès !', 'success');
         } catch (error) {
             console.error(error);
-            alert("Erreur lors de la publication.");
+            toast('Erreur lors de la publication. Veuillez réessayer.', 'error');
         } finally {
             setIsLoading(false);
         }

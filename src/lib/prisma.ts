@@ -18,3 +18,7 @@ export const prisma =
 prisma.$connect();
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+
+// Export db as alias for backwards compatibility
+export const db = prisma;
+

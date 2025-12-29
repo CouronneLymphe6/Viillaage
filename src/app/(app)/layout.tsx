@@ -4,6 +4,8 @@
 import Sidebar from "@/components/Sidebar";
 import NotificationBell from "@/components/NotificationBell";
 import PushNotificationManager from "@/components/PushNotificationManager";
+import { ToastContainer } from "@/components/Toast";
+
 
 
 export default function AppLayout({
@@ -38,6 +40,7 @@ export default function AppLayout({
                 className="main-content"
             >
                 <PushNotificationManager />
+                <ToastContainer />
                 {children}
             </main>
 

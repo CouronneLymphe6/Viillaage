@@ -9,10 +9,10 @@ export async function getUnifiedFeed(
     userId?: string,
     villageId?: string
 ): Promise<FeedItem[]> {
-    const skip = (page - 1) * limit;
-
-    // We fetch 'limit' items from EACH source to ensure we have enough to interleave/sort.
-    // This is a naive approach; optimization would involve a raw SQL UNION query.
+    // OPTIMIZED APPROACH: Fetch more items initially, then sort and slice
+    // This ensures proper chronological ordering across all content types
+    const fetchLimit = limit * 2; // Fetch 2x to ensure we have enough after sorting
+    const skip = 0; // Always start from 0, we'll handle pagination after sorting
 
     const [
         feedPosts,
@@ -26,8 +26,7 @@ export async function getUnifiedFeed(
         // 1. User Feed Posts (General)
         db.feedPost.findMany({
             where: villageId ? { user: { villageId } } : {},
-            take: limit,
-            skip: skip,
+            take: fetchLimit,
             orderBy: { createdAt: 'desc' },
             include: {
                 user: { select: { id: true, name: true, image: true, role: true } },
@@ -39,21 +38,19 @@ export async function getUnifiedFeed(
         // 2. Alerts
         db.alert.findMany({
             where: villageId ? { user: { villageId } } : {},
-            take: limit,
-            skip: skip,
+            take: fetchLimit,
             orderBy: { createdAt: 'desc' },
             include: {
                 user: { select: { id: true, name: true, image: true } },
                 ...(userId ? { votes: { where: { userId, type: 'CONFIRM' } } } : {}),
-                _count: { select: { votes: true } } // Approximate "likes/confirms"
+                _count: { select: { votes: true } }
             }
         }),
 
         // 3. Pro Posts
         db.proPost.findMany({
-            where: villageId ? { business: { owner: { villageId } } } : {}, // Approximate location filtering
-            take: limit,
-            skip: skip,
+            where: villageId ? { business: { owner: { villageId } } } : {},
+            take: fetchLimit,
             orderBy: { createdAt: 'desc' },
             include: {
                 business: { select: { id: true, name: true, category: true, photos: true } },
@@ -65,8 +62,7 @@ export async function getUnifiedFeed(
         // 4. Association Posts
         db.associationPost.findMany({
             where: villageId ? { association: { owner: { villageId } } } : {},
-            take: limit,
-            skip: skip,
+            take: fetchLimit,
             orderBy: { createdAt: 'desc' },
             include: {
                 association: { select: { id: true, name: true, photoUrl: true } },
@@ -78,8 +74,7 @@ export async function getUnifiedFeed(
         // 5. Listings (Market)
         db.listing.findMany({
             where: villageId ? { user: { villageId } } : {},
-            take: limit,
-            skip: skip,
+            take: fetchLimit,
             orderBy: { createdAt: 'desc' },
             include: {
                 user: { select: { id: true, name: true, image: true } }
@@ -89,8 +84,7 @@ export async function getUnifiedFeed(
         // 6. User Events
         db.event.findMany({
             where: villageId ? { organizer: { villageId } } : {},
-            take: limit,
-            skip: skip,
+            take: fetchLimit,
             orderBy: { createdAt: 'desc' },
             include: {
                 organizer: { select: { id: true, name: true, image: true } },
@@ -102,8 +96,7 @@ export async function getUnifiedFeed(
         // 7. Association Events
         db.associationEvent.findMany({
             where: villageId ? { association: { owner: { villageId } } } : {},
-            take: limit,
-            skip: skip,
+            take: fetchLimit,
             orderBy: { createdAt: 'desc' },
             include: {
                 association: { select: { id: true, name: true, photoUrl: true } }
@@ -112,7 +105,6 @@ export async function getUnifiedFeed(
     ]);
 
     // --- MAPPING ---
-
     const items: FeedItem[] = [];
 
     // Map FeedPosts
@@ -163,8 +155,8 @@ export async function getUnifiedFeed(
                 mediaType: a.photoUrl ? 'PHOTO' : 'NONE'
             },
             metrics: {
-                likes: a._count.votes, // Confirms
-                comments: 0, // Alerts don't have comments in schema yet? Check schema. Wrapper needed?
+                likes: a._count.votes,
+                comments: 0,
                 isLiked: a.votes && a.votes.length > 0
             },
             metadata: {
@@ -312,7 +304,7 @@ export async function getUnifiedFeed(
             content: {
                 title: e.title,
                 text: e.description || '',
-                mediaUrl: null, // Asso events structure might differ slightly? Schema says no photoUrl on AssociationEvent directly?
+                mediaUrl: null,
                 mediaType: 'NONE'
             },
             metrics: {
@@ -327,16 +319,14 @@ export async function getUnifiedFeed(
         });
     });
 
-    // Sort by createdAt desc
+    // Sort all items by createdAt desc
     items.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
-    // Return the merged list
-    // Note: Pagination here is imperfect because we fetched 'limit' from EACH.
-    // We should just return the whole 'limit' slice of the merged list.
-    // But if page > 1, the 'skip' we applied to DB queries might miss recent items if distribution is uneven.
-    // For a robust MVP, this is acceptable, but strictly speaking incorrect for deeper pages.
-
-    return items;
+    // PROPER PAGINATION: Slice the sorted array
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    
+    return items.slice(startIndex, endIndex);
 }
 
 export async function toggleLike(

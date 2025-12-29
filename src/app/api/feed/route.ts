@@ -22,8 +22,9 @@ export async function GET(req: NextRequest) {
         const limit = parseInt(searchParams.get('limit') || '20');
 
         // Fetch feed
-        const user = session?.user as any;
-        const feed = await getUnifiedFeed(page, limit, user?.id, user?.villageId);
+        const userId = session?.user?.id;
+        const villageId = session?.user?.villageId || undefined;
+        const feed = await getUnifiedFeed(page, limit, userId, villageId);
 
         return NextResponse.json({ items: feed });
     } catch (error) {
@@ -57,7 +58,7 @@ export async function POST(req: NextRequest) {
     } catch (error) {
         console.error('Error creating post:', error);
         if (error instanceof z.ZodError) {
-            return NextResponse.json({ error: 'Validation failed', details: error.errors }, { status: 400 });
+            return NextResponse.json({ error: 'Validation failed', details: error.issues }, { status: 400 });
         }
         return NextResponse.json({ error: 'Failed to create post' }, { status: 500 });
     }
