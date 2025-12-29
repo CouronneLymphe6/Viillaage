@@ -17,8 +17,11 @@ export async function GET() {
             return NextResponse.json({ error: 'Village non défini' }, { status: 400 });
         }
 
+        // Get current date for filtering future events
+        const now = new Date();
+
         // Fetch dashboard data in parallel
-        const [alerts, events, proPosts, listings, associationPosts, userCount] = await Promise.all([
+        const [alerts, events, proAgendaEvents, proPosts, listings, associationPosts, userCount] = await Promise.all([
             // Security alerts
             prisma.alert.findMany({
                 where: {
@@ -37,14 +40,34 @@ export async function GET() {
                 },
             }),
 
-            // Events (last 3)
+            // Events (future only, next 3)
             prisma.event.findMany({
-                where: { organizer: { villageId: userVillageId } },
+                where: {
+                    organizer: { villageId: userVillageId },
+                    date: { gte: now }
+                },
                 take: 3,
-                orderBy: { date: 'desc' },
+                orderBy: { date: 'asc' },
                 select: { id: true, title: true, date: true }
             }),
 
+            // Pro Agenda Events (future only, next 3)
+            prisma.proAgenda.findMany({
+                where: {
+                    business: { owner: { villageId: userVillageId } },
+                    startDate: { gte: now }
+                },
+                take: 3,
+                orderBy: { startDate: 'asc' },
+                select: {
+                    id: true,
+                    title: true,
+                    type: true,
+                    startDate: true,
+                    endDate: true,
+                    business: { select: { id: true, name: true } }
+                }
+            }),
 
             // Pro Posts (last 3)
             prisma.proPost.findMany({
@@ -95,7 +118,7 @@ export async function GET() {
             securityAlerts,
             officialAnnouncements,
             events,
-            proAgendaEvents: [], // Empty - model doesn't exist in schema
+            proAgendaEvents,
             proPosts,
             listings,
             associationPosts,
