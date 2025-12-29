@@ -15,7 +15,7 @@ export async function getUnifiedFeed(
     const skip = 0; // Always start from 0, we'll handle pagination after sorting
 
     const [
-        feedPosts,
+        // feedPosts, // Temporarily disabled until migration is applied
         alerts,
         proPosts,
         assPosts,
@@ -23,17 +23,17 @@ export async function getUnifiedFeed(
         events,
         assoEvents
     ] = await Promise.all([
-        // 1. User Feed Posts (General)
-        db.feedPost.findMany({
-            where: villageId ? { user: { villageId } } : {},
-            take: fetchLimit,
-            orderBy: { createdAt: 'desc' },
-            include: {
-                user: { select: { id: true, name: true, image: true, role: true } },
-                ...(userId ? { likes: { where: { userId } } } : {}),
-                _count: { select: { likes: true, comments: true } }
-            }
-        }),
+        // 1. User Feed Posts (General) - TEMPORARILY DISABLED
+        // db.feedPost.findMany({
+        //     where: villageId ? { user: { villageId } } : {},
+        //     take: fetchLimit,
+        //     orderBy: { createdAt: 'desc' },
+        //     include: {
+        //         user: { select: { id: true, name: true, image: true, role: true } },
+        //         ...(userId ? { likes: { where: { userId } } } : {}),
+        //         _count: { select: { likes: true, comments: true } }
+        //     }
+        // }),
 
         // 2. Alerts
         db.alert.findMany({
@@ -325,7 +325,7 @@ export async function getUnifiedFeed(
     // PROPER PAGINATION: Slice the sorted array
     const startIndex = (page - 1) * limit;
     const endIndex = startIndex + limit;
-    
+
     return items.slice(startIndex, endIndex);
 }
 
