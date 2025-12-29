@@ -123,52 +123,6 @@ export default function FeedPage() {
             {/* Widgets (Gazette, Météo, Stats) */}
             <FeedWidgets />
 
-            {/* Barre de création rapide (Déclencheur) */}
-            <div
-                onClick={() => setShowNewPostModal(true)}
-                style={{
-                    background: 'white',
-                    borderRadius: '12px',
-                    padding: '16px',
-                    marginBottom: '24px',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    cursor: 'pointer',
-                    border: '1px solid var(--border)',
-                    transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-1px)';
-                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)';
-                }}
-                onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)';
-                }}
-            >
-                <div style={{
-                    width: '40px',
-                    height: '40px',
-                    borderRadius: '50%',
-                    background: 'var(--primary)',
-                    color: 'white',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontWeight: 'bold',
-                    fontSize: '1.2rem'
-                }}>
-                    <Plus size={24} />
-                </div>
-                <div style={{ flex: 1 }}>
-                    <div style={{ color: 'var(--text-secondary)', fontSize: '1rem', fontWeight: '500' }}>
-                        Exprimez-vous, publiez une annonce, un événement...
-                    </div>
-                </div>
-            </div>
-
             {/* Feed Content */}
             <div className={styles.feedContainer}>
                 {loading && page === 1 ? (
@@ -196,7 +150,7 @@ export default function FeedPage() {
                                     key={item.id}
                                     item={item}
                                     onLike={handleLike}
-                                    onComment={handleComment}
+                                    onComment={() => { }} // Géré en interne dans FeedItem maintenant
                                     onDelete={handleDelete}
                                 />
                             ))}
@@ -219,6 +173,34 @@ export default function FeedPage() {
                     </>
                 )}
             </div>
+
+            {/* Floating Action Button pour créer un post */}
+            <button
+                onClick={() => setShowNewPostModal(true)}
+                style={{
+                    position: 'fixed',
+                    bottom: '24px',
+                    right: '24px',
+                    width: '56px',
+                    height: '56px',
+                    borderRadius: '50%',
+                    backgroundColor: 'var(--primary)',
+                    color: 'white',
+                    border: 'none',
+                    boxShadow: '0 4px 12px rgba(0, 191, 165, 0.4)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    zIndex: 100,
+                    transition: 'transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                title="Nouveau post"
+            >
+                <Plus size={32} />
+            </button>
 
             {/* Modal Nouveau Post */}
             {showNewPostModal && (

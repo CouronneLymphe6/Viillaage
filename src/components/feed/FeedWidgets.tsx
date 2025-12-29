@@ -93,7 +93,7 @@ export default function FeedWidgets() {
                 .stats-card {
                     background: var(--secondary);
                     border-radius: var(--radius-md);
-                    padding: 16px;
+                    padding: 12px;
                     display: flex;
                     align-items: center;
                     justify-content: space-between;
@@ -104,13 +104,13 @@ export default function FeedWidgets() {
                 .stat-item {
                     display: flex;
                     align-items: center;
-                    gap: 12px;
+                    gap: 10px;
                 }
 
                 .stat-icon {
                     color: var(--primary);
                     background: rgba(0, 191, 165, 0.1);
-                    padding: 8px;
+                    padding: 6px;
                     box-sizing: content-box;
                     border-radius: 50%;
                 }
@@ -121,27 +121,27 @@ export default function FeedWidgets() {
                 }
 
                 .stat-value {
-                    font-size: 1.2rem;
+                    font-size: 1.1rem;
                     font-weight: 700;
                     color: var(--text-main);
                     line-height: 1;
                 }
 
                 .stat-label {
-                    font-size: 0.8rem;
+                    font-size: 0.75rem;
                     color: var(--text-secondary);
                 }
 
                 .invite-btn {
                     display: flex;
                     align-items: center;
-                    gap: 6px;
-                    padding: 8px 16px;
+                    gap: 4px;
+                    padding: 6px 12px;
                     background: var(--primary);
                     color: white;
                     border: none;
                     border-radius: 20px;
-                    font-size: 0.9rem;
+                    font-size: 0.85rem;
                     font-weight: 600;
                     cursor: pointer;
                     transition: all 0.2s;

@@ -69,9 +69,9 @@ export default function WeatherCard() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                minHeight: '200px'
+                minHeight: '140px'
             }}>
-                <div style={{ color: 'var(--text-secondary)' }}>Chargement de la météo...</div>
+                <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Chargement...</div>
             </div>
         );
     }
@@ -84,27 +84,27 @@ export default function WeatherCard() {
         <div style={{
             background: getBackgroundGradient(weather.current.condition),
             borderRadius: 'var(--radius-md)',
-            padding: 'var(--spacing-md)',
+            padding: '12px',
             boxShadow: 'var(--shadow-sm)',
             position: 'relative',
             overflow: 'hidden',
             color: 'var(--text-main)',
             border: '1px solid rgba(0,0,0,0.05)'
         }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                 <div>
-                    <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-main)', fontWeight: '700' }}>
+                    <h3 style={{ margin: 0, fontSize: '1rem', color: 'var(--text-main)', fontWeight: '700' }}>
                         Beaupuy
                     </h3>
-                    <p style={{ margin: '4px 0 0 0', fontSize: '0.9rem', opacity: 0.8 }}>
-                        Météo du jour
+                    <p style={{ margin: '2px 0 0 0', fontSize: '0.8rem', opacity: 0.8 }}>
+                        Météo
                     </p>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={{ fontSize: '2.5rem', fontWeight: '800', lineHeight: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div style={{ fontSize: '2rem', fontWeight: '800', lineHeight: 1 }}>
                         {weather.current.temp}°
                     </div>
-                    {getWeatherIcon(weather.current.condition, 40)}
+                    {getWeatherIcon(weather.current.condition, 30)}
                 </div>
             </div>
 
@@ -114,25 +114,25 @@ export default function WeatherCard() {
                 justifyContent: 'space-between',
                 backgroundColor: 'rgba(255,255,255,0.4)',
                 borderRadius: 'var(--radius-sm)',
-                padding: '12px 8px',
-                marginTop: '12px'
+                padding: '8px 6px',
+                marginTop: '8px'
             }}>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', flex: 1 }}>
-                    <span style={{ fontSize: '0.8rem', fontWeight: '600', opacity: 0.7 }}>MATIN</span>
-                    {getWeatherIcon(weather.morning.condition, 24)}
-                    <span style={{ fontWeight: '700' }}>{weather.morning.temp}°</span>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', flex: 1 }}>
+                    <span style={{ fontSize: '0.7rem', fontWeight: '600', opacity: 0.7 }}>MATIN</span>
+                    {getWeatherIcon(weather.morning.condition, 18)}
+                    <span style={{ fontWeight: '700', fontSize: '0.9rem' }}>{weather.morning.temp}°</span>
                 </div>
                 <div style={{ width: '1px', backgroundColor: 'rgba(0,0,0,0.1)' }}></div>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', flex: 1 }}>
-                    <span style={{ fontSize: '0.8rem', fontWeight: '600', opacity: 0.7 }}>MIDI</span>
-                    {getWeatherIcon(weather.noon.condition, 24)}
-                    <span style={{ fontWeight: '700' }}>{weather.noon.temp}°</span>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', flex: 1 }}>
+                    <span style={{ fontSize: '0.7rem', fontWeight: '600', opacity: 0.7 }}>MIDI</span>
+                    {getWeatherIcon(weather.noon.condition, 18)}
+                    <span style={{ fontWeight: '700', fontSize: '0.9rem' }}>{weather.noon.temp}°</span>
                 </div>
                 <div style={{ width: '1px', backgroundColor: 'rgba(0,0,0,0.1)' }}></div>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', flex: 1 }}>
-                    <span style={{ fontSize: '0.8rem', fontWeight: '600', opacity: 0.7 }}>SOIR</span>
-                    {getWeatherIcon(weather.evening.condition, 24)}
-                    <span style={{ fontWeight: '700' }}>{weather.evening.temp}°</span>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', flex: 1 }}>
+                    <span style={{ fontSize: '0.7rem', fontWeight: '600', opacity: 0.7 }}>SOIR</span>
+                    {getWeatherIcon(weather.evening.condition, 18)}
+                    <span style={{ fontWeight: '700', fontSize: '0.9rem' }}>{weather.evening.temp}°</span>
                 </div>
             </div>
         </div>

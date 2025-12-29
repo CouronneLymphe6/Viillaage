@@ -52,14 +52,44 @@ export default function FeedItem({ item, onLike, onComment, onDelete }: FeedItem
         locale: fr,
     });
 
+    // Mettre à jour l'état local pour le like
     const handleLike = () => {
         onLike(item.originalId, item.type);
     };
 
     const handleCommentClick = () => {
         setShowComments(!showComments);
-        if (!showComments) {
-            onComment(item.originalId, item.type);
+        // Si on ouvre et que ce n'est pas déjà chargé, on pourrait charger les commentaires ici
+    };
+
+    const handleSendComment = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const form = e.target as HTMLFormElement;
+        const input = form.elements.namedItem('comment') as HTMLInputElement;
+        const content = input.value.trim();
+
+        if (!content) return;
+
+        try {
+            const res = await fetch('/api/feed/comment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: item.originalId,
+                    type: item.type,
+                    content
+                })
+            });
+
+            if (res.ok) {
+                input.value = '';
+                alert('Commentaire envoyé !');
+                // Ideally refresh feed or update local count
+            } else {
+                alert('Erreur lors de l\'envoi');
+            }
+        } catch (err) {
+            console.error(err);
         }
     };
 
@@ -200,10 +230,13 @@ export default function FeedItem({ item, onLike, onComment, onDelete }: FeedItem
                     <span>{item.metrics?.likes || 0}</span>
                 </button>
 
-                <button className={styles.metricBtn} onClick={handleCommentClick}>
-                    <MessageCircle size={22} />
-                    <span>{item.metrics?.comments || 0} commentaire{(item.metrics?.comments || 0) > 1 ? 's' : ''}</span>
-                </button>
+                {/* Only Show Comment Button if Supported */}
+                {['FEED_POST', 'PRO_POST', 'ASSOCIATION_POST'].includes(item.type) && (
+                    <button className={styles.metricBtn} onClick={handleCommentClick}>
+                        <MessageCircle size={22} />
+                        <span>{item.metrics?.comments || 0} commentaire{(item.metrics?.comments || 0) > 1 ? 's' : ''}</span>
+                    </button>
+                )}
 
                 {isEvent && item.metrics?.likes !== undefined && (
                     <div className={styles.participants}>
@@ -212,6 +245,47 @@ export default function FeedItem({ item, onLike, onComment, onDelete }: FeedItem
                     </div>
                 )}
             </div>
+
+            {/* Section Commentaires (Simple implementation) */}
+            {showComments && ['FEED_POST', 'PRO_POST', 'ASSOCIATION_POST'].includes(item.type) && (
+                <div className={styles.commentsSection} style={{ padding: '16px', borderTop: '1px solid #f0f0f0' }}>
+                    <form
+                        onSubmit={handleSendComment}
+                        style={{ display: 'flex', gap: '8px' }}
+                    >
+                        <input
+                            type="text"
+                            name="comment"
+                            placeholder="Écrire un commentaire..."
+                            style={{
+                                flex: 1,
+                                padding: '8px 12px',
+                                borderRadius: '20px',
+                                border: '1px solid #ddd',
+                                fontSize: '0.95rem'
+                            }}
+                            autoComplete="off"
+                        />
+                        <button
+                            type="submit"
+                            style={{
+                                background: 'var(--primary)',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '20px',
+                                padding: '8px 16px',
+                                fontWeight: '600',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            Envoyer
+                        </button>
+                    </form>
+                    <p style={{ marginTop: '12px', fontSize: '0.85rem', color: '#666', fontStyle: 'italic', textAlign: 'center' }}>
+                        Les commentaires ne sont pas encore visibles, mais votre message sera enregistré !
+                    </p>
+                </div>
+            )}
         </article>
     );
 }

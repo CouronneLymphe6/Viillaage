@@ -54,26 +54,26 @@ export default function DailySummaryCard() {
         return (
             <div style={{
                 backgroundColor: 'var(--secondary)',
-                padding: 'var(--spacing-md)',
+                padding: '12px',
                 borderRadius: 'var(--radius-md)',
                 boxShadow: 'var(--shadow-sm)',
             }}>
-                <h3 style={{ color: 'var(--primary)', marginBottom: 'var(--spacing-sm)' }}>
+                <h3 style={{ color: 'var(--primary)', marginBottom: '8px', fontSize: '1rem' }}>
                     📰 La Gazette de Beaupuy
                 </h3>
                 <div style={{
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    padding: 'var(--spacing-lg)',
+                    padding: '16px',
                     color: 'var(--text-secondary)',
                 }}>
                     <div className="spinner" style={{
                         border: '3px solid var(--border)',
                         borderTop: '3px solid var(--primary)',
                         borderRadius: '50%',
-                        width: '30px',
-                        height: '30px',
+                        width: '24px',
+                        height: '24px',
                         animation: 'spin 1s linear infinite',
                     }}></div>
                     <style jsx>{`
@@ -91,27 +91,27 @@ export default function DailySummaryCard() {
         return (
             <div style={{
                 backgroundColor: 'var(--secondary)',
-                padding: 'var(--spacing-md)',
+                padding: '12px',
                 borderRadius: 'var(--radius-md)',
                 boxShadow: 'var(--shadow-sm)',
             }}>
-                <h3 style={{ color: 'var(--primary)', marginBottom: 'var(--spacing-sm)' }}>
+                <h3 style={{ color: 'var(--primary)', marginBottom: '8px', fontSize: '1rem' }}>
                     📰 La Gazette de Beaupuy
                 </h3>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
                     ⚠️ {error}
                 </p>
                 <button
                     onClick={fetchSummary}
                     style={{
-                        marginTop: 'var(--spacing-sm)',
-                        padding: '8px 16px',
+                        marginTop: '8px',
+                        padding: '6px 12px',
                         backgroundColor: 'var(--primary)',
                         color: 'white',
                         border: 'none',
                         borderRadius: 'var(--radius-sm)',
                         cursor: 'pointer',
-                        fontSize: '0.9rem',
+                        fontSize: '0.85rem',
                     }}
                 >
                     Réessayer
@@ -127,7 +127,7 @@ export default function DailySummaryCard() {
     return (
         <div style={{
             backgroundColor: 'var(--secondary)',
-            padding: 'var(--spacing-md)',
+            padding: '12px',
             borderRadius: 'var(--radius-md)',
             boxShadow: 'var(--shadow-sm)',
         }}>
@@ -135,12 +135,12 @@ export default function DailySummaryCard() {
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                marginBottom: 'var(--spacing-sm)'
+                marginBottom: '8px'
             }}>
-                <h3 style={{ color: 'var(--primary)' }}>📰 La Gazette de Beaupuy</h3>
+                <h3 style={{ color: 'var(--primary)', fontSize: '1rem', margin: 0 }}>📰 La Gazette de Beaupuy</h3>
                 {data.cached && (
                     <span style={{
-                        fontSize: '0.75rem',
+                        fontSize: '0.7rem',
                         color: 'var(--text-secondary)',
                         fontStyle: 'italic',
                     }}>
@@ -151,8 +151,8 @@ export default function DailySummaryCard() {
 
             {/* Résumé IA */}
             <div style={{
-                fontSize: '0.95rem',
-                lineHeight: '1.6',
+                fontSize: '0.9rem',
+                lineHeight: '1.5',
                 color: 'var(--text-primary)',
             }}>
                 {(() => {
@@ -163,8 +163,8 @@ export default function DailySummaryCard() {
                             <>
                                 {parsed.title && (
                                     <h4 style={{
-                                        margin: '0 0 var(--spacing-sm) 0',
-                                        fontSize: '1.1rem',
+                                        margin: '0 0 6px 0',
+                                        fontSize: '1rem',
                                         color: 'var(--text-main)',
                                         fontWeight: '700'
                                     }}>
@@ -185,33 +185,34 @@ export default function DailySummaryCard() {
             <div style={{
                 display: 'flex',
                 flexWrap: 'wrap',
-                gap: 'var(--spacing-sm)',
-                paddingTop: 'var(--spacing-sm)',
+                gap: '8px',
+                paddingTop: '10px',
+                marginTop: '10px',
                 borderTop: '1px solid var(--border)',
             }}>
                 {data.stats.totalMessages > 0 && (
-                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                        💬 {data.stats.totalMessages} messages
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                        💬 {data.stats.totalMessages}
                     </span>
                 )}
                 {data.stats.newAlerts > 0 && (
-                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                        🚨 {data.stats.newAlerts} alertes
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                        🚨 {data.stats.newAlerts}
                     </span>
                 )}
                 {data.stats.newEvents > 0 && (
-                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                        📅 {data.stats.newEvents} événements
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                        📅 {data.stats.newEvents}
                     </span>
                 )}
                 {data.stats.proPosts > 0 && (
-                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                        🏪 {data.stats.proPosts} posts pros
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                        🏪 {data.stats.proPosts}
                     </span>
                 )}
                 {data.stats.newListings > 0 && (
-                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                        🛍️ {data.stats.newListings} annonces
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                        🛍️ {data.stats.newListings}
                     </span>
                 )}
             </div>
