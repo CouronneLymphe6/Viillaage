@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import { Plus, Loader2 } from 'lucide-react';
 import FeedFilters, { FeedCategory } from '@/components/feed/FeedFilters';
 import FeedItem from '@/components/feed/FeedItem';
-import NewPostModal from '@/components/feed/NewPostModal';
+import NewPostSelector from '@/components/feed/NewPostSelector';
 import { FeedItem as FeedItemType } from '@/lib/feed/types';
 import styles from './Feed.module.css';
 
@@ -165,7 +165,7 @@ export default function FeedPage() {
 
             {/* Modal Nouveau Post */}
             {showNewPostModal && (
-                <NewPostModal
+                <NewPostSelector
                     onClose={() => setShowNewPostModal(false)}
                     onPostCreated={() => {
                         loadFeed(1, activeCategory);
