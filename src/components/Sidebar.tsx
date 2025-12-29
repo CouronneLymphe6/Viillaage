@@ -6,6 +6,7 @@ import { signOut } from 'next-auth/react';
 import { useState } from 'react';
 
 const navItems = [
+    { label: 'Fil d\'actualité', href: '/feed', icon: '📰' },
     { label: 'Tableau de bord', href: '/dashboard', icon: '🏠' },
     { label: 'Alertes & Sécurité', href: '/alerts', icon: '🚨' },
     { label: 'Les Pros', href: '/village', icon: '🏪' },

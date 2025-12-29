@@ -1,44 +1,64 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { getUnifiedFeed, FeedItemType } from '@/lib/feedService';
+import { getUnifiedFeed } from '@/lib/feed/feed-service';
+import { db } from '@/lib/prisma';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { z } from 'zod';
 
-export async function GET(request: NextRequest) {
+const postSchema = z.object({
+    content: z.string().min(1),
+    category: z.string().optional().default('GENERAL'),
+    mediaUrl: z.string().optional(),
+    mediaType: z.enum(['PHOTO', 'VIDEO', 'NONE']).optional().default('NONE')
+});
+
+export async function GET(req: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
 
-        if (!session?.user) {
-            return NextResponse.json(
-                { error: 'Non autorisé' },
-                { status: 401 }
-            );
-        }
-
-        const { searchParams } = new URL(request.url);
-
-        // Parse filters
-        const typesParam = searchParams.get('types');
-        const types = typesParam
-            ? (typesParam.split(',') as FeedItemType[])
-            : undefined;
-
+        // Check if we need query params
+        const { searchParams } = new URL(req.url);
+        const page = parseInt(searchParams.get('page') || '1');
         const limit = parseInt(searchParams.get('limit') || '20');
-        const offset = parseInt(searchParams.get('offset') || '0');
 
-        // Fetch unified feed
-        const feedItems = await getUnifiedFeed({ types, limit, offset });
+        // Fetch feed
+        const user = session?.user as any;
+        const feed = await getUnifiedFeed(page, limit, user?.id, user?.villageId);
 
-        return NextResponse.json({
-            items: feedItems,
-            hasMore: feedItems.length === limit,
-            offset: offset + feedItems.length,
-        });
-
+        return NextResponse.json({ items: feed });
     } catch (error) {
         console.error('Error fetching feed:', error);
-        return NextResponse.json(
-            { error: 'Erreur lors du chargement du fil' },
-            { status: 500 }
-        );
+        return NextResponse.json({ error: 'Failed to fetch feed' }, { status: 500 });
+    }
+}
+
+export async function POST(req: NextRequest) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session || !session.user) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const user = session.user as any;
+        const json = await req.json();
+        const body = postSchema.parse(json);
+
+        const post = await db.feedPost.create({
+            data: {
+                content: body.content,
+                category: body.category,
+                mediaUrl: body.mediaUrl,
+                mediaType: body.mediaType as any,
+                userId: user.id
+            }
+        });
+
+        return NextResponse.json(post);
+    } catch (error) {
+        console.error('Error creating post:', error);
+        if (error instanceof z.ZodError) {
+            return NextResponse.json({ error: 'Validation failed', details: error.errors }, { status: 400 });
+        }
+        return NextResponse.json({ error: 'Failed to create post' }, { status: 500 });
     }
 }

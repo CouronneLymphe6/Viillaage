@@ -59,12 +59,13 @@ model User {
   associationPostLikes  AssociationPostLike[]
   associationComments   AssociationComment[]
   
+  // Feed relations
+  feedPosts             FeedPost[]
+  feedPostLikes         FeedPostLike[]
+  feedComments          FeedComment[]
+  
   pushSubscriptions     PushSubscription[]
   passwordResetTokens   PasswordResetToken[]
-  
-  // Feed system relations
-  feedComments          FeedComment[]
-  officialPanels        OfficialPanel[]
 }
 
 // User notification preferences - opt-in/opt-out for each notification type
@@ -570,40 +571,43 @@ model PasswordResetToken {
 // UNIFIED FEED SYSTEM
 // ========================================
 
-// Unified comment system for feed items that don't have native comments
-// (Alert, Event, Listing, OfficialPanel)
-// ProPost and AssociationPost keep their existing comment systems
-model FeedComment {
-  id          String   @id @default(cuid())
+// User-generated feed posts
+model FeedPost {
+  id          String         @id @default(cuid())
   content     String
+  category    String         // "ALERT", "EVENT", "PRO", "ASSOCIATION", "MARKET", "GENERAL"
+  mediaUrl    String?
+  mediaType   String?        // "PHOTO", "VIDEO", "NONE"
   userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  // Polymorphic reference to feed item
-  feedType    String   // "ALERT" | "EVENT" | "LISTING" | "OFFICIAL"
-  feedItemId  String   // ID of the source item
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  @@index([feedType, feedItemId])
-  @@index([userId])
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  likes       FeedPostLike[]
+  comments    FeedComment[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
   @@index([createdAt(sort: Desc)])
+  @@index([category])
 }
 
-// Official announcements from the village administration
-model OfficialPanel {
-  id          String   @id @default(cuid())
-  title       String
-  content     String
-  fileUrl     String?  // Image or PDF attachment
-  fileType    String?  // "IMAGE" | "PDF"
-  authorId    String
-  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  @@index([createdAt(sort: Desc)])
-  @@index([authorId])
+model FeedPostLike {
+  id        String   @id @default(cuid())
+  postId    String
+  post      FeedPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId])
 }
 
+model FeedComment {
+  id        String   @id @default(cuid())
+  postId    String
+  post      FeedPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   String
+  createdAt DateTime @default(now())
+
+  @@index([postId])
+}
