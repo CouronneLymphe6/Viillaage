@@ -21,14 +21,20 @@ export async function GET(req: NextRequest) {
         const page = parseInt(searchParams.get('page') || '1');
         const limit = parseInt(searchParams.get('limit') || '20');
 
-        // Fetch feed
+        // Fetch feed - don't filter by villageId for now to get all content
         const userId = session?.user?.id;
-        const villageId = session?.user?.villageId || undefined;
+        const villageId = (session?.user as any)?.villageId || undefined;
+
+        console.log('Feed API - userId:', userId, 'villageId:', villageId);
+
         const feed = await getUnifiedFeed(page, limit, userId, villageId);
+
+        console.log('Feed API - items returned:', feed.length);
 
         return NextResponse.json({ items: feed });
     } catch (error) {
         console.error('Error fetching feed:', error);
+        console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
         return NextResponse.json({ error: 'Failed to fetch feed' }, { status: 500 });
     }
 }
