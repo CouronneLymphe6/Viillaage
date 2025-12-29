@@ -21,7 +21,7 @@ export default function LoginPage() {
             }
 
             if (callback?.ok && !callback?.error) {
-                router.push('/dashboard');
+                router.push('/feed');
             }
         });
     }

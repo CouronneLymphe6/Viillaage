@@ -10,7 +10,7 @@ export default async function AdminLayout({
     const admin = await isAdmin();
 
     if (!admin) {
-        redirect('/dashboard');
+        redirect('/feed');
     }
 
     return (
@@ -91,7 +91,7 @@ export default async function AdminLayout({
 
                 <div style={{ marginTop: 'auto', paddingTop: 'var(--spacing-lg)', borderTop: '1px solid #374151' }}>
                     <Link
-                        href="/dashboard"
+                        href="/feed"
                         style={{
                             padding: 'var(--spacing-sm) var(--spacing-md)',
                             borderRadius: 'var(--radius-md)',

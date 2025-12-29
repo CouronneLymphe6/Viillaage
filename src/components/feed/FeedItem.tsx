@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Heart, MessageCircle, Users, MapPin, FileText } from 'lucide-react';
+import { Heart, MessageCircle, Users, MapPin, FileText, Trash } from 'lucide-react';
 import styles from './FeedItem.module.css';
+import { useSession } from 'next-auth/react';
 import { FeedItem as FeedItemType } from '@/lib/feed/types';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -12,6 +13,7 @@ interface FeedItemProps {
     item: FeedItemType;
     onLike: (itemId: string, itemType: string) => void;
     onComment: (itemId: string, itemType: string) => void;
+    onDelete: (itemId: string, itemType: string) => void;
 }
 
 // Mapping des catégories vers les couleurs (bordures)
@@ -38,7 +40,8 @@ const categoryLabels: Record<string, { label: string; emoji: string }> = {
     ASSOCIATION_EVENT: { label: 'Agenda', emoji: '📅' },
 };
 
-export default function FeedItem({ item, onLike, onComment }: FeedItemProps) {
+export default function FeedItem({ item, onLike, onComment, onDelete }: FeedItemProps) {
+    const { data: session } = useSession();
     const [showComments, setShowComments] = useState(false);
 
     const borderColor = categoryColors[item.type] || '#95a5a6';
@@ -59,6 +62,15 @@ export default function FeedItem({ item, onLike, onComment }: FeedItemProps) {
             onComment(item.originalId, item.type);
         }
     };
+
+    const handleDelete = () => {
+        onDelete(item.originalId, item.type);
+    };
+
+    // Check permissions
+    const isAuthor = session?.user?.id === item.author.id && item.author.type === 'USER';
+    const isAdmin = session?.user?.role === 'ADMIN';
+    const canDelete = isAdmin || isAuthor;
 
     // Déterminer si c'est un événement
     const isEvent = item.type === 'EVENT' || item.type === 'ASSOCIATION_EVENT';
@@ -100,6 +112,18 @@ export default function FeedItem({ item, onLike, onComment }: FeedItemProps) {
                     </div>
                     <div className={styles.timestamp}>{timeAgo}</div>
                 </div>
+                {canDelete && (
+                    <button
+                        className={styles.deleteBtn}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete();
+                        }}
+                        title="Supprimer"
+                    >
+                        <Trash size={16} />
+                    </button>
+                )}
             </div>
 
             {/* Contenu */}

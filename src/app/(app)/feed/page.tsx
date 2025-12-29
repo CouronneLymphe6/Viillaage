@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { Plus, Loader2 } from 'lucide-react';
 import FeedItem from '@/components/feed/FeedItem';
 import NewPostSelector from '@/components/feed/NewPostSelector';
+import FeedWidgets from '@/components/feed/FeedWidgets';
 import { FeedItem as FeedItemType } from '@/lib/feed/types';
 import styles from './Feed.module.css';
 
@@ -85,28 +86,94 @@ export default function FeedPage() {
         loadFeed(nextPage);
     };
 
+    const handleDelete = async (itemId: string, itemType: string) => {
+        if (!confirm('Voulez-vous vraiment supprimer cet élément ?')) return;
+
+        try {
+            const response = await fetch(`/api/feed?id=${itemId}&type=${itemType}`, {
+                method: 'DELETE',
+            });
+
+            if (response.ok) {
+                // Remove item from list locally
+                setFeedItems(prev => prev.filter(item => item.originalId !== itemId));
+                // Optional: Reload to be sure
+                // loadFeed(1);
+            } else {
+                alert("Erreur lors de la suppression");
+            }
+        } catch (error) {
+            console.error('Error deleting:', error);
+            alert("Erreur lors de la suppression");
+        }
+    };
+
     return (
         <div className={styles.feedPage}>
-            {/* Header */}
-            <div className={styles.header}>
-                <div className={styles.headerContent}>
-                    <h1 className={styles.title}>📰 Fil d'actualité</h1>
-                    <p className={styles.subtitle}>Toute l'actualité de votre village</p>
+            {/* Header simple avec salutation */}
+            <header style={{ marginBottom: '20px', padding: '0 4px' }}>
+                <h1 style={{ fontSize: '1.8rem', fontWeight: '800', color: 'var(--text-main)', marginBottom: '4px' }}>
+                    Bonjour {session?.user?.name?.split(' ')[0] || 'Voisin'} ! 👋
+                </h1>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
+                    Voici ce qui se passe à Beaupuy aujourd'hui.
+                </p>
+            </header>
+
+            {/* Widgets (Gazette, Météo, Stats) */}
+            <FeedWidgets />
+
+            {/* Barre de création rapide (Déclencheur) */}
+            <div
+                onClick={() => setShowNewPostModal(true)}
+                style={{
+                    background: 'white',
+                    borderRadius: '12px',
+                    padding: '16px',
+                    marginBottom: '24px',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    cursor: 'pointer',
+                    border: '1px solid var(--border)',
+                    transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)';
+                }}
+                onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)';
+                }}
+            >
+                <div style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    background: 'var(--primary)',
+                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 'bold',
+                    fontSize: '1.2rem'
+                }}>
+                    <Plus size={24} />
                 </div>
-                <button
-                    className={styles.newPostBtn}
-                    onClick={() => setShowNewPostModal(true)}
-                >
-                    <Plus size={20} />
-                    <span>Nouveau post</span>
-                </button>
+                <div style={{ flex: 1 }}>
+                    <div style={{ color: 'var(--text-secondary)', fontSize: '1rem', fontWeight: '500' }}>
+                        Exprimez-vous, publiez une annonce, un événement...
+                    </div>
+                </div>
             </div>
 
             {/* Feed Content */}
             <div className={styles.feedContainer}>
                 {loading && page === 1 ? (
-                    <div className={styles.loadingContainer}>
-                        <Loader2 className={styles.spinner} size={48} />
+                    <div className={styles.loader}>
+                        <Loader2 className={styles.spinner} size={40} />
                         <p>Chargement du fil...</p>
                     </div>
                 ) : feedItems.length === 0 ? (
@@ -130,6 +197,7 @@ export default function FeedPage() {
                                     item={item}
                                     onLike={handleLike}
                                     onComment={handleComment}
+                                    onDelete={handleDelete}
                                 />
                             ))}
                         </div>
