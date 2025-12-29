@@ -1,0 +1,333 @@
+.feedItem {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    margin-bottom: 20px;
+    border-left: 5px solid var(--primary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.feedItem:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+}
+
+.categoryBadge {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    padding: 6px 14px;
+    border-radius: var(--radius-full);
+    color: white;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.avatar {
+    flex-shrink: 0;
+}
+
+.avatarImg {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--primary);
+}
+
+.avatarPlaceholder {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 1.2rem;
+    border: 3px solid var(--primary);
+}
+
+.authorInfo {
+    flex: 1;
+    min-width: 0;
+}
+
+.authorName {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.adminBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    background: var(--primary);
+    color: white;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.timestamp {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+.content {
+    margin-bottom: 16px;
+}
+
+.title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 8px;
+    line-height: 1.3;
+}
+
+.text {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--text-main);
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.mediaContainer {
+    margin-top: 16px;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 2px solid var(--border);
+}
+
+.media {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+    max-height: 500px;
+}
+
+.pdfLink {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    margin-top: 16px;
+    background: var(--background);
+    border: 2px solid var(--primary);
+    border-radius: var(--radius-md);
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.pdfLink:hover {
+    background: var(--primary);
+    color: white;
+    transform: translateX(4px);
+}
+
+.price {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+    color: white;
+    border-radius: var(--radius-full);
+    font-size: 1.1rem;
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(243, 156, 18, 0.3);
+}
+
+.eventCard {
+    display: flex;
+    gap: 16px;
+    padding: 16px;
+    margin-top: 16px;
+    background: linear-gradient(135deg, rgba(52, 152, 219, 0.05), rgba(41, 128, 185, 0.05));
+    border: 2px solid #3498db;
+    border-radius: var(--radius-md);
+}
+
+.eventDate {
+    flex-shrink: 0;
+    width: 70px;
+    height: 70px;
+    background: #3498db;
+    border-radius: var(--radius-md);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+.eventDay {
+    font-size: 1.8rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.eventMonth {
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-top: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.eventYear {
+    font-size: 0.7rem;
+    font-weight: 500;
+    margin-top: 2px;
+    opacity: 0.9;
+}
+
+.eventDetails {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+}
+
+.eventTitle {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--accent);
+}
+
+.eventLocation {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.metrics {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+}
+
+.metricBtn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: none;
+    border: none;
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.metricBtn:hover {
+    background: var(--background);
+    color: var(--primary);
+    transform: scale(1.05);
+}
+
+.metricBtn.liked {
+    color: #e74c3c;
+}
+
+.participants {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .feedItem {
+        padding: 16px;
+        margin-bottom: 16px;
+        border-left-width: 4px;
+    }
+
+    .categoryBadge {
+        top: 12px;
+        right: 12px;
+        padding: 4px 10px;
+        font-size: 0.7rem;
+    }
+
+    .avatarImg,
+    .avatarPlaceholder {
+        width: 40px;
+        height: 40px;
+    }
+
+    .authorName {
+        font-size: 0.95rem;
+    }
+
+    .timestamp {
+        font-size: 0.8rem;
+    }
+
+    .title {
+        font-size: 1.1rem;
+    }
+
+    .text {
+        font-size: 0.95rem;
+    }
+
+    .eventCard {
+        gap: 12px;
+        padding: 12px;
+    }
+
+    .eventDate {
+        width: 60px;
+        height: 60px;
+    }
+
+    .eventDay {
+        font-size: 1.5rem;
+    }
+
+    .metrics {
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .metricBtn {
+        padding: 6px 10px;
+        font-size: 0.9rem;
+    }
+}
