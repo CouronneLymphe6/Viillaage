@@ -67,7 +67,7 @@ export default function NewPostSelector({ onClose, onPostCreated }: NewPostSelec
             color: '#e74c3c',
             action: 'redirect',
             redirectUrl: '/alerts',
-            adminOnly: true,
+            // Accessible à tous les utilisateurs
         },
         {
             id: 'official',
@@ -77,7 +77,7 @@ export default function NewPostSelector({ onClose, onPostCreated }: NewPostSelec
             color: '#00BFA5',
             action: 'redirect',
             redirectUrl: '/official',
-            adminOnly: true,
+            adminOnly: true, // Uniquement pour les administrateurs
         },
     ];
 
