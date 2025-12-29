@@ -107,32 +107,32 @@ export async function getUnifiedFeed(
     // --- MAPPING ---
     const items: FeedItem[] = [];
 
-    // Map FeedPosts
-    feedPosts.forEach(p => {
-        items.push({
-            id: `post_${p.id}`,
-            originalId: p.id,
-            type: 'FEED_POST',
-            createdAt: p.createdAt,
-            author: {
-                id: p.user.id,
-                name: p.user.name || 'Utilisateur',
-                image: p.user.image,
-                type: 'USER',
-                subline: p.category
-            },
-            content: {
-                text: p.content,
-                mediaUrl: p.mediaUrl,
-                mediaType: p.mediaType as any
-            },
-            metrics: {
-                likes: p._count.likes,
-                comments: p._count.comments,
-                isLiked: p.likes && p.likes.length > 0
-            }
-        });
-    });
+    // Map FeedPosts - TEMPORARILY DISABLED
+    // feedPosts.forEach(p => {
+    //     items.push({
+    //         id: `post_${p.id}`,
+    //         originalId: p.id,
+    //         type: 'FEED_POST',
+    //         createdAt: p.createdAt,
+    //         author: {
+    //             id: p.user.id,
+    //             name: p.user.name || 'Utilisateur',
+    //             image: p.user.image,
+    //             type: 'USER',
+    //             subline: p.category
+    //         },
+    //         content: {
+    //             text: p.content,
+    //             mediaUrl: p.mediaUrl,
+    //             mediaType: p.mediaType as any
+    //         },
+    //         metrics: {
+    //             likes: p._count.likes,
+    //             comments: p._count.comments,
+    //             isLiked: p.likes && p.likes.length > 0
+    //         }
+    //     });
+    // });
 
     // Map Alerts
     alerts.forEach(a => {
@@ -335,18 +335,19 @@ export async function toggleLike(
     targetType: string
 ): Promise<{ liked: boolean; count: number }> {
     switch (targetType) {
-        case 'FEED_POST': {
-            const existing = await db.feedPostLike.findUnique({
-                where: { postId_userId: { postId: targetId, userId } }
-            });
-            if (existing) {
-                await db.feedPostLike.delete({ where: { id: existing.id } });
-            } else {
-                await db.feedPostLike.create({ data: { postId: targetId, userId } });
-            }
-            const count = await db.feedPostLike.count({ where: { postId: targetId } });
-            return { liked: !existing, count };
-        }
+        // TEMPORARILY DISABLED - FeedPost not yet in production DB
+        // case 'FEED_POST': {
+        //     const existing = await db.feedPostLike.findUnique({
+        //         where: { postId_userId: { postId: targetId, userId } }
+        //     });
+        //     if (existing) {
+        //         await db.feedPostLike.delete({ where: { id: existing.id } });
+        //     } else {
+        //         await db.feedPostLike.create({ data: { postId: targetId, userId } });
+        //     }
+        //     const count = await db.feedPostLike.count({ where: { postId: targetId } });
+        //     return { liked: !existing, count };
+        // }
 
         case 'PRO_POST': {
             const existing = await db.proPostLike.findUnique({
@@ -405,11 +406,12 @@ export async function addComment(
     content: string
 ): Promise<any> {
     switch (targetType) {
-        case 'FEED_POST':
-            return db.feedComment.create({
-                data: { postId: targetId, userId, content },
-                include: { user: { select: { name: true, image: true } } }
-            });
+        // TEMPORARILY DISABLED - FeedPost not yet in production DB
+        // case 'FEED_POST':
+        //     return db.feedComment.create({
+        //         data: { postId: targetId, userId, content },
+        //         include: { user: { select: { name: true, image: true } } }
+        //     });
 
         case 'PRO_POST':
             return db.proComment.create({
@@ -433,12 +435,13 @@ export async function getComments(
     targetType: string
 ): Promise<any[]> {
     switch (targetType) {
-        case 'FEED_POST':
-            return db.feedComment.findMany({
-                where: { postId: targetId },
-                include: { user: { select: { id: true, name: true, image: true } } },
-                orderBy: { createdAt: 'asc' }
-            });
+        // TEMPORARILY DISABLED - FeedPost not yet in production DB
+        // case 'FEED_POST':
+        //     return db.feedComment.findMany({
+        //         where: { postId: targetId },
+        //         include: { user: { select: { id: true, name: true, image: true } } },
+        //         orderBy: { createdAt: 'asc' }
+        //     });
 
         case 'PRO_POST':
             return db.proComment.findMany({
