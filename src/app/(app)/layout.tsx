@@ -6,7 +6,7 @@ import NotificationBell from "@/components/NotificationBell";
 import PushNotificationManager from "@/components/PushNotificationManager";
 import { ToastContainer } from "@/components/Toast";
 import MobileBottomNav from "@/components/MobileBottomNav";
-import MobileHamburgerMenu from "@/components/MobileHamburgerMenu";
+
 
 
 
@@ -19,15 +19,6 @@ export default function AppLayout({
         <div style={{ display: 'flex' }}>
             <Sidebar />
 
-            {/* Mobile Hamburger Menu - Top Left */}
-            <div style={{
-                position: 'fixed',
-                top: '20px',
-                left: '20px',
-                zIndex: 1002,
-            }} className="hamburger-menu-container">
-                <MobileHamburgerMenu />
-            </div>
 
             {/* Notification Bell - Fixed Top Right */}
             <div style={{
@@ -75,11 +66,6 @@ export default function AppLayout({
                     .notification-bell-container {
                         top: 16px !important;
                         right: 16px !important;
-                    }
-
-                    .hamburger-menu-container {
-                        top: 16px !important;
-                        left: 16px !important;
                     }
                 }
             `}</style>
