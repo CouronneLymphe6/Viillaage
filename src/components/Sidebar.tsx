@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
-import { useState } from 'react';
 
 const navItems = [
     { label: 'Accueil', href: '/feed', icon: '🏠' },
@@ -20,55 +19,9 @@ const navItems = [
 
 export default function Sidebar() {
     const pathname = usePathname();
-    const [isOpen, setIsOpen] = useState(false);
-
-    const toggleMenu = () => setIsOpen(!isOpen);
-    const closeMenu = () => setIsOpen(false);
 
     return (
         <>
-            {/* Hamburger Button - Mobile Only */}
-            <button
-                onClick={toggleMenu}
-                style={{
-                    position: 'fixed',
-                    top: '16px',
-                    left: '16px',
-                    zIndex: 1001,
-                    display: 'none',
-                    flexDirection: 'column',
-                    gap: '4px',
-                    padding: '8px',
-                    backgroundColor: 'var(--secondary)',
-                    border: '1px solid var(--border)',
-                    borderRadius: 'var(--radius-sm)',
-                    cursor: 'pointer',
-                }}
-                className="hamburger-btn"
-            >
-                <span style={{ width: '24px', height: '3px', backgroundColor: 'var(--text-main)', borderRadius: '2px', transition: 'all 0.3s' }}></span>
-                <span style={{ width: '24px', height: '3px', backgroundColor: 'var(--text-main)', borderRadius: '2px', transition: 'all 0.3s' }}></span>
-                <span style={{ width: '24px', height: '3px', backgroundColor: 'var(--text-main)', borderRadius: '2px', transition: 'all 0.3s' }}></span>
-            </button>
-
-            {/* Overlay - Mobile Only */}
-            {isOpen && (
-                <div
-                    onClick={closeMenu}
-                    style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                        zIndex: 999,
-                        display: 'none',
-                    }}
-                    className="sidebar-overlay"
-                />
-            )}
-
             {/* Sidebar */}
             <aside
                 style={{
@@ -83,9 +36,8 @@ export default function Sidebar() {
                     flexDirection: 'column',
                     padding: 'var(--spacing-md)',
                     zIndex: 1000,
-                    transition: 'transform 0.3s ease-in-out',
                 }}
-                className={`sidebar ${isOpen ? 'open' : ''}`}
+                className="sidebar"
             >
                 <div style={{ marginBottom: 'var(--spacing-xl)', paddingLeft: 'var(--spacing-xs)' }}>
                     <h1 style={{ fontSize: '1.5rem', color: 'var(--primary)' }}>Viillaage</h1>
@@ -98,7 +50,6 @@ export default function Sidebar() {
                             <Link
                                 key={item.href}
                                 href={item.href}
-                                onClick={closeMenu}
                                 style={{
                                     display: 'flex',
                                     alignItems: 'center',
@@ -140,20 +91,8 @@ export default function Sidebar() {
             {/* CSS for responsive behavior */}
             <style jsx>{`
                 @media (max-width: 768px) {
-                    .hamburger-btn {
-                        display: flex !important;
-                    }
-
                     .sidebar {
-                        transform: translateX(-100%);
-                    }
-
-                    .sidebar.open {
-                        transform: translateX(0);
-                    }
-
-                    .sidebar-overlay {
-                        display: block !important;
+                        display: none;
                     }
                 }
             `}</style>

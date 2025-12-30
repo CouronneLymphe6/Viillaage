@@ -189,7 +189,7 @@ export default function AlertsPage() {
                     alignItems: 'center',
                     justifyContent: 'center',
                     cursor: 'pointer',
-                    zIndex: 1000,
+                    zIndex: 1500,
                 }}
             >
                 <Plus size={28} />
