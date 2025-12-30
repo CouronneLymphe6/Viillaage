@@ -8,7 +8,6 @@ import { useSession } from 'next-auth/react';
 import { FeedItem as FeedItemType } from '@/lib/feed/types';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import ImageModal from '@/components/ImageModal';
 
 interface FeedItemProps {
     item: FeedItemType;
@@ -44,7 +43,6 @@ const categoryLabels: Record<string, { label: string; emoji: string }> = {
 export default function FeedItem({ item, onLike, onComment, onDelete }: FeedItemProps) {
     const { data: session } = useSession();
     const [showComments, setShowComments] = useState(false);
-    const [showImageModal, setShowImageModal] = useState(false);
 
     const borderColor = categoryColors[item.type] || '#95a5a6';
     const categoryInfo = categoryLabels[item.type] || { label: 'Post', emoji: '📝' };
@@ -210,25 +208,36 @@ export default function FeedItem({ item, onLike, onComment, onDelete }: FeedItem
 
             {/* Media */}
             {item.content.mediaUrl && item.content.mediaType === 'PHOTO' && (
-                <>
-                    <div className={styles.mediaContainer} onClick={() => setShowImageModal(true)}>
-                        <Image
-                            src={item.content.mediaUrl}
-                            alt="Post media"
-                            width={600}
-                            height={400}
-                            className={styles.media}
-                            loading="lazy"
-                            style={{ cursor: 'pointer' }}
-                        />
-                    </div>
-                    <ImageModal
+                <div
+                    className={styles.mediaContainer}
+                    onClick={() => item.content.mediaUrl && window.open(item.content.mediaUrl, '_blank')}
+                    style={{ cursor: 'pointer', position: 'relative' }}
+                >
+                    <Image
                         src={item.content.mediaUrl}
-                        alt={item.content.title || 'Image du post'}
-                        isOpen={showImageModal}
-                        onClose={() => setShowImageModal(false)}
+                        alt="Post media"
+                        width={600}
+                        height={400}
+                        className={styles.media}
+                        loading="lazy"
                     />
-                </>
+                    <div
+                        style={{
+                            position: 'absolute',
+                            bottom: '8px',
+                            right: '8px',
+                            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                            color: 'white',
+                            padding: '6px 12px',
+                            borderRadius: '20px',
+                            fontSize: '0.85rem',
+                            fontWeight: '600',
+                            pointerEvents: 'none',
+                        }}
+                    >
+                        🔍 Cliquer pour agrandir
+                    </div>
+                </div>
             )}
 
             {/* Metrics - Style Viillaage avec cœurs rouges */}

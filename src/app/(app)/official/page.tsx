@@ -6,7 +6,6 @@ import { Plus, Edit2, Trash2, X, FileText } from 'lucide-react';
 import { Alert } from '@/types';
 import FileUpload from '@/components/FileUpload';
 import Image from 'next/image';
-import ImageModal from '@/components/ImageModal';
 
 // Couleurs de punaises harmonisées avec le thème Village
 const PIN_COLORS = ['#00BFA5', '#008F7A', '#00897B', '#00695C', '#004D40', '#26A69A'];
@@ -16,7 +15,6 @@ export default function OfficialPage() {
     const [alerts, setAlerts] = useState<Alert[]>([]);
     const [showForm, setShowForm] = useState(false);
     const [editingAlert, setEditingAlert] = useState<Alert | null>(null);
-    const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [formData, setFormData] = useState({
         type: 'OFFICIAL_INFO',
         description: '',
@@ -617,7 +615,7 @@ export default function OfficialPage() {
                                                     </a>
                                                 ) : (
                                                     <div
-                                                        onClick={() => setSelectedImage(alert.photoUrl!)}
+                                                        onClick={() => alert.photoUrl && window.open(alert.photoUrl, '_blank')}
                                                         style={{ cursor: 'pointer', position: 'relative' }}
                                                     >
                                                         <Image
@@ -656,7 +654,7 @@ export default function OfficialPage() {
                                                                 fontWeight: '600',
                                                             }}
                                                         >
-                                                            🔍 Cliquer pour zoomer
+                                                            🔍 Cliquer pour agrandir
                                                         </div>
                                                     </div>
                                                 )}
@@ -697,16 +695,6 @@ export default function OfficialPage() {
                     )}
                 </div>
             </div>
-
-            {/* Image Modal */}
-            {selectedImage && (
-                <ImageModal
-                    src={selectedImage}
-                    alt="Annonce officielle"
-                    isOpen={!!selectedImage}
-                    onClose={() => setSelectedImage(null)}
-                />
-            )}
 
             <style jsx global>{`
                 @media (max-width: 768px) {
