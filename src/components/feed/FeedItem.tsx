@@ -250,7 +250,7 @@ export default function FeedItem({ item, onLike, onComment, onDelete }: FeedItem
                     <span>{item.metrics?.likes || 0}</span>
                 </button>
 
-                {/* Only Show Comment Button if Supported */}
+                {/* Show Comment Button for all types that support it */}
                 {['FEED_POST', 'PRO_POST', 'ASSOCIATION_POST'].includes(item.type) && (
                     <button className={styles.metricBtn} onClick={handleCommentClick}>
                         <MessageCircle size={22} />
@@ -258,8 +258,9 @@ export default function FeedItem({ item, onLike, onComment, onDelete }: FeedItem
                     </button>
                 )}
 
-                {isEvent && item.metrics?.likes !== undefined && (
-                    <div className={styles.participants}>
+                {/* For events, show participants count with icon */}
+                {isEvent && item.metrics?.likes !== undefined && item.metrics.likes > 0 && (
+                    <div className={styles.metricBtn} style={{ cursor: 'default' }}>
                         <Users size={20} />
                         <span>{item.metrics.likes} participant{item.metrics.likes > 1 ? 's' : ''}</span>
                     </div>

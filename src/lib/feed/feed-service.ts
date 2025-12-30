@@ -278,7 +278,8 @@ export async function getUnifiedFeed(
             },
             metrics: {
                 likes: e._count.rsvps,
-                comments: 0
+                comments: 0,
+                isLiked: e.rsvps && e.rsvps.length > 0
             },
             metadata: {
                 eventDate: e.date,
@@ -337,7 +338,7 @@ export async function toggleLike(
     switch (targetType) {
         // TEMPORARILY DISABLED - FeedPost not yet in production DB
         // case 'FEED_POST': {
-        //     const existing = await db.feedPostLike.findUnique({
+        //     const existing = await db.feedPostLike.findUnique(({
         //         where: { postId_userId: { postId: targetId, userId } }
         //     });
         //     if (existing) {
@@ -393,6 +394,29 @@ export async function toggleLike(
                 return { liked: true, count };
             }
         }
+
+        case 'EVENT': {
+            // For events, use RSVP system as "like" (interested/participating)
+            const existing = await db.eventRSVP.findUnique({
+                where: { eventId_userId: { eventId: targetId, userId } }
+            });
+            if (existing) {
+                await db.eventRSVP.delete({ where: { id: existing.id } });
+            } else {
+                await db.eventRSVP.create({
+                    data: { eventId: targetId, userId, status: 'GOING' }
+                });
+            }
+            const count = await db.eventRSVP.count({ where: { eventId: targetId } });
+            return { liked: !existing, count };
+        }
+
+        case 'ASSOCIATION_EVENT':
+        case 'LISTING':
+        case 'OFFICIAL':
+            // These types don't have a like system yet - return current state
+            // In the future, we could create a generic "ContentLike" table
+            return { liked: false, count: 0 };
 
         default:
             throw new Error(`Likes are not supported for type ${targetType}`);
