@@ -6,6 +6,7 @@ import { Plus, Edit2, Trash2, X, FileText } from 'lucide-react';
 import { Alert } from '@/types';
 import FileUpload from '@/components/FileUpload';
 import Image from 'next/image';
+import ImageModal from '@/components/ImageModal';
 
 // Couleurs de punaises harmonisées avec le thème Village
 const PIN_COLORS = ['#00BFA5', '#008F7A', '#00897B', '#00695C', '#004D40', '#26A69A'];
@@ -15,6 +16,7 @@ export default function OfficialPage() {
     const [alerts, setAlerts] = useState<Alert[]>([]);
     const [showForm, setShowForm] = useState(false);
     const [editingAlert, setEditingAlert] = useState<Alert | null>(null);
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [formData, setFormData] = useState({
         type: 'OFFICIAL_INFO',
         description: '',
@@ -614,23 +616,49 @@ export default function OfficialPage() {
                                                         📄 Voir le document PDF
                                                     </a>
                                                 ) : (
-                                                    <Image
-                                                        src={alert.photoUrl}
-                                                        alt="Pièce jointe"
-                                                        width={400}
-                                                        height={250}
-                                                        style={{
-                                                            width: '100%',
-                                                            height: 'auto',
-                                                            maxHeight: '250px',
-                                                            borderRadius: 'var(--radius-sm)',
-                                                            border: '2px solid var(--border)',
-                                                            objectFit: 'cover',
-                                                            cursor: 'pointer'
-                                                        }}
-                                                        onClick={() => window.open(alert.photoUrl!, '_blank')}
-                                                        loading="lazy"
-                                                    />
+                                                    <div
+                                                        onClick={() => setSelectedImage(alert.photoUrl!)}
+                                                        style={{ cursor: 'pointer', position: 'relative' }}
+                                                    >
+                                                        <Image
+                                                            src={alert.photoUrl}
+                                                            alt="Pièce jointe"
+                                                            width={400}
+                                                            height={300}
+                                                            style={{
+                                                                width: '100%',
+                                                                height: 'auto',
+                                                                borderRadius: 'var(--radius-sm)',
+                                                                border: '2px solid var(--border)',
+                                                                objectFit: 'contain',
+                                                                transition: 'all 0.2s',
+                                                            }}
+                                                            onMouseEnter={(e) => {
+                                                                e.currentTarget.style.opacity = '0.9';
+                                                                e.currentTarget.style.transform = 'scale(1.02)';
+                                                            }}
+                                                            onMouseLeave={(e) => {
+                                                                e.currentTarget.style.opacity = '1';
+                                                                e.currentTarget.style.transform = 'scale(1)';
+                                                            }}
+                                                            loading="lazy"
+                                                        />
+                                                        <div
+                                                            style={{
+                                                                position: 'absolute',
+                                                                bottom: '8px',
+                                                                right: '8px',
+                                                                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                                                                color: 'white',
+                                                                padding: '6px 12px',
+                                                                borderRadius: '20px',
+                                                                fontSize: '0.85rem',
+                                                                fontWeight: '600',
+                                                            }}
+                                                        >
+                                                            🔍 Cliquer pour zoomer
+                                                        </div>
+                                                    </div>
                                                 )}
                                             </div>
                                         )}
@@ -669,6 +697,17 @@ export default function OfficialPage() {
                     )}
                 </div>
             </div>
+
+            {/* Image Modal */}
+            {selectedImage && (
+                <ImageModal
+                    src={selectedImage}
+                    alt="Annonce officielle"
+                    isOpen={!!selectedImage}
+                    onClose={() => setSelectedImage(null)}
+                />
+            )}
+
             <style jsx global>{`
                 @media (max-width: 768px) {
                     .official-header {
