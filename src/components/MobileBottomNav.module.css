@@ -75,10 +75,3 @@
 .navItem.active .label {
     font-weight: 600;
 }
-
-/* Add padding to body when bottom nav is visible */
-@media (max-width: 768px) {
-    :global(body) {
-        padding-bottom: calc(60px + env(safe-area-inset-bottom));
-    }
-}
