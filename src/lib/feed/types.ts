@@ -1,9 +1,9 @@
-import { 
-  FeedPost, 
-  Alert, 
-  ProPost, 
-  AssociationPost, 
-  Event, 
+import {
+  FeedPost,
+  Alert,
+  ProPost,
+  AssociationPost,
+  Event,
   Listing,
   User,
   Business,
@@ -11,12 +11,13 @@ import {
   Village
 } from '@prisma/client';
 
-export type FeedItemType = 
-  | 'FEED_POST' 
-  | 'ALERT' 
-  | 'PRO_POST' 
-  | 'ASSOCIATION_POST' 
-  | 'EVENT' 
+export type FeedItemType =
+  | 'FEED_POST'
+  | 'ALERT'
+  | 'OFFICIAL'
+  | 'PRO_POST'
+  | 'ASSOCIATION_POST'
+  | 'EVENT'
   | 'ASSOCIATION_EVENT'
   | 'LISTING';
 

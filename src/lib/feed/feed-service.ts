@@ -171,22 +171,37 @@ export async function getUnifiedFeed(
     //     });
     // });
 
-    // Map Alerts
+    // Map Alerts (separate security alerts from official announcements)
     alerts.forEach(a => {
+        const isOfficialAnnouncement = a.type.startsWith('OFFICIAL_');
+
+        // French translations for alert types
+        const alertTypeLabels: Record<string, string> = {
+            'ROAD_HAZARD': 'Danger routier',
+            'SUSPICIOUS_ACTIVITY': 'Activité suspecte',
+            'LOST_PET': 'Animal perdu',
+            'FOUND_PET': 'Animal trouvé',
+            'OFFICIAL_INFO': 'Information officielle',
+            'OFFICIAL_DECREE': 'Arrêté municipal',
+            'OFFICIAL_ANNOUNCEMENT': 'Annonce officielle'
+        };
+
         items.push({
             id: `alert_${a.id}`,
             originalId: a.id,
-            type: 'ALERT',
+            type: isOfficialAnnouncement ? 'OFFICIAL' : 'ALERT',
             createdAt: a.createdAt,
             author: {
                 id: a.user.id,
                 name: a.user.name || 'Voisin',
                 image: a.user.image,
                 type: 'USER',
-                subline: 'Alerte sécurité'
+                subline: isOfficialAnnouncement ? 'Panneau officiel' : 'Alerte sécurité'
             },
             content: {
-                title: `Alerte : ${a.type}`,
+                title: isOfficialAnnouncement
+                    ? alertTypeLabels[a.type] || a.type
+                    : `Alerte : ${alertTypeLabels[a.type] || a.type}`,
                 text: a.description,
                 mediaUrl: a.photoUrl,
                 mediaType: a.photoUrl ? 'PHOTO' : 'NONE'
