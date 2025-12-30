@@ -1,0 +1,84 @@
+.bottomNav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: white;
+    border-top: 1px solid var(--border);
+    display: none;
+    /* Hidden by default, shown on mobile */
+    justify-content: space-around;
+    align-items: center;
+    z-index: 100;
+    padding-bottom: env(safe-area-inset-bottom);
+    /* iPhone notch support */
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* Show on mobile only */
+@media (max-width: 768px) {
+    .bottomNav {
+        display: flex;
+    }
+}
+
+.navItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 12px;
+    text-decoration: none;
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
+    flex: 1;
+    min-width: 0;
+    position: relative;
+}
+
+.navItem:hover {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+}
+
+.navItem:active {
+    transform: scale(0.95);
+}
+
+.navItem.active {
+    color: var(--primary);
+}
+
+.navItem.active::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 3px;
+    background: var(--primary);
+    border-radius: 0 0 3px 3px;
+}
+
+.label {
+    font-size: 10px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.navItem.active .label {
+    font-weight: 600;
+}
+
+/* Add padding to body when bottom nav is visible */
+@media (max-width: 768px) {
+    :global(body) {
+        padding-bottom: calc(60px + env(safe-area-inset-bottom));
+    }
+}

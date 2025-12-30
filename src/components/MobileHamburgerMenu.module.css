@@ -1,0 +1,192 @@
+.hamburgerBtn {
+    display: none;
+    /* Hidden by default */
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--text-main);
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.hamburgerBtn:hover {
+    background: var(--bg-secondary);
+}
+
+.hamburgerBtn:active {
+    transform: scale(0.95);
+}
+
+/* Show on mobile only */
+@media (max-width: 768px) {
+    .hamburgerBtn {
+        display: flex;
+    }
+}
+
+/* Overlay */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 998;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/* Drawer */
+.drawer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 280px;
+    max-width: 85vw;
+    background: white;
+    z-index: 999;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+}
+
+.drawer.open {
+    transform: translateX(0);
+}
+
+/* Drawer Header */
+.drawerHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+.drawerHeader h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0;
+}
+
+.closeBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.closeBtn:hover {
+    background: var(--bg-secondary);
+    color: var(--text-main);
+}
+
+/* Drawer Navigation */
+.drawerNav {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+}
+
+.menuItem {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 16px;
+    text-decoration: none;
+    color: var(--text-main);
+    border-radius: var(--radius-md);
+    transition: all 0.2s ease;
+    margin-bottom: 4px;
+}
+
+.menuItem:hover {
+    background: var(--bg-secondary);
+}
+
+.menuItem:active {
+    transform: scale(0.98);
+}
+
+.menuItem.active {
+    background: var(--primary-light);
+    color: var(--primary);
+}
+
+.menuIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+    flex-shrink: 0;
+}
+
+.menuItem.active .menuIcon {
+    background: var(--primary);
+    color: white;
+}
+
+.menuText {
+    flex: 1;
+    min-width: 0;
+}
+
+.menuLabel {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.menuDescription {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.menuItem.active .menuDescription {
+    color: var(--primary);
+    opacity: 0.8;
+}
+
+.divider {
+    height: 1px;
+    background: var(--border);
+    margin: 12px 0;
+}
+
+/* Hide on desktop */
+@media (min-width: 769px) {
+
+    .hamburgerBtn,
+    .overlay,
+    .drawer {
+        display: none !important;
+    }
+}
