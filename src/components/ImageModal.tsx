@@ -1,8 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import Image from 'next/image';
-import { X } from 'lucide-react';
+import { X, ArrowLeft } from 'lucide-react';
 
 interface ImageModalProps {
     src: string;
@@ -54,7 +53,34 @@ export default function ImageModal({ src, alt, isOpen, onClose }: ImageModalProp
             }}
             onClick={onClose}
         >
-            {/* Close Button */}
+            {/* Back Button - Top Left */}
+            <button
+                onClick={onClose}
+                style={{
+                    position: 'absolute',
+                    top: '20px',
+                    left: '20px',
+                    padding: '12px 20px',
+                    backgroundColor: 'rgba(0, 191, 165, 0.9)',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    transition: 'all 0.2s',
+                    zIndex: 10000,
+                    color: 'white',
+                    fontWeight: '600',
+                    fontSize: '0.95rem',
+                }}
+                title="Retour"
+            >
+                <ArrowLeft size={20} />
+                <span>Retour</span>
+            </button>
+
+            {/* Close Button - Top Right */}
             <button
                 onClick={onClose}
                 style={{
@@ -77,29 +103,30 @@ export default function ImageModal({ src, alt, isOpen, onClose }: ImageModalProp
                 <X size={24} color="white" />
             </button>
 
-            {/* Image - Click to stop propagation */}
+            {/* Image - Using native img tag for full quality */}
             <div
                 onClick={(e) => e.stopPropagation()}
                 style={{
                     maxWidth: '95vw',
                     maxHeight: '95vh',
                     position: 'relative',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                 }}
             >
-                <Image
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
                     src={src}
                     alt={alt}
-                    width={2000}
-                    height={2000}
                     style={{
                         maxWidth: '95vw',
                         maxHeight: '95vh',
                         width: 'auto',
                         height: 'auto',
                         objectFit: 'contain',
+                        borderRadius: '8px',
                     }}
-                    quality={100}
-                    priority
                 />
             </div>
 
