@@ -66,6 +66,7 @@ model User {
   
   pushSubscriptions     PushSubscription[]
   passwordResetTokens   PasswordResetToken[]
+  contentLikes          ContentLike[]
 }
 
 // User notification preferences - opt-in/opt-out for each notification type
@@ -610,4 +611,22 @@ model FeedComment {
   createdAt DateTime @default(now())
 
   @@index([postId])
+}
+
+// ========================================
+// UNIVERSAL LIKE SYSTEM
+// ========================================
+
+// Universal like table for all content types
+model ContentLike {
+  id          String   @id
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contentType String   // "ALERT", "PRO_POST", "ASSOCIATION_POST", "EVENT", "ASSOCIATION_EVENT", "LISTING", "OFFICIAL", "FEED_POST"
+  contentId   String   // ID of the liked content
+  createdAt   DateTime @default(now())
+
+  @@unique([userId, contentType, contentId])
+  @@index([userId])
+  @@index([contentType, contentId])
 }

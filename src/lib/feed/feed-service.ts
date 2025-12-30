@@ -335,92 +335,43 @@ export async function toggleLike(
     targetId: string,
     targetType: string
 ): Promise<{ liked: boolean; count: number }> {
-    switch (targetType) {
-        // TEMPORARILY DISABLED - FeedPost not yet in production DB
-        // case 'FEED_POST': {
-        //     const existing = await db.feedPostLike.findUnique(({
-        //         where: { postId_userId: { postId: targetId, userId } }
-        //     });
-        //     if (existing) {
-        //         await db.feedPostLike.delete({ where: { id: existing.id } });
-        //     } else {
-        //         await db.feedPostLike.create({ data: { postId: targetId, userId } });
-        //     }
-        //     const count = await db.feedPostLike.count({ where: { postId: targetId } });
-        //     return { liked: !existing, count };
-        // }
-
-        case 'PRO_POST': {
-            const existing = await db.proPostLike.findUnique({
-                where: { postId_userId: { postId: targetId, userId } }
-            });
-            if (existing) {
-                await db.proPostLike.delete({ where: { id: existing.id } });
-            } else {
-                await db.proPostLike.create({ data: { postId: targetId, userId } });
-            }
-            const count = await db.proPostLike.count({ where: { postId: targetId } });
-            return { liked: !existing, count };
-        }
-
-        case 'ASSOCIATION_POST': {
-            const existing = await db.associationPostLike.findUnique({
-                where: { postId_userId: { postId: targetId, userId } }
-            });
-            if (existing) {
-                await db.associationPostLike.delete({ where: { id: existing.id } });
-            } else {
-                await db.associationPostLike.create({ data: { postId: targetId, userId } });
-            }
-            const count = await db.associationPostLike.count({ where: { postId: targetId } });
-            return { liked: !existing, count };
-        }
-
-        case 'ALERT': {
-            const existing = await db.alertVote.findUnique({
-                where: { alertId_userId: { alertId: targetId, userId } }
-            });
-            if (existing && existing.type === 'CONFIRM') {
-                await db.alertVote.delete({ where: { id: existing.id } });
-                const count = await db.alertVote.count({ where: { alertId: targetId, type: 'CONFIRM' } });
-                return { liked: false, count };
-            } else {
-                await db.alertVote.upsert({
-                    where: { alertId_userId: { alertId: targetId, userId } },
-                    create: { alertId: targetId, userId, type: 'CONFIRM' },
-                    update: { type: 'CONFIRM' }
-                });
-                const count = await db.alertVote.count({ where: { alertId: targetId, type: 'CONFIRM' } });
-                return { liked: true, count };
+    // Universal like system using ContentLike table
+    const existing = await db.contentLike.findUnique({
+        where: {
+            userId_contentType_contentId: {
+                userId,
+                contentType: targetType,
+                contentId: targetId
             }
         }
+    });
 
-        case 'EVENT': {
-            // For events, use RSVP system as "like" (interested/participating)
-            const existing = await db.eventRSVP.findUnique({
-                where: { eventId_userId: { eventId: targetId, userId } }
-            });
-            if (existing) {
-                await db.eventRSVP.delete({ where: { id: existing.id } });
-            } else {
-                await db.eventRSVP.create({
-                    data: { eventId: targetId, userId, status: 'GOING' }
-                });
+    if (existing) {
+        // Unlike: delete the like
+        await db.contentLike.delete({
+            where: { id: existing.id }
+        });
+    } else {
+        // Like: create a new like
+        await db.contentLike.create({
+            data: {
+                id: `like_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                userId,
+                contentType: targetType,
+                contentId: targetId
             }
-            const count = await db.eventRSVP.count({ where: { eventId: targetId } });
-            return { liked: !existing, count };
-        }
-
-        case 'ASSOCIATION_EVENT':
-        case 'LISTING':
-        case 'OFFICIAL':
-            // These types don't have a like system yet - return current state
-            // In the future, we could create a generic "ContentLike" table
-            return { liked: false, count: 0 };
-
-        default:
-            throw new Error(`Likes are not supported for type ${targetType}`);
+        });
     }
+
+    // Count total likes for this content
+    const count = await db.contentLike.count({
+        where: {
+            contentType: targetType,
+            contentId: targetId
+        }
+    });
+
+    return { liked: !existing, count };
 }
 
 export async function addComment(
