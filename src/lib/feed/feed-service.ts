@@ -30,8 +30,7 @@ export async function getUnifiedFeed(
         //     orderBy: { createdAt: 'desc' },
         //     include: {
         //         user: { select: { id: true, name: true, image: true, role: true } },
-        //         ...(userId ? { likes: { where: { userId } } } : {}),
-        //         _count: { select: { likes: true, comments: true } }
+        //         _count: { select: { comments: true } }
         //     }
         // }),
 
@@ -41,9 +40,7 @@ export async function getUnifiedFeed(
             take: fetchLimit,
             orderBy: { createdAt: 'desc' },
             include: {
-                user: { select: { id: true, name: true, image: true } },
-                ...(userId ? { votes: { where: { userId, type: 'CONFIRM' } } } : {}),
-                _count: { select: { votes: true } }
+                user: { select: { id: true, name: true, image: true } }
             }
         }),
 
@@ -54,8 +51,7 @@ export async function getUnifiedFeed(
             orderBy: { createdAt: 'desc' },
             include: {
                 business: { select: { id: true, name: true, category: true, photos: true } },
-                ...(userId ? { likes: { where: { userId } } } : {}),
-                _count: { select: { likes: true, comments: true } }
+                _count: { select: { comments: true } }
             }
         }),
 
@@ -66,8 +62,7 @@ export async function getUnifiedFeed(
             orderBy: { createdAt: 'desc' },
             include: {
                 association: { select: { id: true, name: true, photoUrl: true } },
-                ...(userId ? { likes: { where: { userId } } } : {}),
-                _count: { select: { likes: true, comments: true } }
+                _count: { select: { comments: true } }
             }
         }),
 
@@ -88,7 +83,6 @@ export async function getUnifiedFeed(
             orderBy: { createdAt: 'desc' },
             include: {
                 organizer: { select: { id: true, name: true, image: true } },
-                ...(userId ? { rsvps: { where: { userId } } } : {}),
                 _count: { select: { rsvps: true } }
             }
         }),
@@ -103,6 +97,49 @@ export async function getUnifiedFeed(
             }
         })
     ]);
+
+    // --- BATCH FETCH ALL LIKES (PERFORMANCE OPTIMIZATION) ---
+    // Collect all content IDs by type
+    const contentIds = {
+        ALERT: alerts.map(a => a.id),
+        PRO_POST: proPosts.map(p => p.id),
+        ASSOCIATION_POST: assPosts.map(p => p.id),
+        EVENT: events.map(e => e.id),
+        ASSOCIATION_EVENT: assoEvents.map(e => e.id),
+        LISTING: listings.map(l => l.id)
+    };
+
+    // Fetch all likes in ONE query
+    const allLikes = userId ? await db.contentLike.findMany({
+        where: {
+            OR: Object.entries(contentIds).flatMap(([type, ids]) =>
+                ids.map(id => ({ contentType: type, contentId: id }))
+            )
+        },
+        select: {
+            contentType: true,
+            contentId: true,
+            userId: true
+        }
+    }) : [];
+
+    // Create lookup maps for O(1) access
+    const likeCounts = new Map<string, number>();
+    const userLikes = new Set<string>();
+
+    allLikes.forEach(like => {
+        const key = `${like.contentType}_${like.contentId}`;
+        likeCounts.set(key, (likeCounts.get(key) || 0) + 1);
+        if (like.userId === userId) {
+            userLikes.add(key);
+        }
+    });
+
+    // Helper function to get like metrics
+    const getLikeMetrics = (type: string, id: string) => ({
+        count: likeCounts.get(`${type}_${id}`) || 0,
+        isLiked: userLikes.has(`${type}_${id}`)
+    });
 
     // --- MAPPING ---
     const items: FeedItem[] = [];
@@ -155,9 +192,9 @@ export async function getUnifiedFeed(
                 mediaType: a.photoUrl ? 'PHOTO' : 'NONE'
             },
             metrics: {
-                likes: a._count.votes,
+                likes: getLikeMetrics('ALERT', a.id).count,
                 comments: 0,
-                isLiked: a.votes && a.votes.length > 0
+                isLiked: getLikeMetrics('ALERT', a.id).isLiked
             },
             metadata: {
                 alertType: a.type,
@@ -191,9 +228,9 @@ export async function getUnifiedFeed(
                 mediaType: p.mediaType as any
             },
             metrics: {
-                likes: p._count.likes,
+                likes: getLikeMetrics('PRO_POST', p.id).count,
                 comments: p._count.comments,
-                isLiked: p.likes && p.likes.length > 0
+                isLiked: getLikeMetrics('PRO_POST', p.id).isLiked
             }
         });
     });
@@ -217,9 +254,9 @@ export async function getUnifiedFeed(
                 mediaType: p.mediaType as any
             },
             metrics: {
-                likes: p._count.likes,
+                likes: getLikeMetrics('ASSOCIATION_POST', p.id).count,
                 comments: p._count.comments,
-                isLiked: p.likes && p.likes.length > 0
+                isLiked: getLikeMetrics('ASSOCIATION_POST', p.id).isLiked
             }
         });
     });
@@ -246,8 +283,9 @@ export async function getUnifiedFeed(
                 mediaType: photos.length > 0 ? 'PHOTO' : 'NONE'
             },
             metrics: {
-                likes: 0,
-                comments: 0
+                likes: getLikeMetrics('LISTING', l.id).count,
+                comments: 0,
+                isLiked: getLikeMetrics('LISTING', l.id).isLiked
             },
             metadata: {
                 price: l.price || 0,
@@ -277,9 +315,9 @@ export async function getUnifiedFeed(
                 mediaType: e.photoUrl ? 'PHOTO' : 'NONE'
             },
             metrics: {
-                likes: e._count.rsvps,
+                likes: getLikeMetrics('EVENT', e.id).count,
                 comments: 0,
-                isLiked: e.rsvps && e.rsvps.length > 0
+                isLiked: getLikeMetrics('EVENT', e.id).isLiked
             },
             metadata: {
                 eventDate: e.date,
@@ -309,8 +347,9 @@ export async function getUnifiedFeed(
                 mediaType: 'NONE'
             },
             metrics: {
-                likes: 0,
-                comments: 0
+                likes: getLikeMetrics('ASSOCIATION_EVENT', e.id).count,
+                comments: 0,
+                isLiked: getLikeMetrics('ASSOCIATION_EVENT', e.id).isLiked
             },
             metadata: {
                 eventDate: e.startDate,
