@@ -174,6 +174,7 @@ export default function AlertsPage() {
                     setEditingAlert(null);
                     setShowForm(true);
                 }}
+                className="fab-button-alert"
                 style={{
                     position: 'absolute',
                     bottom: '24px',
@@ -194,6 +195,15 @@ export default function AlertsPage() {
             >
                 <Plus size={28} />
             </button>
+
+            {/* Responsive CSS for FAB */}
+            <style jsx>{`
+                @media (max-width: 768px) {
+                    .fab-button-alert {
+                        bottom: 84px !important;
+                    }
+                }
+            `}</style>
 
             {/* Modal Form Overlay */}
             {showForm && (

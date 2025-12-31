@@ -177,6 +177,7 @@ export default function FeedPage() {
             {/* Floating Action Button pour créer un post */}
             <button
                 onClick={() => setShowNewPostModal(true)}
+                className="fab-button"
                 style={{
                     position: 'fixed',
                     bottom: '24px',
@@ -201,6 +202,15 @@ export default function FeedPage() {
             >
                 <Plus size={32} />
             </button>
+
+            {/* Responsive CSS for FAB */}
+            <style jsx>{`
+                @media (max-width: 768px) {
+                    .fab-button {
+                        bottom: 84px !important;
+                    }
+                }
+            `}</style>
 
             {/* Modal Nouveau Post */}
             {showNewPostModal && (

@@ -328,11 +328,15 @@ export default function AssociationsPage() {
                     .associations-grid {
                         grid-template-columns: 1fr !important;
                     }
+                    .fab-button-associations {
+                        bottom: 84px !important;
+                    }
                 }
             `}</style>
 
             <button
                 onClick={() => setShowForm(true)}
+                className="fab-button-associations"
                 style={{
                     position: 'fixed',
                     bottom: '24px',

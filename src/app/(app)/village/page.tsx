@@ -406,11 +406,15 @@ export default function VillagePage() {
                     .businesses-grid {
                         grid-template-columns: 1fr !important;
                     }
+                    .fab-button-village {
+                        bottom: 84px !important;
+                    }
                 }
             `}</style>
 
             <button
                 onClick={() => setShowForm(true)}
+                className="fab-button-village"
                 style={{
                     position: 'fixed',
                     bottom: '24px',
