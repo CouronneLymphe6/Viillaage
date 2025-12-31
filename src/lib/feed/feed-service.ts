@@ -30,7 +30,7 @@ export async function getUnifiedFeed(
             orderBy: { createdAt: 'desc' },
             include: {
                 user: { select: { id: true, name: true, image: true, role: true } },
-                _count: { select: { comments: true } }
+                _count: { select: { comments: true, likes: true } }
             }
         }),
 
