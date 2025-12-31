@@ -92,7 +92,7 @@ export default function Sidebar() {
             <style jsx>{`
                 @media (max-width: 768px) {
                     .sidebar {
-                        display: none;
+                        display: none !important;
                     }
                 }
             `}</style>

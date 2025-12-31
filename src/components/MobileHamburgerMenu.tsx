@@ -7,18 +7,34 @@ import { usePathname } from 'next/navigation';
 import {
     Menu,
     X,
+    Home,
+    AlertTriangle,
     Briefcase,
     Users,
-    ShoppingCart,
     MessageCircle,
-    Settings,
+    Calendar,
+    Megaphone,
+    ShoppingCart,
+    User,
     Shield
 } from 'lucide-react';
 import styles from './MobileHamburgerMenu.module.css';
 
 const menuItems = [
     {
-        href: '/pros',
+        href: '/feed',
+        icon: Home,
+        label: 'Accueil',
+        description: 'Fil d\'actualité'
+    },
+    {
+        href: '/alerts',
+        icon: AlertTriangle,
+        label: 'Alertes & Sécurité',
+        description: 'Alertes du village'
+    },
+    {
+        href: '/village',
         icon: Briefcase,
         label: 'Les Pros',
         description: 'Commerces et artisans'
@@ -30,22 +46,34 @@ const menuItems = [
         description: 'Associations du village'
     },
     {
-        href: '/marketplace',
-        icon: ShoppingCart,
-        label: 'Le Marché',
-        description: 'Petites annonces'
-    },
-    {
         href: '/messages',
         icon: MessageCircle,
         label: 'Messagerie',
         description: 'Discussions'
     },
     {
-        href: '/settings',
-        icon: Settings,
-        label: 'Réglages',
-        description: 'Paramètres du compte'
+        href: '/events',
+        icon: Calendar,
+        label: 'Agenda',
+        description: 'Événements'
+    },
+    {
+        href: '/official',
+        icon: Megaphone,
+        label: 'Panneau',
+        description: 'Annonces officielles'
+    },
+    {
+        href: '/market',
+        icon: ShoppingCart,
+        label: 'Le Marché',
+        description: 'Petites annonces'
+    },
+    {
+        href: '/profile',
+        icon: User,
+        label: 'Mon Compte',
+        description: 'Profil et paramètres'
     }
 ];
 
