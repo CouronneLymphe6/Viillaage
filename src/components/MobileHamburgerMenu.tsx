@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -15,8 +14,7 @@ import {
     Calendar,
     Megaphone,
     ShoppingCart,
-    User,
-    Shield
+    User
 } from 'lucide-react';
 import styles from './MobileHamburgerMenu.module.css';
 
@@ -79,9 +77,7 @@ const menuItems = [
 
 export default function MobileHamburgerMenu() {
     const [isOpen, setIsOpen] = useState(false);
-    const { data: session } = useSession();
     const pathname = usePathname();
-    const isAdmin = session?.user?.role === 'ADMIN';
 
     const toggleMenu = () => setIsOpen(!isOpen);
     const closeMenu = () => setIsOpen(false);
@@ -140,26 +136,6 @@ export default function MobileHamburgerMenu() {
                             </Link>
                         );
                     })}
-
-                    {/* Admin link if user is admin */}
-                    {isAdmin && (
-                        <>
-                            <div className={styles.divider} />
-                            <Link
-                                href="/admin"
-                                className={`${styles.menuItem} ${pathname.startsWith('/admin') ? styles.active : ''}`}
-                                onClick={closeMenu}
-                            >
-                                <div className={styles.menuIcon}>
-                                    <Shield size={22} />
-                                </div>
-                                <div className={styles.menuText}>
-                                    <div className={styles.menuLabel}>Administration</div>
-                                    <div className={styles.menuDescription}>Gestion du village</div>
-                                </div>
-                            </Link>
-                        </>
-                    )}
                 </nav>
             </div>
         </>

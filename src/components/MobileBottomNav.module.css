@@ -10,7 +10,7 @@
     /* Hidden by default, shown on mobile */
     justify-content: space-around;
     align-items: center;
-    z-index: 100;
+    z-index: 1050;
     padding-bottom: env(safe-area-inset-bottom);
     /* iPhone notch support */
     box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
