@@ -15,7 +15,7 @@ export async function getUnifiedFeed(
     const skip = 0; // Always start from 0, we'll handle pagination after sorting
 
     const [
-        // feedPosts, // Temporarily disabled until migration is applied
+        feedPosts,
         alerts,
         proPosts,
         assPosts,
@@ -23,16 +23,16 @@ export async function getUnifiedFeed(
         events,
         assoEvents
     ] = await Promise.all([
-        // 1. User Feed Posts (General) - TEMPORARILY DISABLED
-        // db.feedPost.findMany({
-        //     where: villageId ? { user: { villageId } } : {},
-        //     take: fetchLimit,
-        //     orderBy: { createdAt: 'desc' },
-        //     include: {
-        //         user: { select: { id: true, name: true, image: true, role: true } },
-        //         _count: { select: { comments: true } }
-        //     }
-        // }),
+        // 1. User Feed Posts (General)
+        db.feedPost.findMany({
+            where: villageId ? { user: { villageId } } : {},
+            take: fetchLimit,
+            orderBy: { createdAt: 'desc' },
+            include: {
+                user: { select: { id: true, name: true, image: true, role: true } },
+                _count: { select: { comments: true } }
+            }
+        }),
 
         // 2. Alerts
         db.alert.findMany({
@@ -144,32 +144,32 @@ export async function getUnifiedFeed(
     // --- MAPPING ---
     const items: FeedItem[] = [];
 
-    // Map FeedPosts - TEMPORARILY DISABLED
-    // feedPosts.forEach(p => {
-    //     items.push({
-    //         id: `post_${p.id}`,
-    //         originalId: p.id,
-    //         type: 'FEED_POST',
-    //         createdAt: p.createdAt,
-    //         author: {
-    //             id: p.user.id,
-    //             name: p.user.name || 'Utilisateur',
-    //             image: p.user.image,
-    //             type: 'USER',
-    //             subline: p.category
-    //         },
-    //         content: {
-    //             text: p.content,
-    //             mediaUrl: p.mediaUrl,
-    //             mediaType: p.mediaType as any
-    //         },
-    //         metrics: {
-    //             likes: p._count.likes,
-    //             comments: p._count.comments,
-    //             isLiked: p.likes && p.likes.length > 0
-    //         }
-    //     });
-    // });
+    // Map FeedPosts
+    feedPosts.forEach(p => {
+        items.push({
+            id: `post_${p.id}`,
+            originalId: p.id,
+            type: 'FEED_POST',
+            createdAt: p.createdAt,
+            author: {
+                id: p.user.id,
+                name: p.user.name || 'Utilisateur',
+                image: p.user.image,
+                type: 'USER',
+                subline: p.category
+            },
+            content: {
+                text: p.content,
+                mediaUrl: p.mediaUrl,
+                mediaType: p.mediaType as any
+            },
+            metrics: {
+                likes: p._count.likes || 0,
+                comments: p._count.comments,
+                isLiked: false // TODO: FeedPost likes
+            }
+        });
+    });
 
     // Map Alerts (separate security alerts from official announcements)
     alerts.forEach(a => {
@@ -435,12 +435,11 @@ export async function addComment(
     content: string
 ): Promise<any> {
     switch (targetType) {
-        // TEMPORARILY DISABLED - FeedPost not yet in production DB
-        // case 'FEED_POST':
-        //     return db.feedComment.create({
-        //         data: { postId: targetId, userId, content },
-        //         include: { user: { select: { name: true, image: true } } }
-        //     });
+        case 'FEED_POST':
+            return db.feedComment.create({
+                data: { postId: targetId, userId, content },
+                include: { user: { select: { name: true, image: true } } }
+            });
 
         case 'PRO_POST':
             return db.proComment.create({
@@ -464,13 +463,12 @@ export async function getComments(
     targetType: string
 ): Promise<any[]> {
     switch (targetType) {
-        // TEMPORARILY DISABLED - FeedPost not yet in production DB
-        // case 'FEED_POST':
-        //     return db.feedComment.findMany({
-        //         where: { postId: targetId },
-        //         include: { user: { select: { id: true, name: true, image: true } } },
-        //         orderBy: { createdAt: 'asc' }
-        //     });
+        case 'FEED_POST':
+            return db.feedComment.findMany({
+                where: { postId: targetId },
+                include: { user: { select: { id: true, name: true, image: true } } },
+                orderBy: { createdAt: 'asc' }
+            });
 
         case 'PRO_POST':
             return db.proComment.findMany({
@@ -490,4 +488,3 @@ export async function getComments(
             return [];
     }
 }
-
