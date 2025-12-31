@@ -4,6 +4,7 @@ import { db } from '@/lib/prisma';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { z } from 'zod';
+import { notifyVillageUsers } from '@/lib/notificationHelper';
 
 const postSchema = z.object({
     content: z.string().min(1),
@@ -61,25 +62,30 @@ export async function POST(req: NextRequest) {
             }
         });
 
-        // Notify village users asynchronously (fire-and-forget, no performance impact)
+        console.log('Feed post created:', post.id);
+
+        // Notify village users asynchronously
+        // We use a non-await call to not block the response, but we catch errors to ensure stability
         if (user.villageId) {
-            import('@/lib/notificationHelper').then(({ notifyVillageUsers }) => {
-                notifyVillageUsers({
-                    villageId: user.villageId,
-                    excludeUserId: user.id,
-                    type: 'FEED',
-                    title: '📝 Nouvelle publication',
-                    message: `${user.name} a publié : "${body.content.substring(0, 50)}${body.content.length > 50 ? '...' : ''}"`,
-                    link: '/feed',
-                }).catch(error => {
-                    console.error('Failed to send feed post notifications:', error);
-                });
+            notifyVillageUsers({
+                villageId: user.villageId,
+                excludeUserId: user.id,
+                type: 'FEED',
+                title: '📝 Nouvelle publication',
+                message: `${user.name} a publié : "${body.content.substring(0, 50)}${body.content.length > 50 ? '...' : ''}"`,
+                link: '/feed',
+            }).catch(error => {
+                console.error('BACKGROUND_NOTIFICATION_ERROR:', error);
             });
         }
 
         return NextResponse.json(post);
     } catch (error) {
-        console.error('Error creating post:', error);
+        console.error('CREATE_POST_ERROR:', error);
+        // Log detailed error for debugging
+        if (error instanceof Error) {
+            console.error('Stack:', error.stack);
+        }
         if (error instanceof z.ZodError) {
             return NextResponse.json({ error: 'Validation failed', details: error.issues }, { status: 400 });
         }
