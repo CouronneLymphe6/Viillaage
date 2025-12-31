@@ -190,6 +190,12 @@ ${(stats as any).proPostDetails || ''}
 ${stats.activeBusinesses.length > 0 ? `\nCommerçants actifs : ${stats.activeBusinesses.join(', ')}` : ''}
 ${stats.newProducts > 0 ? `\n🆕 ${stats.newProducts} nouveau(x) produit(s)/service(s)` : ''}
 
+🤝 ASSOCIATIONS : ${(stats as any).associationPosts || 0} publication(s) d'associations.
+${(stats as any).associationPostDetails || ''}
+
+💬 PUBLICATIONS DES HABITANTS : ${(stats as any).feedPosts || 0} post(s) sur le fil d'actualité.
+${(stats as any).feedPostDetails || ''}
+
 🛍️ MARCHÉ : ${stats.newListings} nouvelle(s) annonce(s).
 ${stats.listingCategories.length > 0 ? `Catégories : ${stats.listingCategories.join(', ')}` : ''}
 

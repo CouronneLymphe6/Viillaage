@@ -74,10 +74,10 @@ export async function GET(request: NextRequest) {
 
         // Collecter les statistiques de la journée
         // Wrap in try/catch to identify WHICH query fails
-        let messages, alerts, events, proPosts, listings;
+        let messages, alerts, events, proPosts, listings, feedPosts, associationPosts;
 
         try {
-            [messages, alerts, events, proPosts, listings] = await Promise.all([
+            [messages, alerts, events, proPosts, listings, feedPosts, associationPosts] = await Promise.all([
                 // Messages
                 prisma.message.findMany({
                     where: {
@@ -116,6 +116,22 @@ export async function GET(request: NextRequest) {
                         user: { villageId: userVillageId },
                         createdAt: { gte: targetDate, lt: nextDay },
                     },
+                }),
+                // Posts du feed (utilisateurs)
+                prisma.feedPost.findMany({
+                    where: {
+                        user: { villageId: userVillageId },
+                        createdAt: { gte: targetDate, lt: nextDay },
+                    },
+                    include: { user: true },
+                }),
+                // Posts des associations
+                prisma.associationPost.findMany({
+                    where: {
+                        association: { owner: { villageId: userVillageId } },
+                        createdAt: { gte: targetDate, lt: nextDay },
+                    },
+                    include: { association: true },
                 }),
             ]);
         } catch (queryError) {
@@ -202,6 +218,18 @@ export async function GET(request: NextRequest) {
             console.warn("Could not count upcoming events", e);
         }
 
+        // Détails des posts utilisateurs (FeedPost)
+        const feedPostDetails = feedPosts.map(p => {
+            const authorName = (p as any).user ? `${(p as any).user.firstName || (p as any).user.name}` : 'Un habitant';
+            return `- ${authorName} a publié : "${p.content.substring(0, 150)}..." [Catégorie: ${p.category}]`;
+        }).join('\n');
+
+        // Détails des posts d'associations
+        const associationPostDetails = associationPosts.map(p => {
+            const assoName = (p as any).association ? (p as any).association.name : 'Une association';
+            return `- ${assoName} : "${p.content.substring(0, 150)}..."`;
+        }).join('\n');
+
         const stats = {
             date: targetDate.toLocaleDateString('fr-FR'),
             totalMessages: messages.length,
@@ -222,11 +250,16 @@ export async function GET(request: NextRequest) {
             activeBusinesses,
             newListings: listings.length,
             listingCategories,
+            // Nouvelles données
+            feedPosts: feedPosts.length,
+            associationPosts: associationPosts.length,
             // Données enrichies pour le prompt
             alertDetailedList,
             proPostDetails,
             messageSnippets,
             eventDetailedList,
+            feedPostDetails,
+            associationPostDetails,
         };
 
         // Générer le résumé avec Gemini
