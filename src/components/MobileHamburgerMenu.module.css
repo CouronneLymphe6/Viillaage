@@ -111,6 +111,8 @@
     flex: 1;
     overflow-y: auto;
     padding: 12px;
+    padding-bottom: 100px;
+    /* Extra space to scroll past bottom nav */
 }
 
 .menuItem {
