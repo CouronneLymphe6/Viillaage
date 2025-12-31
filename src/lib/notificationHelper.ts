@@ -89,6 +89,8 @@ export async function notifyVillageUsers(params: {
         const preferenceField = getPreferenceField(params.type);
 
         // Get all users in the village with their preferences
+        // We select ALL preferences to be resilient against schema drift
+        // (If we select dynamic field that Prisma doesn't know about yet, it crashes)
         const users = await prisma.user.findMany({
             where: {
                 villageId: params.villageId,
@@ -96,11 +98,7 @@ export async function notifyVillageUsers(params: {
             },
             select: {
                 id: true,
-                notificationPreference: {
-                    select: {
-                        [preferenceField]: true,
-                    },
-                },
+                notificationPreference: true, // Fetch all fields
             },
         });
 
@@ -108,8 +106,15 @@ export async function notifyVillageUsers(params: {
         const eligibleUsers = users.filter(user => {
             // If no preferences exist, default is enabled (true)
             if (!user.notificationPreference) return true;
+
+            // Type-safe access with fallback to true
+            // We use 'as any' here because if the type is really missing in Prisma Client, 
+            // TS won't know about it, but at runtime it might be there (or undefined)
+            const prefs = user.notificationPreference as any;
+
             // Check if this notification type is enabled
-            return user.notificationPreference[preferenceField] !== false;
+            // If the field is missing (undefined), we default to true (opt-out behavior)
+            return prefs[preferenceField] !== false;
         });
 
         if (eligibleUsers.length === 0) {

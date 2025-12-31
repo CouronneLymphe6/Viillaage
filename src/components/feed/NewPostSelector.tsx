@@ -48,7 +48,7 @@ export default function NewPostSelector({ onClose, onPostCreated }: NewPostSelec
             icon: <Calendar size={24} />,
             color: '#3498db',
             action: 'redirect',
-            redirectUrl: '/agenda',
+            redirectUrl: '/events',
         },
         {
             id: 'market',
