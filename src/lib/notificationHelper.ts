@@ -3,21 +3,27 @@ import { sendPushNotification } from '@/lib/pushNotifications';
 
 interface CreateNotificationParams {
     userId: string;
-    type: 'ALERT' | 'BUSINESS' | 'MARKET' | 'MESSAGE';
+    type: 'ALERT' | 'BUSINESS' | 'MARKET' | 'MESSAGE' | 'FEED' | 'EVENT' | 'ASSOCIATION' | 'LIKE' | 'COMMENT';
     title: string;
     message: string;
     link?: string;
+    groupKey?: string; // For grouping similar notifications
 }
 
 /**
  * Map notification type to preference field
  */
-function getPreferenceField(type: string): 'enableAlerts' | 'enableBusiness' | 'enableMarket' | 'enableMessages' {
+function getPreferenceField(type: string): 'enableAlerts' | 'enableBusiness' | 'enableMarket' | 'enableMessages' | 'enableFeed' | 'enableEvents' | 'enableAssociations' {
     switch (type) {
         case 'ALERT': return 'enableAlerts';
         case 'BUSINESS': return 'enableBusiness';
         case 'MARKET': return 'enableMarket';
         case 'MESSAGE': return 'enableMessages';
+        case 'FEED': return 'enableFeed';
+        case 'EVENT': return 'enableEvents';
+        case 'ASSOCIATION': return 'enableAssociations';
+        case 'LIKE': return 'enableFeed'; // Likes are part of feed engagement
+        case 'COMMENT': return 'enableFeed'; // Comments are part of feed engagement
         default: return 'enableAlerts';
     }
 }
@@ -45,6 +51,7 @@ export async function createNotification(params: CreateNotificationParams) {
                 title: params.title,
                 message: params.message,
                 link: params.link,
+                groupKey: params.groupKey,
             },
         });
 
@@ -73,7 +80,7 @@ export async function createNotification(params: CreateNotificationParams) {
 export async function notifyVillageUsers(params: {
     villageId: string;
     excludeUserId?: string;
-    type: 'ALERT' | 'BUSINESS' | 'MARKET' | 'MESSAGE';
+    type: 'ALERT' | 'BUSINESS' | 'MARKET' | 'MESSAGE' | 'FEED' | 'EVENT' | 'ASSOCIATION';
     title: string;
     message: string;
     link?: string;

@@ -80,6 +80,9 @@ model NotificationPreference {
   enableMarket   Boolean @default(true)   // Marketplace listings
   enableBusiness Boolean @default(true)   // New businesses
   enableMessages Boolean @default(true)   // Message replies and mentions
+  enableFeed     Boolean @default(true)   // Feed posts from users
+  enableEvents   Boolean @default(true)   // New events
+  enableAssociations Boolean @default(true) // Association posts
   enablePush     Boolean @default(false)  // Push notifications (opt-in)
   
   createdAt      DateTime @default(now())
@@ -370,18 +373,21 @@ model AssociationStats {
 
 model Notification {
   id          String   @id @default(cuid())
-  type        String   // "ALERT", "BUSINESS", "MARKET", "MESSAGE"
+  type        String   // "ALERT", "BUSINESS", "MARKET", "MESSAGE", "FEED", "EVENT", "ASSOCIATION", "LIKE", "COMMENT"
   title       String
   message     String
   link        String?  // URL to navigate to
+  groupKey    String?  // For grouping similar notifications
   isRead      Boolean  @default(false)
   userId      String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   // Performance indexes
   @@index([userId, isRead])  // Fast COUNT queries for unread notifications
   @@index([createdAt(sort: Desc)])  // Fast sorting by date
+  @@index([groupKey])  // Fast grouping queries
 }
 
 // ========================================

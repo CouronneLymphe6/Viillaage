@@ -101,11 +101,34 @@ export async function POST(
             include: {
                 likes: true,
                 comments: true,
+                business: {
+                    select: {
+                        name: true,
+                        owner: {
+                            select: {
+                                villageId: true,
+                            },
+                        },
+                    },
+                },
             },
         });
 
-        // TODO: Notifier les followers du Pro
-        // await notifyProFollowers({ businessId: id, postId: post.id, ... });
+        // Notify village users asynchronously
+        if (post.business.owner.villageId) {
+            import('@/lib/notificationHelper').then(({ notifyVillageUsers }) => {
+                notifyVillageUsers({
+                    villageId: post.business.owner.villageId!,
+                    excludeUserId: session.user.id,
+                    type: 'BUSINESS',
+                    title: `🏪 ${post.business.name}`,
+                    message: content.substring(0, 100) + (content.length > 100 ? '...' : ''),
+                    link: `/village/pro/${id}`,
+                }).catch(error => {
+                    console.error('Failed to send business post notifications:', error);
+                });
+            });
+        }
 
         return NextResponse.json(post);
     } catch (error) {

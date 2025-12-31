@@ -108,8 +108,34 @@ export async function POST(
                         },
                     },
                 },
+                association: {
+                    select: {
+                        name: true,
+                        owner: {
+                            select: {
+                                villageId: true,
+                            },
+                        },
+                    },
+                },
             },
         });
+
+        // Notify village users asynchronously
+        if (post.association.owner.villageId) {
+            import('@/lib/notificationHelper').then(({ notifyVillageUsers }) => {
+                notifyVillageUsers({
+                    villageId: post.association.owner.villageId!,
+                    excludeUserId: session.user.id,
+                    type: 'ASSOCIATION',
+                    title: `🤝 ${post.association.name}`,
+                    message: content.substring(0, 100) + (content.length > 100 ? '...' : ''),
+                    link: `/associations/${id}`,
+                }).catch(error => {
+                    console.error('Failed to send association post notifications:', error);
+                });
+            });
+        }
 
         return NextResponse.json(post);
     } catch (error) {

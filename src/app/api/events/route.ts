@@ -81,10 +81,33 @@ export async function POST(request: Request) {
                     select: {
                         name: true,
                         email: true,
+                        villageId: true,
                     },
                 },
             },
         });
+
+        // Notify village users asynchronously
+        if (event.organizer.villageId) {
+            import('@/lib/notificationHelper').then(({ notifyVillageUsers }) => {
+                const eventDate = new Date(date).toLocaleDateString('fr-FR', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                });
+
+                notifyVillageUsers({
+                    villageId: event.organizer.villageId!,
+                    excludeUserId: session.user.id,
+                    type: 'EVENT',
+                    title: '📅 Nouvel événement',
+                    message: `${title} - ${eventDate}${location ? ` à ${location}` : ''}`,
+                    link: '/events',
+                }).catch(error => {
+                    console.error('Failed to send event notifications:', error);
+                });
+            });
+        }
 
         return NextResponse.json(event);
     } catch (error) {

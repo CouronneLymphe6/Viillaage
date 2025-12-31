@@ -61,6 +61,22 @@ export async function POST(req: NextRequest) {
             }
         });
 
+        // Notify village users asynchronously (fire-and-forget, no performance impact)
+        if (user.villageId) {
+            import('@/lib/notificationHelper').then(({ notifyVillageUsers }) => {
+                notifyVillageUsers({
+                    villageId: user.villageId,
+                    excludeUserId: user.id,
+                    type: 'FEED',
+                    title: '📝 Nouvelle publication',
+                    message: `${user.name} a publié : "${body.content.substring(0, 50)}${body.content.length > 50 ? '...' : ''}"`,
+                    link: '/feed',
+                }).catch(error => {
+                    console.error('Failed to send feed post notifications:', error);
+                });
+            });
+        }
+
         return NextResponse.json(post);
     } catch (error) {
         console.error('Error creating post:', error);
