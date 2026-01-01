@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Heart, MessageCircle, Users, MapPin, FileText, Trash } from 'lucide-react';
 import styles from './FeedItem.module.css';
@@ -8,6 +8,7 @@ import { useSession } from 'next-auth/react';
 import { FeedItem as FeedItemType } from '@/lib/feed/types';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { toast } from '@/components/Toast';
 
 interface FeedItemProps {
     item: FeedItemType;
@@ -43,6 +44,12 @@ const categoryLabels: Record<string, { label: string; emoji: string }> = {
 export default function FeedItem({ item, onLike, onComment, onDelete }: FeedItemProps) {
     const { data: session } = useSession();
     const [showComments, setShowComments] = useState(false);
+    const [comments, setComments] = useState<any[]>([]);
+    const [loadingComments, setLoadingComments] = useState(false);
+
+    // Optimistic UI for likes
+    const [isLiked, setIsLiked] = useState(item.metrics?.isLiked || false);
+    const [likeCount, setLikeCount] = useState(item.metrics?.likes || 0);
 
     const borderColor = categoryColors[item.type] || '#95a5a6';
     const categoryInfo = categoryLabels[item.type] || { label: 'Post', emoji: '📝' };
@@ -52,14 +59,63 @@ export default function FeedItem({ item, onLike, onComment, onDelete }: FeedItem
         locale: fr,
     });
 
-    // Mettre à jour l'état local pour le like
-    const handleLike = () => {
-        onLike(item.originalId, item.type);
+    // Optimistic like toggle
+    const handleLike = async () => {
+        // Optimistic update
+        const wasLiked = isLiked;
+        const prevCount = likeCount;
+        setIsLiked(!wasLiked);
+        setLikeCount(wasLiked ? prevCount - 1 : prevCount + 1);
+
+        try {
+            const res = await fetch('/api/feed/like', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: item.originalId, type: item.type })
+            });
+
+            if (!res.ok) {
+                // Rollback on error
+                setIsLiked(wasLiked);
+                setLikeCount(prevCount);
+                toast('Erreur lors du like', 'error');
+            } else {
+                const data = await res.json();
+                // Update with server response
+                setIsLiked(data.liked);
+                setLikeCount(data.count);
+            }
+        } catch (error) {
+            // Rollback on error
+            setIsLiked(wasLiked);
+            setLikeCount(prevCount);
+            toast('Erreur réseau', 'error');
+        }
     };
 
-    const handleCommentClick = () => {
-        setShowComments(!showComments);
-        // Si on ouvre et que ce n'est pas déjà chargé, on pourrait charger les commentaires ici
+    const handleCommentClick = async () => {
+        const newShowState = !showComments;
+        setShowComments(newShowState);
+
+        // Load comments when opening
+        if (newShowState && comments.length === 0 && !loadingComments) {
+            await fetchComments();
+        }
+    };
+
+    const fetchComments = async () => {
+        setLoadingComments(true);
+        try {
+            const res = await fetch(`/api/feed/comment?id=${item.originalId}&type=${item.type}`);
+            if (res.ok) {
+                const data = await res.json();
+                setComments(data);
+            }
+        } catch (error) {
+            console.error('Error fetching comments:', error);
+        } finally {
+            setLoadingComments(false);
+        }
     };
 
     const handleSendComment = async (e: React.FormEvent) => {
@@ -82,11 +138,15 @@ export default function FeedItem({ item, onLike, onComment, onDelete }: FeedItem
             });
 
             if (res.ok) {
+                const newComment = await res.json();
                 input.value = '';
-                alert('Commentaire envoyé !');
-                // Ideally refresh feed or update local count
+                toast('Commentaire envoyé !', 'success');
+                // Add comment to local list
+                setComments([...comments, newComment]);
+                // Refresh comments to get full list
+                await fetchComments();
             } else {
-                alert('Erreur lors de l\'envoi');
+                toast('Erreur lors de l\'envoi', 'error');
             }
         } catch (err) {
             console.error(err);
@@ -243,11 +303,11 @@ export default function FeedItem({ item, onLike, onComment, onDelete }: FeedItem
             {/* Metrics - Style Viillaage avec cœurs rouges */}
             <div className={styles.metrics}>
                 <button
-                    className={`${styles.metricBtn} ${item.metrics?.isLiked ? styles.liked : ''}`}
+                    className={`${styles.metricBtn} ${isLiked ? styles.liked : ''}`}
                     onClick={handleLike}
                 >
-                    <Heart size={22} fill={item.metrics?.isLiked ? '#e74c3c' : 'none'} />
-                    <span>{item.metrics?.likes || 0}</span>
+                    <Heart size={22} fill={isLiked ? '#e74c3c' : 'none'} />
+                    <span>{likeCount}</span>
                 </button>
 
                 {/* Show Comment Button for all types that support it */}
@@ -270,6 +330,37 @@ export default function FeedItem({ item, onLike, onComment, onDelete }: FeedItem
             {/* Section Commentaires (Simple implementation) */}
             {showComments && ['FEED_POST', 'PRO_POST', 'ASSOCIATION_POST'].includes(item.type) && (
                 <div className={styles.commentsSection} style={{ padding: '16px', borderTop: '1px solid #f0f0f0' }}>
+                    {/* Comment List */}
+                    {loadingComments ? (
+                        <p style={{ textAlign: 'center', color: '#999', padding: '12px' }}>Chargement...</p>
+                    ) : comments.length > 0 ? (
+                        <div style={{ marginBottom: '16px', maxHeight: '300px', overflowY: 'auto' }}>
+                            {comments.map((comment: any) => (
+                                <div key={comment.id} style={{ display: 'flex', gap: '12px', marginBottom: '12px', padding: '8px', backgroundColor: '#f9f9f9', borderRadius: '8px' }}>
+                                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#ddd', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', fontWeight: '600', flexShrink: 0 }}>
+                                        {comment.user?.image ? (
+                                            <Image src={comment.user.image} alt={comment.user.name} width={32} height={32} style={{ borderRadius: '50%' }} />
+                                        ) : (
+                                            comment.user?.name?.charAt(0).toUpperCase()
+                                        )}
+                                    </div>
+                                    <div style={{ flex: 1 }}>
+                                        <div style={{ fontWeight: '600', fontSize: '0.9rem', marginBottom: '4px' }}>
+                                            {comment.user?.name || 'Utilisateur'}
+                                        </div>
+                                        <div style={{ fontSize: '0.9rem', color: '#333' }}>
+                                            {comment.content}
+                                        </div>
+                                        <div style={{ fontSize: '0.75rem', color: '#999', marginTop: '4px' }}>
+                                            {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true, locale: fr })}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : null}
+
+                    {/* Comment Form */}
                     <form
                         onSubmit={handleSendComment}
                         style={{ display: 'flex', gap: '8px' }}
@@ -302,9 +393,6 @@ export default function FeedItem({ item, onLike, onComment, onDelete }: FeedItem
                             Envoyer
                         </button>
                     </form>
-                    <p style={{ marginTop: '12px', fontSize: '0.85rem', color: '#666', fontStyle: 'italic', textAlign: 'center' }}>
-                        Les commentaires ne sont pas encore visibles, mais votre message sera enregistré !
-                    </p>
                 </div>
             )}
         </article>

@@ -26,6 +26,9 @@ export async function GET() {
                     enableMarket: true,
                     enableBusiness: true,
                     enableMessages: true,
+                    enableFeed: true,
+                    enableEvents: true,
+                    enableAssociations: true,
                     enablePush: true,
                 },
             });
@@ -48,7 +51,16 @@ export async function PATCH(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { enableAlerts, enableMarket, enableBusiness, enableMessages, enablePush } = body;
+        const {
+            enableAlerts,
+            enableMarket,
+            enableBusiness,
+            enableMessages,
+            enableFeed,
+            enableEvents,
+            enableAssociations,
+            enablePush
+        } = body;
 
         // Upsert preferences (create if not exists, update if exists)
         const preferences = await prisma.notificationPreference.upsert({
@@ -58,6 +70,9 @@ export async function PATCH(request: NextRequest) {
                 ...(enableMarket !== undefined && { enableMarket }),
                 ...(enableBusiness !== undefined && { enableBusiness }),
                 ...(enableMessages !== undefined && { enableMessages }),
+                ...(enableFeed !== undefined && { enableFeed }),
+                ...(enableEvents !== undefined && { enableEvents }),
+                ...(enableAssociations !== undefined && { enableAssociations }),
                 ...(enablePush !== undefined && { enablePush }),
             },
             create: {
@@ -66,6 +81,9 @@ export async function PATCH(request: NextRequest) {
                 enableMarket: enableMarket ?? true,
                 enableBusiness: enableBusiness ?? true,
                 enableMessages: enableMessages ?? true,
+                enableFeed: enableFeed ?? true,
+                enableEvents: enableEvents ?? true,
+                enableAssociations: enableAssociations ?? true,
                 enablePush: enablePush ?? true,
             },
         });
