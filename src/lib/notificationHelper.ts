@@ -8,12 +8,14 @@ interface CreateNotificationParams {
     message: string;
     link?: string;
     groupKey?: string; // For grouping similar notifications
+    context?: { isReply?: boolean; isCommentLike?: boolean }; // For granular preferences
 }
 
 /**
  * Map notification type to preference field
  */
-function getPreferenceField(type: string): 'enableAlerts' | 'enableBusiness' | 'enableMarket' | 'enableMessages' | 'enableFeed' | 'enableEvents' | 'enableAssociations' {
+function getPreferenceField(type: string, context?: { isReply?: boolean; isCommentLike?: boolean }):
+    'enableAlerts' | 'enableBusiness' | 'enableMarket' | 'enableMessages' | 'enableFeed' | 'enableEvents' | 'enableAssociations' | 'enableLikes' | 'enableComments' | 'enableReplies' | 'enableCommentLikes' {
     switch (type) {
         case 'ALERT': return 'enableAlerts';
         case 'BUSINESS': return 'enableBusiness';
@@ -22,8 +24,12 @@ function getPreferenceField(type: string): 'enableAlerts' | 'enableBusiness' | '
         case 'FEED': return 'enableFeed';
         case 'EVENT': return 'enableEvents';
         case 'ASSOCIATION': return 'enableAssociations';
-        case 'LIKE': return 'enableFeed'; // Likes are part of feed engagement
-        case 'COMMENT': return 'enableFeed'; // Comments are part of feed engagement
+        case 'LIKE':
+            // If it's a like on a comment, use enableCommentLikes
+            return context?.isCommentLike ? 'enableCommentLikes' : 'enableLikes';
+        case 'COMMENT':
+            // If it's a reply to a comment, use enableReplies
+            return context?.isReply ? 'enableReplies' : 'enableComments';
         default: return 'enableAlerts';
     }
 }
@@ -39,8 +45,8 @@ export async function createNotification(params: CreateNotificationParams) {
         });
 
         // If preferences exist and this type is disabled, skip notification
-        const preferenceField = getPreferenceField(params.type);
-        if (preferences && !preferences[preferenceField]) {
+        const preferenceField = getPreferenceField(params.type, params.context);
+        if (preferences && !(preferences as any)[preferenceField]) {
             return null; // User has opted out of this notification type
         }
 
@@ -131,6 +137,25 @@ export async function notifyVillageUsers(params: {
                 link: params.link,
             })),
         });
+
+        // Send push notifications to eligible users who have enabled push
+        const pushUserIds = eligibleUsers
+            .filter(user => {
+                const prefs = user.notificationPreference as any;
+                return !prefs || prefs.enablePush !== false;
+            })
+            .map(user => user.id);
+
+        if (pushUserIds.length > 0) {
+            const { sendPushNotificationToMultipleUsers } = await import('@/lib/pushNotifications');
+
+            // Fire and forget push notifications
+            sendPushNotificationToMultipleUsers(pushUserIds, {
+                title: params.title,
+                body: params.message,
+                url: params.link,
+            }).catch(console.error);
+        }
 
         return notifications;
     } catch (error) {

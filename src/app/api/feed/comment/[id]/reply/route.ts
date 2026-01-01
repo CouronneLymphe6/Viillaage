@@ -58,7 +58,8 @@ export async function POST(
                     type: 'COMMENT',
                     title: 'Réponse à votre commentaire',
                     message: `${user.name || 'Un utilisateur'} a répondu : "${excerpt}"`,
-                    link: `/feed`
+                    link: `/feed`,
+                    context: { isReply: true }
                 });
             }
         } catch (notifError) {

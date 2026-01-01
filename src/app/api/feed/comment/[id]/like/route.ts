@@ -55,7 +55,8 @@ export async function POST(
                         type: 'LIKE',
                         title: 'Like sur votre commentaire',
                         message: `${user.name || 'Un utilisateur'} a aimé votre commentaire`,
-                        link: `/feed`
+                        link: `/feed`,
+                        context: { isCommentLike: true }
                     });
                 }
             } catch (notifError) {
