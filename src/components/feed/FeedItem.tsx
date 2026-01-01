@@ -310,13 +310,11 @@ export default function FeedItem({ item, onLike, onComment, onDelete }: FeedItem
                     <span>{likeCount}</span>
                 </button>
 
-                {/* Show Comment Button for all types that support it */}
-                {['FEED_POST', 'PRO_POST', 'ASSOCIATION_POST'].includes(item.type) && (
-                    <button className={styles.metricBtn} onClick={handleCommentClick}>
-                        <MessageCircle size={22} />
-                        <span>{item.metrics?.comments || 0} commentaire{(item.metrics?.comments || 0) > 1 ? 's' : ''}</span>
-                    </button>
-                )}
+                {/* Show Comment Button for ALL types */}
+                <button className={styles.metricBtn} onClick={handleCommentClick}>
+                    <MessageCircle size={22} />
+                    <span>{item.metrics?.comments || 0} commentaire{(item.metrics?.comments || 0) > 1 ? 's' : ''}</span>
+                </button>
 
                 {/* For events, show participants count with icon */}
                 {isEvent && item.metrics?.likes !== undefined && item.metrics.likes > 0 && (
@@ -327,8 +325,8 @@ export default function FeedItem({ item, onLike, onComment, onDelete }: FeedItem
                 )}
             </div>
 
-            {/* Section Commentaires (Simple implementation) */}
-            {showComments && ['FEED_POST', 'PRO_POST', 'ASSOCIATION_POST'].includes(item.type) && (
+            {/* Section Commentaires */}
+            {showComments && (
                 <div className={styles.commentsSection} style={{ padding: '16px', borderTop: '1px solid #f0f0f0' }}>
                     {/* Comment List */}
                     {loadingComments ? (

@@ -67,6 +67,7 @@ model User {
   pushSubscriptions     PushSubscription[]
   passwordResetTokens   PasswordResetToken[]
   contentLikes          ContentLike[]
+  contentComments       ContentComment[]
 }
 
 // User notification preferences - opt-in/opt-out for each notification type
@@ -636,3 +637,19 @@ model ContentLike {
   @@index([userId])
   @@index([contentType, contentId])
 }
+
+// Universal comment table for all content types
+model ContentComment {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contentType String   // "ALERT", "PRO_POST", "ASSOCIATION_POST", "EVENT", "ASSOCIATION_EVENT", "LISTING", "OFFICIAL", "FEED_POST"
+  contentId   String   // ID of the commented content
+  content     String   // The comment text
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([contentType, contentId])
+  @@index([createdAt])
+}
+

@@ -6,7 +6,7 @@ import { z } from 'zod';
 
 const commentSchema = z.object({
     id: z.string(),
-    type: z.string(), // FEED_POST, PRO_POST, ASSOCIATION_POST
+    type: z.string(),
     content: z.string().min(1),
 });
 
@@ -23,39 +23,17 @@ export async function GET(req: NextRequest) {
             );
         }
 
-        let comments;
-
-        switch (type) {
-            case 'FEED_POST':
-                comments = await db.feedComment.findMany({
-                    where: { postId: id },
-                    include: {
-                        user: { select: { id: true, name: true, image: true } }
-                    },
-                    orderBy: { createdAt: 'asc' }
-                });
-                break;
-            case 'PRO_POST':
-                comments = await db.proComment.findMany({
-                    where: { postId: id },
-                    include: {
-                        user: { select: { id: true, name: true, image: true } }
-                    },
-                    orderBy: { createdAt: 'asc' }
-                });
-                break;
-            case 'ASSOCIATION_POST':
-                comments = await db.associationComment.findMany({
-                    where: { postId: id },
-                    include: {
-                        user: { select: { id: true, name: true, image: true } }
-                    },
-                    orderBy: { createdAt: 'asc' }
-                });
-                break;
-            default:
-                return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
-        }
+        // Use universal ContentComment for all types
+        const comments = await db.contentComment.findMany({
+            where: {
+                contentType: type,
+                contentId: id
+            },
+            include: {
+                user: { select: { id: true, name: true, image: true } }
+            },
+            orderBy: { createdAt: 'asc' }
+        });
 
         return NextResponse.json(comments);
     } catch (error) {
@@ -75,48 +53,18 @@ export async function POST(req: NextRequest) {
         const json = await req.json();
         const { id, type, content } = commentSchema.parse(json);
 
-        let comment;
-
-        switch (type) {
-            case 'FEED_POST':
-                comment = await db.feedComment.create({
-                    data: {
-                        postId: id,
-                        userId: user.id,
-                        content: content,
-                    },
-                    include: {
-                        user: { select: { name: true, image: true } }
-                    }
-                });
-                break;
-            case 'PRO_POST':
-                comment = await db.proComment.create({
-                    data: {
-                        postId: id,
-                        userId: user.id,
-                        content: content,
-                    },
-                    include: {
-                        user: { select: { name: true, image: true } }
-                    }
-                });
-                break;
-            case 'ASSOCIATION_POST':
-                comment = await db.associationComment.create({
-                    data: {
-                        postId: id,
-                        userId: user.id,
-                        content: content,
-                    },
-                    include: {
-                        user: { select: { name: true, image: true } }
-                    }
-                });
-                break;
-            default:
-                return NextResponse.json({ error: 'Commenting not supported for this type' }, { status: 400 });
-        }
+        // Use universal ContentComment for all types
+        const comment = await db.contentComment.create({
+            data: {
+                userId: user.id,
+                contentType: type,
+                contentId: id,
+                content: content,
+            },
+            include: {
+                user: { select: { id: true, name: true, image: true } }
+            }
+        });
 
         // Send notification to the post author
         try {
@@ -134,6 +82,14 @@ export async function POST(req: NextRequest) {
                     authorId = feedPost?.userId || null;
                     break;
 
+                case 'ALERT':
+                    const alert = await db.alert.findUnique({
+                        where: { id },
+                        select: { userId: true }
+                    });
+                    authorId = alert?.userId || null;
+                    break;
+
                 case 'PRO_POST':
                     const proPost = await db.proPost.findUnique({
                         where: { id },
@@ -148,6 +104,30 @@ export async function POST(req: NextRequest) {
                         include: { association: { select: { ownerId: true } } }
                     });
                     authorId = assocPost?.association.ownerId || null;
+                    break;
+
+                case 'EVENT':
+                    const event = await db.event.findUnique({
+                        where: { id },
+                        select: { organizerId: true }
+                    });
+                    authorId = event?.organizerId || null;
+                    break;
+
+                case 'LISTING':
+                    const listing = await db.listing.findUnique({
+                        where: { id },
+                        select: { userId: true }
+                    });
+                    authorId = listing?.userId || null;
+                    break;
+
+                case 'ASSOCIATION_EVENT':
+                    const assocEvent = await db.associationEvent.findUnique({
+                        where: { id },
+                        include: { association: { select: { ownerId: true } } }
+                    });
+                    authorId = assocEvent?.association.ownerId || null;
                     break;
             }
 
