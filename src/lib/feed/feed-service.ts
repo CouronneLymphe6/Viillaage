@@ -101,6 +101,7 @@ export async function getUnifiedFeed(
     // --- BATCH FETCH ALL LIKES (PERFORMANCE OPTIMIZATION) ---
     // Collect all content IDs by type
     const contentIds = {
+        FEED_POST: feedPosts.map(p => p.id),
         ALERT: alerts.map(a => a.id),
         PRO_POST: proPosts.map(p => p.id),
         ASSOCIATION_POST: assPosts.map(p => p.id),
@@ -123,9 +124,23 @@ export async function getUnifiedFeed(
         }
     }) : [];
 
+    // Fetch all comments in ONE query (for all types)
+    const allComments = await db.contentComment.findMany({
+        where: {
+            OR: Object.entries(contentIds).flatMap(([type, ids]) =>
+                ids.map(id => ({ contentType: type, contentId: id }))
+            )
+        },
+        select: {
+            contentType: true,
+            contentId: true
+        }
+    });
+
     // Create lookup maps for O(1) access
     const likeCounts = new Map<string, number>();
     const userLikes = new Set<string>();
+    const commentCounts = new Map<string, number>();
 
     allLikes.forEach(like => {
         const key = `${like.contentType}_${like.contentId}`;
@@ -135,11 +150,20 @@ export async function getUnifiedFeed(
         }
     });
 
+    allComments.forEach(comment => {
+        const key = `${comment.contentType}_${comment.contentId}`;
+        commentCounts.set(key, (commentCounts.get(key) || 0) + 1);
+    });
+
     // Helper function to get like metrics
     const getLikeMetrics = (type: string, id: string) => ({
         count: likeCounts.get(`${type}_${id}`) || 0,
         isLiked: userLikes.has(`${type}_${id}`)
     });
+
+    // Helper function to get comment count
+    const getCommentCount = (type: string, id: string) =>
+        commentCounts.get(`${type}_${id}`) || 0;
 
     // --- MAPPING ---
     const items: FeedItem[] = [];
@@ -165,7 +189,7 @@ export async function getUnifiedFeed(
             },
             metrics: {
                 likes: p._count.likes || 0,
-                comments: p._count.comments,
+                comments: getCommentCount('FEED_POST', p.id),
                 isLiked: false // TODO: FeedPost likes
             }
         });
@@ -208,7 +232,7 @@ export async function getUnifiedFeed(
             },
             metrics: {
                 likes: getLikeMetrics('ALERT', a.id).count,
-                comments: 0,
+                comments: getCommentCount('ALERT', a.id),
                 isLiked: getLikeMetrics('ALERT', a.id).isLiked
             },
             metadata: {
@@ -244,7 +268,7 @@ export async function getUnifiedFeed(
             },
             metrics: {
                 likes: getLikeMetrics('PRO_POST', p.id).count,
-                comments: p._count.comments,
+                comments: getCommentCount('PRO_POST', p.id),
                 isLiked: getLikeMetrics('PRO_POST', p.id).isLiked
             }
         });
@@ -270,7 +294,7 @@ export async function getUnifiedFeed(
             },
             metrics: {
                 likes: getLikeMetrics('ASSOCIATION_POST', p.id).count,
-                comments: p._count.comments,
+                comments: getCommentCount('ASSOCIATION_POST', p.id),
                 isLiked: getLikeMetrics('ASSOCIATION_POST', p.id).isLiked
             }
         });
@@ -299,7 +323,7 @@ export async function getUnifiedFeed(
             },
             metrics: {
                 likes: getLikeMetrics('LISTING', l.id).count,
-                comments: 0,
+                comments: getCommentCount('LISTING', l.id),
                 isLiked: getLikeMetrics('LISTING', l.id).isLiked
             },
             metadata: {
@@ -331,7 +355,7 @@ export async function getUnifiedFeed(
             },
             metrics: {
                 likes: getLikeMetrics('EVENT', e.id).count,
-                comments: 0,
+                comments: getCommentCount('EVENT', e.id),
                 isLiked: getLikeMetrics('EVENT', e.id).isLiked
             },
             metadata: {
@@ -363,7 +387,7 @@ export async function getUnifiedFeed(
             },
             metrics: {
                 likes: getLikeMetrics('ASSOCIATION_EVENT', e.id).count,
-                comments: 0,
+                comments: getCommentCount('ASSOCIATION_EVENT', e.id),
                 isLiked: getLikeMetrics('ASSOCIATION_EVENT', e.id).isLiked
             },
             metadata: {
