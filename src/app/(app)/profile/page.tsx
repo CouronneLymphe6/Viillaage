@@ -11,6 +11,13 @@ interface NotificationPreferences {
     enableMarket: boolean;
     enableBusiness: boolean;
     enableMessages: boolean;
+    enableFeed: boolean;
+    enableEvents: boolean;
+    enableAssociations: boolean;
+    enableLikes: boolean;
+    enableComments: boolean;
+    enableReplies: boolean;
+    enableCommentLikes: boolean;
     enablePush: boolean;
 }
 
@@ -29,6 +36,13 @@ export default function ProfilePage() {
         enableMarket: true,
         enableBusiness: true,
         enableMessages: true,
+        enableFeed: true,
+        enableEvents: true,
+        enableAssociations: true,
+        enableLikes: true,
+        enableComments: true,
+        enableReplies: true,
+        enableCommentLikes: true,
         enablePush: true,
     });
     const [savingPrefs, setSavingPrefs] = useState(false);
@@ -52,6 +66,13 @@ export default function ProfilePage() {
                             enableMarket: data.enableMarket ?? true,
                             enableBusiness: data.enableBusiness ?? true,
                             enableMessages: data.enableMessages ?? true,
+                            enableFeed: data.enableFeed ?? true,
+                            enableEvents: data.enableEvents ?? true,
+                            enableAssociations: data.enableAssociations ?? true,
+                            enableLikes: data.enableLikes ?? true,
+                            enableComments: data.enableComments ?? true,
+                            enableReplies: data.enableReplies ?? true,
+                            enableCommentLikes: data.enableCommentLikes ?? true,
                             enablePush: data.enablePush ?? true,
                         });
                     }
@@ -351,6 +372,57 @@ export default function ProfilePage() {
                     label="💬 Messagerie"
                     description="Réponses et mentions (@votrenom)"
                 />
+                <ToggleSwitch
+                    enabled={notifPrefs.enableFeed}
+                    onChange={() => handleNotifPrefChange('enableFeed')}
+                    label="📰 Publications du Fil"
+                    description="Nouvelles publications dans le fil d'actualité"
+                />
+                <ToggleSwitch
+                    enabled={notifPrefs.enableEvents}
+                    onChange={() => handleNotifPrefChange('enableEvents')}
+                    label="📅 Événements"
+                    description="Nouveaux événements dans votre village"
+                />
+                <ToggleSwitch
+                    enabled={notifPrefs.enableAssociations}
+                    onChange={() => handleNotifPrefChange('enableAssociations')}
+                    label="🤝 Associations"
+                    description="Publications des associations"
+                />
+
+                {/* Social Interactions */}
+                <div style={{ marginTop: 'var(--spacing-md)', paddingTop: 'var(--spacing-md)', borderTop: '2px solid var(--border)' }}>
+                    <h3 style={{ fontSize: '1rem', marginBottom: 'var(--spacing-sm)', color: 'var(--text-secondary)' }}>Interactions Sociales</h3>
+                </div>
+
+                <ToggleSwitch
+                    enabled={notifPrefs.enableLikes}
+                    onChange={() => handleNotifPrefChange('enableLikes')}
+                    label="❤️ Likes sur mes publications"
+                    description="Quand quelqu'un aime votre publication"
+                />
+                <ToggleSwitch
+                    enabled={notifPrefs.enableComments}
+                    onChange={() => handleNotifPrefChange('enableComments')}
+                    label="💬 Commentaires sur mes publications"
+                    description="Quand quelqu'un commente votre publication"
+                />
+                <ToggleSwitch
+                    enabled={notifPrefs.enableReplies}
+                    onChange={() => handleNotifPrefChange('enableReplies')}
+                    label="↩️ Réponses à mes commentaires"
+                    description="Quand quelqu'un répond à votre commentaire"
+                />
+                <ToggleSwitch
+                    enabled={notifPrefs.enableCommentLikes}
+                    onChange={() => handleNotifPrefChange('enableCommentLikes')}
+                    label="💙 Likes sur mes commentaires"
+                    description="Quand quelqu'un aime votre commentaire"
+                />
+
+                <div style={{ marginTop: 'var(--spacing-md)', paddingTop: 'var(--spacing-md)', borderTop: '2px solid var(--border)' }}></div>
+
                 <ToggleSwitch
                     enabled={notifPrefs.enablePush}
                     onChange={() => handleNotifPrefChange('enablePush')}

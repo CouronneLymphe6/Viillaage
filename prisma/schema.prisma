@@ -85,6 +85,13 @@ model NotificationPreference {
   enableFeed     Boolean @default(true)   // Feed posts from users
   enableEvents   Boolean @default(true)   // New events
   enableAssociations Boolean @default(true) // Association posts
+  
+  // Social interactions (new)
+  enableLikes    Boolean @default(true)   // Likes on my posts
+  enableComments Boolean @default(true)   // Comments on my posts
+  enableReplies  Boolean @default(true)   // Replies to my comments
+  enableCommentLikes Boolean @default(true) // Likes on my comments
+  
   enablePush     Boolean @default(false)  // Push notifications (opt-in)
   
   createdAt      DateTime @default(now())
