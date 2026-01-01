@@ -68,6 +68,7 @@ model User {
   passwordResetTokens   PasswordResetToken[]
   contentLikes          ContentLike[]
   contentComments       ContentComment[]
+  commentLikes          CommentLike[]
 }
 
 // User notification preferences - opt-in/opt-out for each notification type
@@ -646,10 +647,30 @@ model ContentComment {
   contentType String   // "ALERT", "PRO_POST", "ASSOCIATION_POST", "EVENT", "ASSOCIATION_EVENT", "LISTING", "OFFICIAL", "FEED_POST"
   contentId   String   // ID of the commented content
   content     String   // The comment text
+  parentId    String?  // For replies (threading)
+  parent      ContentComment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies     ContentComment[] @relation("CommentReplies")
+  likes       CommentLike[]
   createdAt   DateTime @default(now())
 
   @@index([userId])
   @@index([contentType, contentId])
   @@index([createdAt])
+  @@index([parentId])
 }
+
+// Likes on comments
+model CommentLike {
+  id        String         @id @default(cuid())
+  commentId String
+  comment   ContentComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime       @default(now())
+
+  @@unique([commentId, userId])
+  @@index([userId])
+  @@index([commentId])
+}
+
 

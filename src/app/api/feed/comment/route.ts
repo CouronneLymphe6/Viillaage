@@ -12,6 +12,9 @@ const commentSchema = z.object({
 
 export async function GET(req: NextRequest) {
     try {
+        const session = await getServerSession(authOptions);
+        const userId = session?.user?.id;
+
         const { searchParams } = new URL(req.url);
         const id = searchParams.get('id');
         const type = searchParams.get('type');
@@ -23,19 +26,59 @@ export async function GET(req: NextRequest) {
             );
         }
 
-        // Use universal ContentComment for all types
+        // Fetch all comments (including replies) for this content
         const comments = await db.contentComment.findMany({
             where: {
                 contentType: type,
                 contentId: id
             },
             include: {
-                user: { select: { id: true, name: true, image: true } }
+                user: { select: { id: true, name: true, image: true, role: true } },
+                _count: { select: { likes: true, replies: true } }
             },
             orderBy: { createdAt: 'asc' }
         });
 
-        return NextResponse.json(comments);
+        // Fetch user's likes on comments if logged in
+        const userLikes = userId ? await db.commentLike.findMany({
+            where: {
+                userId,
+                commentId: { in: comments.map(c => c.id) }
+            },
+            select: { commentId: true }
+        }) : [];
+
+        const likedCommentIds = new Set(userLikes.map(l => l.commentId));
+
+        // Build tree structure (top-level comments with nested replies)
+        const commentMap = new Map();
+        const topLevelComments: any[] = [];
+
+        // First pass: create all comment objects
+        comments.forEach(comment => {
+            commentMap.set(comment.id, {
+                ...comment,
+                isLiked: likedCommentIds.has(comment.id),
+                likeCount: comment._count.likes,
+                replyCount: comment._count.replies,
+                replies: []
+            });
+        });
+
+        // Second pass: build tree
+        comments.forEach(comment => {
+            const commentObj = commentMap.get(comment.id);
+            if (comment.parentId) {
+                const parent = commentMap.get(comment.parentId);
+                if (parent) {
+                    parent.replies.push(commentObj);
+                }
+            } else {
+                topLevelComments.push(commentObj);
+            }
+        });
+
+        return NextResponse.json(topLevelComments);
     } catch (error) {
         console.error('Error fetching comments:', error);
         return NextResponse.json({ error: 'Failed to fetch comments' }, { status: 500 });

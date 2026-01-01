@@ -9,6 +9,7 @@ import { FeedItem as FeedItemType } from '@/lib/feed/types';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { toast } from '@/components/Toast';
+import CommentItem from './CommentItem';
 
 interface FeedItemProps {
     item: FeedItemType;
@@ -332,28 +333,15 @@ export default function FeedItem({ item, onLike, onComment, onDelete }: FeedItem
                     {loadingComments ? (
                         <p style={{ textAlign: 'center', color: '#999', padding: '12px' }}>Chargement...</p>
                     ) : comments.length > 0 ? (
-                        <div style={{ marginBottom: '16px', maxHeight: '300px', overflowY: 'auto' }}>
+                        <div style={{ marginBottom: '16px', maxHeight: '400px', overflowY: 'auto' }}>
                             {comments.map((comment: any) => (
-                                <div key={comment.id} style={{ display: 'flex', gap: '12px', marginBottom: '12px', padding: '8px', backgroundColor: '#f9f9f9', borderRadius: '8px' }}>
-                                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#ddd', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', fontWeight: '600', flexShrink: 0 }}>
-                                        {comment.user?.image ? (
-                                            <Image src={comment.user.image} alt={comment.user.name} width={32} height={32} style={{ borderRadius: '50%' }} />
-                                        ) : (
-                                            comment.user?.name?.charAt(0).toUpperCase()
-                                        )}
-                                    </div>
-                                    <div style={{ flex: 1 }}>
-                                        <div style={{ fontWeight: '600', fontSize: '0.9rem', marginBottom: '4px' }}>
-                                            {comment.user?.name || 'Utilisateur'}
-                                        </div>
-                                        <div style={{ fontSize: '0.9rem', color: '#333' }}>
-                                            {comment.content}
-                                        </div>
-                                        <div style={{ fontSize: '0.75rem', color: '#999', marginTop: '4px' }}>
-                                            {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true, locale: fr })}
-                                        </div>
-                                    </div>
-                                </div>
+                                <CommentItem
+                                    key={comment.id}
+                                    comment={comment}
+                                    onReply={fetchComments}
+                                    onDelete={fetchComments}
+                                    onUpdate={fetchComments}
+                                />
                             ))}
                         </div>
                     ) : null}
